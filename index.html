@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LUDARP Money Tracker</title>
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- SheetJS for Excel export/import (used by app.js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- SVG sprite for icons -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+    <symbol id="icon-menu" viewBox="0 0 24 24"><path fill="currentColor" d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></symbol>
+    <symbol id="icon-edit" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
+    <symbol id="icon-delete" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></symbol>
+    <symbol id="icon-export" viewBox="0 0 24 24"><path fill="currentColor" d="M5 20h14v-2H5v2zM11 16h2v-6h3l-4-4-4 4h3v6z"/></symbol>
+    <symbol id="icon-bank" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 1 9h3v8h16V9h3L12 3zM7 14v-3h10v3H7z"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 20.49 21.49 19 15.5 14z"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></symbol>
+  </svg>
+</head>
+<body>
+  <!-- AUTH -->
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card card">
+      <h2 id="authTitle">Welcome</h2>
+      <p id="authSubtitle" class="subtitle"></p>
+      <form id="authForm" class="auth-form">
+        <div id="authNameRow">
+          <label for="authName">Your name</label>
+          <input id="authName" type="text" placeholder="Name" />
+          <label for="authSecurityHint" style="margin-top:8px;">Security question (hint)</label>
+          <input id="authSecurityHint" type="text" placeholder="e.g. mother's name (used to help reset password)" />
+        </div>
+        <label for="authPassword">App password</label>
+        <input id="authPassword" type="password" placeholder="Set / Enter password" />
+        <div class="auth-row" style="display:flex; gap:8px; margin-top:10px;">
+          <button id="authSubmitBtn" class="btn-primary" type="submit">Continue</button>
+          <button id="forgotBtn" class="btn-secondary" type="button">Forgot?</button>
+        </div>
+        <div id="authHint" class="info" style="margin-top:8px"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="appRoot" class="appRoot" style="display:none;">
+    <header class="app-header card" role="banner">
+      <div class="header-top">
+        <div class="brand-left">
+          <div class="brand-icon" role="img" aria-label="LUDARP logo">
+            <svg width="44" height="44" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+              <circle cx="24" cy="24" r="22" fill="var(--accent)"></circle>
+              <text x="24" y="30" text-anchor="middle" font-size="16" font-family="system-ui, sans-serif" fill="#fff" font-weight="700">L</text>
+            </svg>
+          </div>
+
+          <div class="brand-text">
+            <h1 class="brand-title">LUDARP Money Tracker</h1>
+            <p class="subtitle brand-sub">Offline daily tracker — secure on your device</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button id="themeToggleTop" class="icon-button" title="Toggle theme quick">🌙</button>
+          <button id="menuToggle" class="icon-button" title="Menu" aria-label="Menu">
+            <svg width="18" height="18" aria-hidden="true"><use href="#icon-menu"></use></svg>
+          </button>
+        </div>
+      </div>
+
+      <nav class="main-nav" role="navigation" aria-label="Main">
+        <button class="nav-item active" data-view="entry">Entry</button>
+        <button class="nav-item" data-view="summary">Summary</button>
+        <button class="nav-item" data-view="accounts">Accounts</button>
+        <button class="nav-item" data-view="settings">Settings</button>
+        <button class="nav-item" data-view="user">User</button>
+        <button class="nav-item" data-view="about">About</button>
+      </nav>
+
+      <div id="mainMenu" class="menu-panel" aria-hidden="true">
+        <button data-to="user">User Info</button>
+        <button data-to="settings">Settings</button>
+        <button data-to="about">About</button>
+        <button data-to="entry">Home</button>
+        <button data-to="summary">Summary</button>
+        <button data-to="accounts">Accounts</button>
+        <button id="exportMenuBtn" data-to="backup">Export/Backup</button>
+        <hr style="opacity:.06;margin:8px 0" />
+        <button id="clearAppDataBtn" class="btn-secondary">Clear all (Export first)</button>
+      </div>
+    </header>
+
+    <main class="app-body">
+      <!-- ENTRY VIEW -->
+      <section id="view-entry" class="view active">
+        <section class="card small-card">
+          <div class="daily-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div class="daily-label">Selected date</div>
+              <div id="selectedDateLabel" class="selected-date-text"></div>
+            </div>
+            <div class="date-input-wrap">
+              <input id="date" type="date" />
+            </div>
+          </div>
+
+          <div class="summary-row">
+            <div>
+              <div class="summary-tag">Today Expense</div>
+              <div id="sumExpense" class="summary-value expense">₹0</div>
+            </div>
+            <div>
+              <div class="summary-tag">Today Income</div>
+              <div id="sumIncome" class="summary-value income">₹0</div>
+            </div>
+            <div>
+              <div class="summary-tag">Net</div>
+              <div id="sumNet" class="summary-value">₹0</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card large-glass">
+          <div class="add-transaction-header">
+            <h2>Add Transaction</h2>
+          </div>
+
+          <form id="money-form" class="form-grid">
+            <div>
+              <label for="type">Type</label>
+              <select id="type">
+                <option>Expense</option>
+                <option>Income</option>
+                <option>Transfer</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="amount">Amount</label>
+              <input id="amount" type="number" min="0" step="0.01" placeholder="0.00" />
+            </div>
+
+            <div class="full">
+              <label for="description">Description</label>
+              <input id="description" type="text" placeholder="Eg: Grocery / Salary" />
+            </div>
+
+            <div>
+              <label for="category">Category</label>
+              <input id="category" type="text" placeholder="Food, Travel..." />
+              <div id="category-pills" class="pill-row"></div>
+            </div>
+
+            <div>
+              <label for="payMethod">Payment Method</label>
+              <select id="payMethod">
+                <option>Cash</option>
+                <option>UPI</option>
+                <option>Card</option>
+                <option>Bank</option>
+                <option>Self transfer</option>
+              </select>
+            </div>
+
+            <div id="paySubTypeWrap" style="display:none;">
+              <label id="paySubTypeLabel" for="paySubType">UPI app</label>
+              <select id="paySubType"></select>
+            </div>
+
+            <div id="transferWrap" style="display:none;">
+              <label>Self transfer</label>
+              <div class="row">
+                <div>
+                  <label>From (bank)</label>
+                  <select id="transferFrom"></select>
+                </div>
+                <div>
+                  <label>To (bank)</label>
+                  <select id="transferTo"></select>
+                </div>
+              </div>
+            </div>
+
+            <div class="full">
+              <label for="note">Note</label>
+              <textarea id="note" rows="2" placeholder="Extra details..."></textarea>
+            </div>
+
+            <div class="full split-block">
+              <label><input id="isGroup" type="checkbox" /> Group / Split expense</label>
+              <div id="splitOptions" style="display:none;">
+                <label>Participants (comma separated names)</label>
+                <input id="splitNames" placeholder="Alice,Bob,Charlie" />
+                <div class="row">
+                  <div>
+                    <label>Split mode</label>
+                    <select id="splitMode">
+                      <option value="equal">Equal split</option>
+                      <option value="custom">Custom amounts (others)</option>
+                    </select>
+                  </div>
+                  <div id="myShareWrap">
+                    <label>Your share</label>
+                    <input id="myShare" type="number" min="0" step="0.01" placeholder="Your contribution" />
+                  </div>
+                </div>
+
+                <div id="customSplits" style="display:none;">
+                  <label>Custom amounts for participants (comma) in same order</label>
+                  <input id="splitAmounts" placeholder="20,30,10" />
+                </div>
+
+                <div class="info" style="margin-top:0.5rem;">
+                  When you save: your share becomes an Expense. Other participants become 'to receive' items and appear in Summary.
+                </div>
+              </div>
+            </div>
+
+            <div class="full form-actions">
+              <button id="submitBtn" class="btn-primary" type="submit">Save entry</button>
+              <button id="clear-btn" type="button" class="btn-secondary">Clear</button>
+            </div>
+            <div class="full"><div id="status" class="status"></div></div>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="section-title">Entries for this day</div>
+          <div id="entriesList" class="list"></div>
+        </section>
+      </section>
+
+      <!-- SUMMARY VIEW -->
+      <section id="view-summary" class="view">
+        <section class="card">
+          <div class="section-title">Filters & totals</div>
+
+          <div style="display:grid; grid-template-columns: 200px 1fr 160px; gap:12px; align-items:end;">
+            <div>
+              <label for="dateMode">Period</label>
+              <select id="dateMode">
+                <option value="day">Day</option>
+                <option value="month" selected>Month</option>
+                <option value="year">Year</option>
+              </select>
+            </div>
+
+            <div id="monthPickerWrap" style="display:block;">
+              <label for="monthPicker">Month</label>
+              <input id="monthPicker" type="month" />
+            </div>
+<div id="dayPickerWrap" style="display:none;">
+  <label for="dayPicker">Day</label>
+  <input id="dayPicker" type="date" />
+</div>
+
+<div id="yearPickerWrap" style="display:none;">
+  <label for="yearPicker">Year</label>
+  <input id="yearPicker" type="number" min="2000" max="2100" />
+</div>
+
+            <div style="display:flex; gap:8px; align-items:center;">
+              <label for="rowsPerPage" style="margin-right:6px;">Rows</label>
+              <select id="rowsPerPage" style="width:100px;">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:12px; margin-top:12px; align-items:center;">
+            <div style="flex:1;">
+              <label for="typeFilter">Type filter</label>
+              <select id="typeFilter">
+                <option>All</option>
+                <option>Expense</option>
+                <option>Income</option>
+                <option>Split</option>
+                <option>Transfer</option>
+              </select>
+            </div>
+
+            <div style="flex:1;">
+              <label for="filterPayment">Payment</label>
+              <select id="filterPayment">
+                <option>All</option>
+                <!-- options populated by JS from settings -->
+              </select>
+            </div>
+
+            <div style="flex:1;">
+              <label for="filterCategory">Category</label>
+              <select id="filterCategory">
+                <option>All</option>
+                <!-- options populated by JS -->
+              </select>
+            </div>
+
+            <div style="width:140px; display:flex; align-items:flex-end;">
+              <button id="summaryExportBtn" class="btn-primary" style="width:100%"><svg width="16" height="16" aria-hidden="true"><use href="#icon-export"></use></svg> Export</button>
+            </div>
+          </div>
+
+            <!-- GRID: left pie, right legend, bottom history -->
+        
+          <section class="card">
+          <div class="summary-chart-grid">
+            <div class="chart-col">
+              <canvas id="categoryPie" aria-label="Expense by category chart" role="img"></canvas>
+            </div>
+            <div class="legend-col">
+              <div id="categoryLegend" class="legend"></div>
+            </div>
+          </div>
+        </section>
+<section class="card">
+          <div style="margin-top:10px;" class="section-totals-row">
+            <div>
+              <div class="summary-tag">Total Expense</div>
+              <div id="monthSumExpense" class="summary-value expense">₹0</div>
+            </div>
+            
+            <div><div class="summary-tag">Total Income</div><div id="monthSumIncome" class="summary-value income">₹0</div></div>
+            
+            <div><div class="summary-tag">Split outstanding</div><div id="splitOutstanding" class="summary-value">₹0</div></div>
+            <!-- <div style="margin-left:auto;"><button id="summaryExportBtn" class="btn-primary">Export / Import</button></div> -->
+          </div>
+          </section>
+             <section class="card">
+          <div class="section-title">History (filtered)</div>
+          <div id="summaryHistory" class="list"></div>
+        </section>
+        </section>
+      </section>
+
+      <!-- ACCOUNTS VIEW -->
+          <!-- ACCOUNTS VIEW -->
+      <section id="view-accounts" class="view">
+        <section class="card">
+          <div class="section-title">Accounts / Bank balances</div>
+
+          <div class="row">
+            <div>
+              <label>Select month</label>
+              <input id="accountsMonth" type="month" />
+            </div>
+            <div>
+              <label>Bank</label>
+              <select id="accountsBankSelect"></select>
+            </div>
+            <div>
+              <label>Initial amount</label>
+              <input id="accountsInitialAmount" type="number" step="0.01" />
+            </div>
+            <div style="align-self:flex-end;">
+              <button id="saveInitialBtn" class="btn-primary">Set initial</button>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <div class="section-title">Bank balances (selected month)</div>
+            <div id="bankBalancesList" class="list"></div>
+          </div>
+        </section>
+      </section>
+
+      <!-- SETTINGS VIEW -->
+ <section id="view-settings" class="view">
+
+  <!-- ================= APP CUSTOMIZATION ================= -->
+  <section class="card">
+    <div class="section-title">App customization & theme</div>
+
+    <label>Theme</label>
+    <select id="themeSelect">
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+    </select>
+
+    <label>Accent color</label>
+    <input id="accentColor" type="color" />
+
+    <label>Currency symbol</label>
+    <input id="currencySymbol" placeholder="₹" />
+
+    
+    <div style="margin-top:0.6rem;">
+      <button id="saveCustomization" class="btn-primary">Save customization</button>
+      <button id="resetCustomization" class="btn-secondary">Reset to defaults</button>
+    </div>
+  </section>
+<section class="card">
+  <div class="section-title">Categories</div>
+
+ <div id="settingsCategories" class="settings-pills-wrap"></div>
+
+  <div class="settings-add-row">
+    <input id="newCategory" placeholder="Add category" />
+    <button id="addCategoryBtn">Add</button>
+  </div>
+</section>
+  <!-- ================= UPI / CARDS / BANKS ================= -->
+  <section class="card">
+    <div class="section-title">UPI / Cards / Banks</div>
+
+    <h4>UPI apps</h4>
+    <div id="settingsUpi" class="settings-list"></div>
+    <div class="settings-add-row">
+      <input id="newUpi" placeholder="Add UPI app" />
+      <button id="addUpiBtn">Add</button>
+    </div>
+
+    <h4>Cards</h4>
+    <div id="settingsCards" class="settings-list"></div>
+    <div class="settings-add-row">
+      <input id="newCard" placeholder="Add card" />
+      <button id="addCardBtn">Add</button>
+    </div>
+
+    <h4>Banks</h4>
+    <div id="settingsBanks" class="settings-list"></div>
+    <div class="settings-add-row">
+      <input id="newBank" placeholder="Add bank" />
+      <button id="addBankBtn">Add</button>
+    </div>
+
+    <!-- Mapping -->
+    <div id="paymentBankMapWrap" style="margin-top:12px;">
+      <div class="section-title">Map payment items to banks</div>
+      <div class="info">
+        Assign each UPI app / Card to a Bank so bank balances update automatically.
+      </div>
+      <div id="mapList" style="margin-top:8px; display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+  </section>
+
+  <!-- ================= EXPORT / IMPORT ================= -->
+  <section class="card">
+    <div class="section-title">Export & Import</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button id="settingsExpCsv">Export CSV</button>
+      <button id="settingsExpJson">Export JSON</button>
+      <button id="settingsExpXlsx">Export Excel</button>
+      <input id="settingsImportFile" type="file" />
+    </div>
+  </section>
+
+</section>
+
+
+      <!-- USER VIEW -->
+      <section id="view-user" class="view">
+        <section class="card">
+          <div class="section-title">User info & security</div>
+
+          <div>
+            <label>Your name</label>
+            <input id="userNameField" />
+          </div>
+
+          <div>
+            <label>Security hint (optional)</label>
+            <input id="securityHint" placeholder="e.g. Mother's name" />
+          </div>
+
+          <div style="margin-top:0.5rem;">
+            <label><input id="biometricEnabled" type="checkbox" /> Prefer biometric unlock (device support only)</label>
+          </div>
+
+          <div style="margin-top:0.6rem;">
+            <label>Change password</label>
+            <input id="oldPassword" type="password" placeholder="Current password" />
+            <input id="newPassword" type="password" placeholder="New password" />
+            <button id="changePasswordBtn" class="btn-primary">Update password</button>
+            <div id="passwordStatus" class="modal-status"></div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ABOUT VIEW -->
+      <section id="view-about" class="view">
+        <section class="card">
+          <div class="section-title">About LUDARP Money Tracker</div>
+          <p class="info">
+            This app keeps all data locally in your browser. It is a PWA-ready offline tracker with split/group support and customizable settings.
+          </p>
+          <p class="info small">Version: 1.0 • Offline only • No external servers (except optional library CDN for Excel)</p>
+        </section>
+      </section>
+    </main>
+
+    <!-- Floating bottom nav -->
+    <div class="floating-nav-wrap">
+      <nav class="floating-nav">
+        <button class="fn-item" data-view="entry" title="Home">🏠</button>
+        <button class="fn-item" data-view="summary" title="Summary">📊</button>
+
+        <div class="fab-outer">
+          <button id="fabAdd" class="fab">+</button>
+        </div>
+
+        <button class="fn-item" data-view="accounts" title="Accounts">🏦</button>
+        <button class="fn-item" data-view="settings" title="Settings">⚙️</button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ---------------------------
+       Script modules (deferred)
+       Order matters: db -> security -> theme -> nav -> ui -> entry -> summary -> accounts -> optional features
+       --------------------------- -->
+       <script src="js/exporter.js" defer></script>
+ 
+  <script src="js/db.js" defer></script>
+  <script src="js/security.js" defer></script>
+  <script src="js/colors.js" defer></script>
+  <script src="js/nav.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/entry.js" defer></script>
+  <script src="js/summary.js" defer></script>
+  <script src="js/accounts.js" defer></script>
+  <script src="js/settings.js"></script>
+  <!-- optional helpers / stubs (keep even if empty) -->
+  <script src="js/pwa.js" defer></script>
+  <script src="js/automation.js" defer></script>
+  <script src="js/recurring.js" defer></script>
+  <script src="js/budget.js" defer></script>
+
+  <!-- custom select (if you moved it out of inline HTML) -->
+  <script src="js/customselect.js" defer></script>
+</body>
+</html>
