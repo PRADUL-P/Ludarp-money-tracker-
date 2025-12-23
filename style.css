@@ -1,3 +1,14 @@
+
+:root[data-theme="dark"]{
+  --bg:#071022;
+  --text:#e7eef8;
+}
+
+:root[data-theme="light"]{
+  --bg:#f8fafc;
+  --text:#0f172a;
+  --card-border: rgba(0,0,0,0.08);
+}
 /* ---------- THEME / VARIABLES ---------- */
 :root{
   --bg:#071022;
@@ -519,4 +530,231 @@ input[type="checkbox"]:focus{ outline:3px solid rgba(0,212,255,0.12) !important;
   height: 18px;
   line-height: 16px;
   cursor: pointer;
+}
+
+
+
+/* ================= SETTINGS DROPDOWN ================= */
+
+.settings-header {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.settings-header .chevron {
+  transition: transform 0.25s ease;
+}
+
+/* Panel default */
+.settings-panel {
+  margin-top: 12px;
+  display: none;
+}
+
+/* Open state */
+.settings-panel.open {
+  display: block;
+}
+
+/* Rotate arrow when closed */
+.settings-panel:not(.open) + .chevron,
+.settings-header.collapsed .chevron {
+  transform: rotate(-90deg);
+}
+
+
+
+/* Header actions container */
+.header-actions{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  z-index: 10000;
+}
+
+/* Theme + menu buttons */
+.icon-button{
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* Ensure theme button always clickable */
+#themeToggleTop{
+  pointer-events: auto;
+  z-index: 10001;
+}
+@media (max-width: 600px){
+  .header-actions{
+    gap: 6px;
+  }
+
+  .icon-button{
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}
+
+/* ================= HEADER LAYOUT ================= */
+
+.app-header{
+  position: relative;
+  z-index: 10000;
+}
+
+.header-top{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Brand + menu group */
+.brand-left{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Header actions */
+.header-actions{
+  display: flex;
+  align-items: center;
+}
+
+/* Icon buttons */
+.icon-button{
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.theme-btn{
+  box-shadow: 0 0 0 2px rgba(0,212,255,0.18);
+}
+
+/* ================= MENU PANEL ================= */
+
+.menu-panel{
+  position: absolute;
+  top: 72px;
+  left: 18px;
+  min-width: 220px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(6,10,20,0.95),
+    rgba(6,10,20,0.9)
+  );
+
+  border-radius: 14px;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+
+  display: none;
+  z-index: 10050;
+}
+
+.menu-panel.open{
+  display: block;
+}
+
+.menu-panel button{
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.menu-panel button:hover{
+  background: rgba(255,255,255,0.08);
+}
+
+.menu-panel hr{
+  border: none;
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 8px 0;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 600px){
+  .icon-button{
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}
+
+/* Optional: hide tabs on very small screens */
+@media (max-width: 520px){
+  .main-nav{
+    display: none;
+  }
+}
+
+
+.fn-item.active{
+  color: var(--text);
+  background: rgba(255,255,255,0.08);
+  box-shadow: 0 0 0 2px rgba(0,212,255,0.15);
+}
+/* Ensure FAB is always clickable */
+.fab-outer,
+.fab{
+  pointer-events: auto !important;
+  z-index: 10002;
+  position: relative;
+}
+.floating-nav-wrap{
+  pointer-events: none;
+}
+.floating-nav{
+  pointer-events: auto;
+  position: relative;
+  z-index: 10001;
+}
+.fab{
+  position: relative;
+  z-index: 10003;
+}
+
+/* Bottom bar hide animation */
+.floating-nav-wrap{
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.floating-nav-wrap.hide{
+  transform: translateY(120%);
+  opacity: 0;
 }

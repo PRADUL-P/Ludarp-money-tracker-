@@ -1,191 +1,292 @@
 'use strict';
 /* nav.js
-   Navigation wiring, menu reparenting and positioning
+   Navigation wiring, menu handling, bottom nav + FAB support
 */
 
-(function(){
+(function () {
+
   const headerTop = document.querySelector('.header-top');
-  let mainMenu = document.getElementById('mainMenu');
+  let mainMenu   = document.getElementById('mainMenu');
   let menuToggle = document.getElementById('menuToggle');
-  const navItems = document.querySelectorAll('.nav-item');
 
-  function ensureMenuElementsInBody(){
+  // 🔥 Top + Bottom navigation buttons
+  const navItems = document.querySelectorAll('.nav-item, .fn-item');
+
+  /* ================= MENU REPARENT ================= */
+
+  function ensureMenuElementsInBody() {
     try {
-      if(!mainMenu) mainMenu = document.getElementById('mainMenu');
-      if(!menuToggle) menuToggle = document.getElementById('menuToggle');
+      if (!mainMenu) mainMenu = document.getElementById('mainMenu');
+      if (!menuToggle) menuToggle = document.getElementById('menuToggle');
 
-      if(mainMenu && mainMenu.parentElement !== document.body){
+      if (mainMenu && mainMenu.parentElement !== document.body) {
         document.body.appendChild(mainMenu);
         mainMenu.style.position = 'fixed';
         mainMenu.style.zIndex = 99999;
         mainMenu.style.pointerEvents = 'none';
       }
 
-      if(menuToggle && menuToggle.parentElement !== document.body){
+      if (menuToggle && menuToggle.parentElement !== document.body) {
         document.body.appendChild(menuToggle);
         menuToggle.style.position = 'fixed';
         menuToggle.style.zIndex = 100000;
-        menuToggle.style.background = 'transparent';
-        menuToggle.style.border = 'none';
         menuToggle.style.pointerEvents = 'auto';
         positionMenuToggle();
       }
-    } catch(e){
+    } catch (e) {
       console.warn('Menu reparent failed', e);
     }
   }
 
-  function positionMenuToggle(){
+  function positionMenuToggle() {
+    if (!menuToggle) return;
     try {
-      if(!menuToggle) return;
-      const headerRect = headerTop ? headerTop.getBoundingClientRect() : { top: 12, right: window.innerWidth - 12, height: 56 };
-      const top = Math.max(8, headerRect.top + 8);
-      let finalRight = 18;
-      if(headerTop){
-        finalRight = Math.max(12, window.innerWidth - (headerRect.right - 18));
-      }
-      menuToggle.style.top = `${top}px`;
-      menuToggle.style.right = `${finalRight}px`;
+      const rect = headerTop
+        ? headerTop.getBoundingClientRect()
+        : { top: 12 };
+
+      menuToggle.style.top = `${Math.max(8, rect.top + 8)}px`;
+      menuToggle.style.right = '18px';
       menuToggle.style.left = 'auto';
-      menuToggle.style.boxShadow = 'none';
-      menuToggle.style.transform = 'none';
-    } catch(e){
-      if(menuToggle){
-        menuToggle.style.top = '12px';
-        menuToggle.style.right = '18px';
-      }
+    } catch (e) {
+      menuToggle.style.top = '12px';
+      menuToggle.style.right = '18px';
     }
   }
 
-  function positionMainMenu(){
-    try{
-      if(!mainMenu) return;
-      const headerRect = headerTop ? headerTop.getBoundingClientRect() : { bottom: 64 };
-      const viewportTop = (headerRect.bottom || 64) + 8; // px
-      const viewportHeight = window.innerHeight;
-      const menuHeight = mainMenu.offsetHeight || 260;
-      let topPx = viewportTop;
-      if(topPx + menuHeight > viewportHeight - 12){
-        topPx = Math.max(12, viewportHeight - menuHeight - 12);
-      }
+  function positionMainMenu() {
+    if (!mainMenu) return;
+    try {
+      const rect = headerTop
+        ? headerTop.getBoundingClientRect()
+        : { bottom: 64 };
+
       mainMenu.style.position = 'fixed';
-      mainMenu.style.top = `${topPx}px`;
+      mainMenu.style.top = `${rect.bottom + 8}px`;
       mainMenu.style.right = '12px';
       mainMenu.style.left = 'auto';
       mainMenu.style.zIndex = 99999;
-      mainMenu.style.background = mainMenu.style.background || getComputedStyle(document.body).getPropertyValue('--panel-bg') || '#0b1220';
-      mainMenu.style.boxShadow = mainMenu.style.boxShadow || '0 8px 28px rgba(2,6,23,0.6)';
-    }catch(err){
-      if(mainMenu){
-        mainMenu.style.position = 'fixed';
-        mainMenu.style.top = '64px';
-        mainMenu.style.right = '12px';
-      }
+    } catch (e) {
+      mainMenu.style.top = '64px';
+      mainMenu.style.right = '12px';
     }
   }
 
-  function openMainMenu(){
-    if(!mainMenu) return;
+  function openMainMenu() {
+    if (!mainMenu) return;
     mainMenu.classList.add('open');
     mainMenu.style.display = 'block';
-    mainMenu.setAttribute('aria-hidden', 'false');
     mainMenu.style.pointerEvents = 'auto';
+    mainMenu.setAttribute('aria-hidden', 'false');
     positionMainMenu();
   }
 
-  function closeMainMenu(){
-    if(!mainMenu) return;
+  function closeMainMenu() {
+    if (!mainMenu) return;
     mainMenu.classList.remove('open');
     mainMenu.style.display = 'none';
-    mainMenu.setAttribute('aria-hidden', 'true');
     mainMenu.style.pointerEvents = 'none';
+    mainMenu.setAttribute('aria-hidden', 'true');
   }
 
-  function initNav(){
+  /* ================= INIT NAV ================= */
+
+  function initNav() {
     ensureMenuElementsInBody();
 
-    navItems.forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        navItems.forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
+    /* ===== TOP + BOTTOM NAV (SAME LOGIC) ===== */
+    navItems.forEach(btn => {
+      btn.addEventListener('click', () => {
         const view = btn.dataset.view;
+        if (!view) return;
+
         showView(view);
         closeMainMenu();
       });
     });
 
-    if(menuToggle){
-      const newToggle = menuToggle.cloneNode(true);
-      menuToggle.parentElement.replaceChild(newToggle, menuToggle);
-      menuToggle = newToggle;
-      menuToggle.addEventListener('click', e=>{
+    /* ===== MENU TOGGLE ===== */
+    if (menuToggle) {
+      menuToggle.addEventListener('click', (e) => {
         e.stopPropagation();
-        const isOpen = mainMenu.classList.toggle('open');
-        if(isOpen) openMainMenu(); else closeMainMenu();
+        if (mainMenu.classList.contains('open')) {
+          closeMainMenu();
+        } else {
+          openMainMenu();
+        }
       });
     }
 
-    if(mainMenu){
-      mainMenu.addEventListener('click', e => e.stopPropagation());
-      if(mainMenu.parentElement !== document.body) document.body.appendChild(mainMenu);
-      mainMenu.style.display = 'none';
-      mainMenu.style.pointerEvents = 'none';
-      mainMenu.style.zIndex = 99999;
-      mainMenu.setAttribute('aria-hidden', 'true');
-    }
-
+    /* ===== CLICK OUTSIDE MENU ===== */
     document.addEventListener('click', (e) => {
-      try {
-        const target = e.target;
-        if(mainMenu && mainMenu.classList.contains('open')) {
-          const clickedInsideMenu = mainMenu.contains(target);
-          const clickedToggle = menuToggle && (menuToggle.contains(target) || menuToggle === target);
-          const clickedNavItem = !!target.closest?.('.nav-item');
-          if(!clickedInsideMenu && !clickedToggle && !clickedNavItem){
-            closeMainMenu();
-          }
-        }
-      } catch(err){
-        if(mainMenu && mainMenu.classList.contains('open')) closeMainMenu();
+      if (
+        mainMenu &&
+        mainMenu.classList.contains('open') &&
+        !mainMenu.contains(e.target) &&
+        !menuToggle.contains(e.target)
+      ) {
+        closeMainMenu();
       }
     });
 
-    if(mainMenu) mainMenu.querySelectorAll('button[data-to]').forEach(b=>{
-      b.addEventListener('click', ()=> {
-        const to = b.dataset.to;
-        if(to) showView(to);
-        closeMainMenu();
+    /* ===== MENU PANEL BUTTONS ===== */
+    if (mainMenu) {
+      mainMenu.querySelectorAll('button[data-to]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const to = btn.dataset.to;
+          if (to) showView(to);
+          closeMainMenu();
+        });
       });
+    }
+
+    /* ===== FAB (+) — PRIMARY ACTION ===== */
+    const fab = document.getElementById('fabAdd');
+    if (fab) {
+      fab.addEventListener('click', () => {
+        showView('entry');
+
+        // Focus amount input if exists
+        const amountInput = document.getElementById('amount');
+        if (amountInput) {
+          setTimeout(() => amountInput.focus(), 50);
+        }
+      });
+    }
+
+    /* ===== WINDOW EVENTS ===== */
+    window.addEventListener('resize', () => {
+      positionMenuToggle();
+      if (mainMenu?.classList.contains('open')) positionMainMenu();
     });
 
-    window.addEventListener('resize', ()=> { positionMenuToggle(); if(mainMenu.classList.contains('open')) positionMainMenu(); });
-    window.addEventListener('scroll', ()=> { positionMenuToggle(); if(mainMenu.classList.contains('open')) positionMainMenu(); });
+    window.addEventListener('scroll', () => {
+      positionMenuToggle();
+      if (mainMenu?.classList.contains('open')) positionMainMenu();
+    });
   }
 
-  function showView(name){
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    if(!name || name==='entry') document.getElementById('view-entry')?.classList.add('active');
-    if(name==='summary') document.getElementById('view-summary')?.classList.add('active');
-    if(name==='accounts') document.getElementById('view-accounts')?.classList.add('active');
-    if(name==='settings') document.getElementById('view-settings')?.classList.add('active');
-    if(name==='user') document.getElementById('view-user')?.classList.add('active');
-    if(name==='about') document.getElementById('view-about')?.classList.add('active');
+  /* ================= VIEW SWITCHER ================= */
 
-    if(mainMenu) mainMenu.style.display='none';
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v =>
+      v.classList.remove('active')
+    );
 
-    document.querySelectorAll('.nav-item').forEach(btn => {
-      if(btn.dataset.view === name || (!name && btn.dataset.view === 'entry')) btn.classList.add('active');
-      else btn.classList.remove('active');
+    if (!name || name === 'entry')
+      document.getElementById('view-entry')?.classList.add('active');
+    if (name === 'summary')
+      document.getElementById('view-summary')?.classList.add('active');
+    if (name === 'accounts')
+      document.getElementById('view-accounts')?.classList.add('active');
+    if (name === 'settings')
+      document.getElementById('view-settings')?.classList.add('active');
+    if (name === 'user')
+      document.getElementById('view-user')?.classList.add('active');
+    if (name === 'about')
+      document.getElementById('view-about')?.classList.add('active');
+
+    /* ===== ACTIVE STATE (TOP + BOTTOM) ===== */
+    document.querySelectorAll('.nav-item, .fn-item').forEach(btn => {
+      if (btn.dataset.view === name) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
     });
 
-    // let other modules handle extra rendering via events
-    window.dispatchEvent(new CustomEvent('mt:view-changed', { detail: { viewName: name } }));
+    window.dispatchEvent(
+      new CustomEvent('mt:view-changed', {
+        detail: { viewName: name }
+      })
+    );
   }
 
-  // expose
+  /* ================= EXPORT ================= */
+
   window.MT = window.MT || {};
-  window.MT.nav = { initNav, showView, openMainMenu, closeMainMenu };
+  window.MT.nav = {
+    initNav,
+    showView,
+    openMainMenu,
+    closeMainMenu
+  };
 
-  // init nav when DOM loaded
   document.addEventListener('DOMContentLoaded', initNav);
+
+})();
+
+/* ===============================
+   HIDE BOTTOM BAR ON SCROLL
+================================ */
+(function () {
+  const bar = document.querySelector('.floating-nav-wrap');
+  if (!bar) return;
+
+  let lastScrollY = window.scrollY;
+
+  window.addEventListener('scroll', () => {
+    const current = window.scrollY;
+
+    // scrolling down → hide
+    if (current > lastScrollY + 6) {
+      bar.classList.add('hide');
+    }
+    // scrolling up → show
+    else if (current < lastScrollY - 6) {
+      bar.classList.remove('hide');
+    }
+
+    lastScrollY = current;
+  }, { passive: true });
+})();
+
+/* ===============================
+   SWIPE NAVIGATION
+================================ */
+(function () {
+
+  const views = ['entry', 'summary', 'accounts', 'settings', 'user', 'about'];
+  let startX = 0;
+  let startY = 0;
+
+  function getCurrentView() {
+    const active = document.querySelector('.view.active');
+    if (!active) return 'entry';
+    return active.id.replace('view-', '');
+  }
+
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    if (!startX) return;
+
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+
+    // Ignore vertical scroll gestures
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return;
+
+    const current = getCurrentView();
+    const index = views.indexOf(current);
+    if (index === -1) return;
+
+    // swipe left → next
+    if (dx < 0 && index < views.length - 1) {
+      window.MT.nav.showView(views[index + 1]);
+    }
+
+    // swipe right → previous
+    if (dx > 0 && index > 0) {
+      window.MT.nav.showView(views[index - 1]);
+    }
+
+    startX = 0;
+    startY = 0;
+  });
+
 })();

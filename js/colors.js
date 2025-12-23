@@ -1,54 +1,129 @@
 'use strict';
 /* colors.js
-   Small theme / accent helpers — applies CSS variables based on stored customizations.
-   Depends on window.MT.db
+   Theme + accent helpers
+   ✔ Single source of truth
+   ✔ Works with navbar + settings page
+   Depends on window.MT.db and window.MT.ui
 */
 
-(function(){
-  const db = window.MT.db;
-  const accentColorInput = document.getElementById('accentColor');
+(function () {
+
+  const db = window.MT?.db;
+
+  /* ---------- DOM ---------- */
+  const accentColorInput   = document.getElementById('accentColor');
   const currencySymbolInput = document.getElementById('currencySymbol');
-  const themeSelect = document.getElementById('themeSelect');
-  const themeToggleTop = document.getElementById('themeToggleTop');
+  const themeSelect        = document.getElementById('themeSelect');
+  const themeToggleTop     = document.getElementById('themeToggleTop');
 
-  function applyCustom(){
+  /* ---------- APPLY CUSTOM COLORS ---------- */
+  function applyCustom() {
+    if (!db) return;
+
     const custom = db.loadCustom();
-    document.documentElement.style.setProperty('--accent', custom.accent||db.DEFAULTS.custom.accent);
-    if(accentColorInput) accentColorInput.value = custom.accent || db.DEFAULTS.custom.accent;
-    if(currencySymbolInput) currencySymbolInput.value = custom.currency || db.DEFAULTS.custom.currency;
+
+    const accent =
+      custom.accent || db.DEFAULTS.custom.accent;
+
+    document.documentElement.style.setProperty('--accent', accent);
+
+    if (accentColorInput) accentColorInput.value = accent;
+    if (currencySymbolInput)
+      currencySymbolInput.value =
+        custom.currency || db.DEFAULTS.custom.currency;
   }
 
-  function setupThemeControls(){
-    const stored = localStorage.getItem('money_theme') || 'dark';
-    document.body.dataset.theme = stored;
-    if(themeToggleTop) themeToggleTop.textContent = stored === 'dark' ? '🌙' : '☀️';
-    if(themeSelect) themeSelect.value = stored;
+  /* ---------- THEME CONTROLS ---------- */
+  function setupThemeControls() {
+    if (!window.MT?.ui) return;
 
-    if(themeToggleTop){
-      themeToggleTop.addEventListener('click', ()=> {
-        const cur = document.body.dataset.theme || 'dark';
+    // read current theme from unified system
+    const currentTheme =
+      document.documentElement.getAttribute('data-theme') || 'dark';
+
+    // sync UI
+    if (themeSelect) themeSelect.value = currentTheme;
+    if (themeToggleTop)
+      themeToggleTop.textContent =
+        currentTheme === 'dark' ? '🌙' : '☀️';
+
+    /* --- NAVBAR TOGGLE --- */
+    if (themeToggleTop) {
+      themeToggleTop.addEventListener('click', () => {
+        const cur =
+          document.documentElement.getAttribute('data-theme') || 'dark';
+
         const next = cur === 'dark' ? 'light' : 'dark';
-        document.body.dataset.theme = next;
-        localStorage.setItem('money_theme', next);
+
+        // 🔥 single source of truth
+        window.MT.ui.applyTheme(next);
+
+        if (themeSelect) themeSelect.value = next;
         themeToggleTop.textContent = next === 'dark' ? '🌙' : '☀️';
-        if(themeSelect) themeSelect.value = next;
       });
     }
 
-    if(themeSelect){
-      themeSelect.addEventListener('change', ()=> {
+    /* --- SETTINGS DROPDOWN --- */
+    if (themeSelect) {
+      themeSelect.addEventListener('change', () => {
         const v = themeSelect.value || 'dark';
-        document.body.dataset.theme = v;
-        localStorage.setItem('money_theme', v);
-        themeToggleTop.textContent = v === 'dark' ? '🌙' : '☀️';
+
+        window.MT.ui.applyTheme(v);
+
+        if (themeToggleTop)
+          themeToggleTop.textContent =
+            v === 'dark' ? '🌙' : '☀️';
       });
     }
   }
 
-  // expose apply for others
+  /* ---------- EXPORT ---------- */
   window.MT = window.MT || {};
-  window.MT.theme = { applyCustom, setupThemeControls };
+  window.MT.theme = {
+    applyCustom,
+    setupThemeControls
+  };
 
-  // apply immediately on load so UI shows colors
+  /* ---------- INIT ---------- */
   applyCustom();
+
+})();
+
+(function () {
+  const toggle = document.getElementById('themeToggleTop');
+  const select = document.getElementById('themeSelect');
+
+  if (!toggle || !window.MT?.ui) return;
+
+  function syncIcon(theme) {
+    toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+  }
+
+  // Initial sync
+  const initialTheme =
+    document.documentElement.getAttribute('data-theme') || 'dark';
+  syncIcon(initialTheme);
+  if (select) select.value = initialTheme;
+
+  // 🔥 TOP ICON CLICK
+  toggle.addEventListener('click', () => {
+    const current =
+      document.documentElement.getAttribute('data-theme') || 'dark';
+
+    const next = current === 'dark' ? 'light' : 'dark';
+
+    window.MT.ui.applyTheme(next);
+    syncIcon(next);
+
+    if (select) select.value = next;
+  });
+
+  // 🔁 SETTINGS PAGE SYNC
+  if (select) {
+    select.addEventListener('change', () => {
+      const theme = select.value || 'dark';
+      window.MT.ui.applyTheme(theme);
+      syncIcon(theme);
+    });
+  }
 })();

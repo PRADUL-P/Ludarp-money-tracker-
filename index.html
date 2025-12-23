@@ -49,27 +49,55 @@
   <div id="appRoot" class="appRoot" style="display:none;">
     <header class="app-header card" role="banner">
       <div class="header-top">
-        <div class="brand-left">
-          <div class="brand-icon" role="img" aria-label="LUDARP logo">
-            <svg width="44" height="44" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-              <circle cx="24" cy="24" r="22" fill="var(--accent)"></circle>
-              <text x="24" y="30" text-anchor="middle" font-size="16" font-family="system-ui, sans-serif" fill="#fff" font-weight="700">L</text>
-            </svg>
-          </div>
 
-          <div class="brand-text">
-            <h1 class="brand-title">LUDARP Money Tracker</h1>
-            <p class="subtitle brand-sub">Offline daily tracker — secure on your device</p>
-          </div>
-        </div>
+  <!-- LEFT: MENU + BRAND -->
+  <div class="brand-left">
 
-        <div class="header-actions">
-          <button id="themeToggleTop" class="icon-button" title="Toggle theme quick">🌙</button>
-          <button id="menuToggle" class="icon-button" title="Menu" aria-label="Menu">
-            <svg width="18" height="18" aria-hidden="true"><use href="#icon-menu"></use></svg>
-          </button>
-        </div>
-      </div>
+    <!-- MENU BUTTON (moved here) -->
+    <button
+      id="menuToggle"
+      class="icon-button menu-left"
+      title="Menu"
+      aria-label="Menu">
+      <svg width="18" height="18" aria-hidden="true">
+        <use href="#icon-menu"></use>
+      </svg>
+    </button>
+
+    <!-- BRAND ICON -->
+    <div class="brand-icon" role="img" aria-label="LUDARP logo">
+      <svg width="44" height="44" viewBox="0 0 48 48"
+           xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="24" cy="24" r="22" fill="var(--accent)"></circle>
+        <text x="24" y="30" text-anchor="middle"
+              font-size="16"
+              font-family="system-ui, sans-serif"
+              fill="#fff"
+              font-weight="700">L</text>
+      </svg>
+    </div>
+
+    <!-- BRAND TEXT -->
+    <div class="brand-text">
+      <h1 class="brand-title">LUDARP Money Tracker</h1>
+      <p class="subtitle brand-sub">
+        Offline daily tracker — secure on your device
+      </p>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: THEME TOGGLE ONLY -->
+  <div class="header-actions">
+    <button
+      id="themeToggleTop"
+      class="icon-button theme-btn"
+      title="Toggle theme">
+      🌙
+    </button>
+  </div>
+
+</div>
 
       <nav class="main-nav" role="navigation" aria-label="Main">
         <button class="nav-item active" data-view="entry">Entry</button>
@@ -370,83 +398,108 @@
       </section>
 
       <!-- SETTINGS VIEW -->
- <section id="view-settings" class="view">
+<section id="view-settings" class="view">
 
   <!-- ================= APP CUSTOMIZATION ================= -->
-  <section class="card">
-    <div class="section-title">App customization & theme</div>
+  <section class="card settings-section">
+    <button class="settings-header" data-target="customizationPanel">
+      <span>App customization & theme</span>
+      <span class="chevron">▼</span>
+    </button>
 
-    <label>Theme</label>
-    <select id="themeSelect">
-      <option value="dark">Dark</option>
-      <option value="light">Light</option>
-    </select>
+    <div id="customizationPanel" class="settings-panel open">
+      <label>Theme</label>
+      <select id="themeSelect">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+      </select>
 
-    <label>Accent color</label>
-    <input id="accentColor" type="color" />
+      <label>Accent color</label>
+      <input id="accentColor" type="color" />
 
-    <label>Currency symbol</label>
-    <input id="currencySymbol" placeholder="₹" />
+      <label>Currency symbol</label>
+      <input id="currencySymbol" placeholder="₹" />
 
-    
-    <div style="margin-top:0.6rem;">
-      <button id="saveCustomization" class="btn-primary">Save customization</button>
-      <button id="resetCustomization" class="btn-secondary">Reset to defaults</button>
+      <div style="margin-top:0.6rem;">
+        <button id="saveCustomization" class="btn-primary">Save customization</button>
+        <button id="resetCustomization" class="btn-secondary">Reset to defaults</button>
+      </div>
     </div>
   </section>
-<section class="card">
-  <div class="section-title">Categories</div>
 
- <div id="settingsCategories" class="settings-pills-wrap"></div>
+  <!-- ================= CATEGORIES ================= -->
+  <section class="card settings-section">
+    <button class="settings-header" data-target="categoriesPanel">
+      <span>Categories</span>
+      <span class="chevron">▼</span>
+    </button>
 
-  <div class="settings-add-row">
-    <input id="newCategory" placeholder="Add category" />
-    <button id="addCategoryBtn">Add</button>
-  </div>
-</section>
-  <!-- ================= UPI / CARDS / BANKS ================= -->
-  <section class="card">
-    <div class="section-title">UPI / Cards / Banks</div>
+    <div id="categoriesPanel" class="settings-panel open">
+      <div id="settingsCategories" class="settings-pills-wrap"></div>
 
-    <h4>UPI apps</h4>
-    <div id="settingsUpi" class="settings-list"></div>
-    <div class="settings-add-row">
-      <input id="newUpi" placeholder="Add UPI app" />
-      <button id="addUpiBtn">Add</button>
-    </div>
-
-    <h4>Cards</h4>
-    <div id="settingsCards" class="settings-list"></div>
-    <div class="settings-add-row">
-      <input id="newCard" placeholder="Add card" />
-      <button id="addCardBtn">Add</button>
-    </div>
-
-    <h4>Banks</h4>
-    <div id="settingsBanks" class="settings-list"></div>
-    <div class="settings-add-row">
-      <input id="newBank" placeholder="Add bank" />
-      <button id="addBankBtn">Add</button>
-    </div>
-
-    <!-- Mapping -->
-    <div id="paymentBankMapWrap" style="margin-top:12px;">
-      <div class="section-title">Map payment items to banks</div>
-      <div class="info">
-        Assign each UPI app / Card to a Bank so bank balances update automatically.
+      <div class="settings-add-row">
+        <input id="newCategory" placeholder="Add category" />
+        <button id="addCategoryBtn">Add</button>
       </div>
-      <div id="mapList" style="margin-top:8px; display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+  </section>
+
+  <!-- ================= UPI / CARDS / BANKS ================= -->
+  <section class="card settings-section">
+    <button class="settings-header" data-target="paymentsPanel">
+      <span>UPI / Cards / Banks</span>
+      <span class="chevron">▼</span>
+    </button>
+
+    <div id="paymentsPanel" class="settings-panel open">
+
+      <h4>UPI apps</h4>
+      <div id="settingsUpi" class="settings-list"></div>
+      <div class="settings-add-row">
+        <input id="newUpi" placeholder="Add UPI app" />
+        <button id="addUpiBtn">Add</button>
+      </div>
+
+      <h4>Cards</h4>
+      <div id="settingsCards" class="settings-list"></div>
+      <div class="settings-add-row">
+        <input id="newCard" placeholder="Add card" />
+        <button id="addCardBtn">Add</button>
+      </div>
+
+      <h4>Banks</h4>
+      <div id="settingsBanks" class="settings-list"></div>
+      <div class="settings-add-row">
+        <input id="newBank" placeholder="Add bank" />
+        <button id="addBankBtn">Add</button>
+      </div>
+
+      <!-- Mapping -->
+      <div id="paymentBankMapWrap" style="margin-top:12px;">
+        <div class="section-title">Map payment items to banks</div>
+        <div class="info">
+          Assign each UPI app / Card to a Bank so bank balances update automatically.
+        </div>
+        <div id="mapList" style="margin-top:8px; display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
     </div>
   </section>
 
   <!-- ================= EXPORT / IMPORT ================= -->
-  <section class="card">
-    <div class="section-title">Export & Import</div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button id="settingsExpCsv">Export CSV</button>
-      <button id="settingsExpJson">Export JSON</button>
-      <button id="settingsExpXlsx">Export Excel</button>
-      <input id="settingsImportFile" type="file" />
+  <section class="card settings-section">
+    <button class="settings-header" data-target="exportPanel">
+      <span>Export & Import</span>
+      <span class="chevron">▼</span>
+    </button>
+
+    <div id="exportPanel" class="settings-panel">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="settingsExpCsv">Export CSV</button>
+        <button id="settingsExpJson">Export JSON</button>
+        <button id="settingsExpXlsx">Export Excel</button>
+        <input id="settingsImportFile" type="file" />
+      </div>
     </div>
   </section>
 
@@ -495,20 +548,38 @@
     </main>
 
     <!-- Floating bottom nav -->
-    <div class="floating-nav-wrap">
-      <nav class="floating-nav">
-        <button class="fn-item" data-view="entry" title="Home">🏠</button>
-        <button class="fn-item" data-view="summary" title="Summary">📊</button>
+<div class="floating-nav-wrap">
+  <nav class="floating-nav">
 
-        <div class="fab-outer">
-          <button id="fabAdd" class="fab">+</button>
-        </div>
+    <!-- SUMMARY / INSIGHTS -->
+    <button class="fn-item" data-view="summary" title="Insights">
+      📊
+    </button>
 
-        <button class="fn-item" data-view="accounts" title="Accounts">🏦</button>
-        <button class="fn-item" data-view="settings" title="Settings">⚙️</button>
-      </nav>
+    <!-- ACCOUNTS -->
+    <button class="fn-item" data-view="accounts" title="Accounts">
+      🏦
+    </button>
+
+    <!-- ADD TRANSACTION (PRIMARY ACTION) -->
+    <div class="fab-outer">
+      <button id="fabAdd" class="fab" title="Add transaction">
+        +
+      </button>
     </div>
-  </div>
+
+    <!-- SETTINGS -->
+    <button class="fn-item" data-view="settings" title="Settings">
+      ⚙️
+    </button>
+
+    <!-- USER -->
+    <button class="fn-item" data-view="user" title="User">
+      👤
+    </button>
+
+  </nav>
+</div>
 
   <!-- ---------------------------
        Script modules (deferred)
@@ -518,9 +589,10 @@
  
   <script src="js/db.js" defer></script>
   <script src="js/security.js" defer></script>
+   <script src="js/ui.js" defer></script>
   <script src="js/colors.js" defer></script>
   <script src="js/nav.js" defer></script>
-  <script src="js/ui.js" defer></script>
+ 
   <script src="js/entry.js" defer></script>
   <script src="js/summary.js" defer></script>
   <script src="js/accounts.js" defer></script>

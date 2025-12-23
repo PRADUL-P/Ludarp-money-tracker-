@@ -207,3 +207,229 @@
   /* ---------- INIT ---------- */
   window.addEventListener('mt:auth-entered', renderSettingsUI);
 })();
+/* ================= EXPORT / IMPORT (SETTINGS) ================= */
+
+// EXPORT SETTINGS ONLY
+const exportSettingsJSON = () => {
+  const store = loadStore();
+  const payload = {
+    version: store.version || 1,
+    settings: store.settings,
+    paymentBankMap: store.paymentBankMap,
+    custom: loadCustom()
+  };
+
+  const blob = new Blob(
+    [JSON.stringify(payload, null, 2)],
+    { type: 'application/json' }
+  );
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'money-tracker-settings.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+// IMPORT SETTINGS ONLY
+const importSettingsJSON = async (file) => {
+  const text = await file.text();
+  const data = JSON.parse(text);
+
+  const store = loadStore();
+
+  if (data.settings) store.settings = data.settings;
+  if (data.paymentBankMap) store.paymentBankMap = data.paymentBankMap;
+
+  saveStore(store);
+
+  if (data.custom) saveCustom(data.custom);
+
+  renderSettingsUI();
+  fireUpdate(); // 🔥 updates Entry + Accounts instantly
+  alert('Settings imported successfully');
+};
+
+/* ---------- BUTTON WIRING ---------- */
+const settingsExportBtn = document.getElementById('settingsExportBtn');
+const settingsImportInput = document.getElementById('settingsImportInput');
+
+settingsExportBtn?.addEventListener('click', exportSettingsJSON);
+
+settingsImportInput?.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (!confirm('Import settings? This will overwrite current settings.')) return;
+  importSettingsJSON(file);
+});
+/* ===============================
+   SETTINGS EXPORT / IMPORT
+================================ */
+
+window.addEventListener('mt:auth-entered', () => {
+
+  const btnCsv  = document.getElementById('settingsExpCsv');
+  const btnXlsx = document.getElementById('settingsExpXlsx');
+  const btnJson = document.getElementById('settingsExpJson');
+  const fileInp = document.getElementById('settingsImportFile');
+
+  /* ---------- CSV EXPORT (ALL DATA) ---------- */
+  btnCsv?.addEventListener('click', () => {
+    if (!window.exportCSV) {
+      alert('CSV exporter not loaded');
+      return;
+    }
+    // false = full export
+    window.exportCSV(false, null);
+  });
+
+  /* ---------- EXCEL EXPORT (ALL DATA) ---------- */
+  btnXlsx?.addEventListener('click', () => {
+    if (!window.exportXLSX) {
+      alert('Excel exporter not loaded');
+      return;
+    }
+    window.exportXLSX(false, null);
+  });
+
+  /* ---------- SETTINGS JSON EXPORT ---------- */
+  btnJson?.addEventListener('click', () => {
+    const store = loadStore();
+
+    const payload = {
+      version: 1,
+      settings: store.settings,
+      paymentBankMap: store.paymentBankMap || {},
+      custom: loadCustom()
+    };
+
+    const blob = new Blob(
+      [JSON.stringify(payload, null, 2)],
+      { type: 'application/json' }
+    );
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'money-tracker-settings.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  });
+
+  /* ---------- SETTINGS IMPORT ---------- */
+  fileInp?.addEventListener('change', async () => {
+    const file = fileInp.files[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      if (!data.settings || typeof data.settings !== 'object') {
+        throw new Error('Invalid settings file');
+      }
+
+      const store = loadStore();
+      store.settings = data.settings;
+      store.paymentBankMap = data.paymentBankMap || {};
+
+      saveStore(store);
+
+      if (data.custom) {
+        saveCustom(data.custom);
+      }
+
+      // 🔥 LIVE UPDATE EVERYWHERE
+      renderSettingsUI();
+      document.dispatchEvent(new Event('settingsUpdated'));
+      document.dispatchEvent(new Event('accountsUpdated'));
+
+      alert('Settings imported successfully');
+
+    } catch (err) {
+      console.error(err);
+      alert('Invalid settings file');
+    } finally {
+      fileInp.value = '';
+    }
+  });
+
+});
+
+window.addEventListener('mt:auth-entered', renderSettingsUI);
+
+
+/* ================= SETTINGS DROPDOWN LOGIC ================= */
+(function () {
+  document.addEventListener('click', (e) => {
+    const header = e.target.closest('.settings-header');
+    if (!header) return;
+
+    const targetId = header.dataset.target;
+    const panel = document.getElementById(targetId);
+    if (!panel) return;
+
+    const isOpen = panel.classList.contains('open');
+
+    panel.classList.toggle('open', !isOpen);
+    header.classList.toggle('collapsed', isOpen);
+  });
+})();
+const themeSelect = document.getElementById('themeSelect');
+
+themeSelect?.addEventListener('change', () => {
+  const theme = themeSelect.value;
+  window.MT.ui.applyTheme(theme);
+
+  const toggle = document.getElementById('themeToggleTop');
+  if(toggle){
+    toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+  }
+});
+
+
+/* ===============================
+   USER PAGE – CHANGE PASSWORD
+================================ */
+
+(function () {
+  const { loadUser, saveUser } = window.MT.db;
+
+  const oldPwInput = document.getElementById('oldPassword');
+  const newPwInput = document.getElementById('newPassword');
+  const changeBtn  = document.getElementById('changePasswordBtn');
+  const statusEl   = document.getElementById('passwordStatus');
+
+  if (!changeBtn) return; // User page not loaded
+
+  changeBtn.addEventListener('click', () => {
+    const user = loadUser();
+
+    if (!user) {
+      statusEl.textContent = 'No user found';
+      return;
+    }
+
+    const oldPw = oldPwInput.value.trim();
+    const newPw = newPwInput.value.trim();
+
+    if (!oldPw || !newPw) {
+      statusEl.textContent = 'Please fill both fields';
+      return;
+    }
+
+    if (oldPw !== user.password) {
+      statusEl.textContent = 'Current password is incorrect';
+      return;
+    }
+
+    user.password = newPw;
+    saveUser(user);
+
+    oldPwInput.value = '';
+    newPwInput.value = '';
+    statusEl.textContent = 'Password updated successfully';
+  });
+})();

@@ -85,3 +85,89 @@
   setupAuth();
 
 })();
+
+
+
+/* ===============================
+   USER PAGE PROFILE + PASSWORD
+   (attach AFTER login)
+================================ */
+
+window.addEventListener('mt:auth-entered', () => {
+
+  const nameField   = document.getElementById('userNameField');
+  const hintField   = document.getElementById('securityHint');
+  const oldPwInput  = document.getElementById('oldPassword');
+  const newPwInput  = document.getElementById('newPassword');
+  const changeBtn   = document.getElementById('changePasswordBtn');
+  const statusEl    = document.getElementById('passwordStatus');
+
+  if (!nameField || !changeBtn) {
+    console.warn('[User page] fields not found');
+    return;
+  }
+
+  /* ---------- LOAD USER INTO UI ---------- */
+  function loadUserUI() {
+    const user = window.MT.db.loadUser();
+    if (!user) return;
+
+    nameField.value = user.name || '';
+    hintField.value = user.securityHint || '';
+    statusEl.textContent = '';
+
+    oldPwInput.value = '';
+    newPwInput.value = '';
+  }
+
+  /* ---------- SAVE PROFILE (NAME + HINT) ---------- */
+  function saveProfile() {
+    const user = window.MT.db.loadUser();
+    if (!user) return;
+
+    user.name = nameField.value.trim() || user.name;
+    user.securityHint = hintField.value.trim();
+
+    window.MT.db.saveUser(user);
+  }
+
+  /* ---------- CHANGE PASSWORD ---------- */
+  changeBtn.addEventListener('click', () => {
+    const user = window.MT.db.loadUser();
+    if (!user) return;
+
+    const oldPw = oldPwInput.value.trim();
+    const newPw = newPwInput.value.trim();
+
+    if (!oldPw || !newPw) {
+      statusEl.textContent = 'Please fill both password fields';
+      return;
+    }
+
+    if (oldPw !== user.password) {
+      statusEl.textContent = 'Current password incorrect';
+      return;
+    }
+
+    user.password = newPw;
+    window.MT.db.saveUser(user);
+
+    oldPwInput.value = '';
+    newPwInput.value = '';
+    statusEl.textContent = 'Password updated successfully';
+  });
+
+  /* ---------- AUTO-SAVE NAME & HINT ---------- */
+  nameField.addEventListener('blur', saveProfile);
+  hintField.addEventListener('blur', saveProfile);
+
+  /* ---------- REFRESH WHEN USER PAGE OPENS ---------- */
+  window.addEventListener('mt:view-changed', (e) => {
+    if (e.detail?.viewName === 'user') {
+      loadUserUI();
+    }
+  });
+
+  // initial load (first time user opens page)
+  loadUserUI();
+});
