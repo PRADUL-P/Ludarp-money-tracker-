@@ -1,13 +1,13 @@
 'use strict';
 /* security.js
-   Authentication / user setup / password reset
-   Depends on window.MT.db being available
+   Authentication + User Profile + Biometric (WebAuthn)
+   Depends on window.MT.db
 */
 
-(function(){
+(function () {
   const db = window.MT.db;
 
-  // DOM refs used by auth
+  /* ================= AUTH DOM ================= */
   const authScreen = document.getElementById('authScreen');
   const authForm = document.getElementById('authForm');
   const authNameRow = document.getElementById('authNameRow');
@@ -18,156 +18,216 @@
   const forgotBtn = document.getElementById('forgotBtn');
   const authHint = document.getElementById('authHint');
 
-  function setupAuth(){
+  /* ================= HELPERS ================= */
+
+  async function isBiometricSupported() {
+    return (
+      window.PublicKeyCredential &&
+      await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+    );
+  }
+
+  async function tryBiometricUnlock(user) {
+    try {
+      const credId = new Uint8Array(user.biometricCredentialId);
+      await navigator.credentials.get({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          allowCredentials: [{ type: 'public-key', id: credId }],
+          userVerification: 'required'
+        }
+      });
+      enterApp();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function registerBiometric() {
+    const status = document.getElementById('biometricStatus');
     const user = db.loadUser();
-    if(!user){
-      authNameRow.style.display='block';
-      document.getElementById('authTitle').textContent='Create account';
-      document.getElementById('authSubtitle').textContent='Set a password to secure your data on this device.';
-      authSubmitBtn.textContent='Create & Enter';
+    if (!user) return;
+
+    if (!(await isBiometricSupported())) {
+      status.textContent = 'Biometric not supported on this device';
+      return;
+    }
+
+    try {
+      const cred = await navigator.credentials.create({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          rp: { name: 'LUDARP Money Tracker' },
+          user: {
+            id: new TextEncoder().encode(user.name),
+            name: user.name,
+            displayName: user.name
+          },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            userVerification: 'required'
+          },
+          attestation: 'none'
+        }
+      });
+
+      user.biometricCredentialId = Array.from(new Uint8Array(cred.rawId));
+      user.biometricEnabled = true;
+      db.saveUser(user);
+
+      status.textContent = 'Fingerprint enabled successfully';
+    } catch {
+      status.textContent = 'Biometric setup cancelled or failed';
+    }
+  }
+
+  /* ================= AUTH SETUP ================= */
+
+  function setupAuth() {
+    const user = db.loadUser();
+
+    if (!user) {
+      authNameRow.style.display = 'block';
+      authSubmitBtn.textContent = 'Create & Enter';
     } else {
-      authNameRow.style.display='none';
-      document.getElementById('authTitle').textContent=`Welcome back, ${user.name||'User'}`;
-      document.getElementById('authSubtitle').textContent='Enter your password to continue.';
-      authSubmitBtn.textContent='Unlock';
+      authNameRow.style.display = 'none';
+      authSubmitBtn.textContent = 'Unlock';
       authHint.textContent = user.securityHint ? `Hint: ${user.securityHint}` : '';
     }
 
-    if(authForm) authForm.addEventListener('submit', e=>{
+    // Auto biometric unlock
+    if (user && user.biometricEnabled) {
+      tryBiometricUnlock(user);
+    }
+
+    authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+
       const pw = authPasswordInput.value.trim();
-      if(!pw){ alert('Password required'); return; }
-      const existing = db.loadUser();
-      if(!existing){
-        const name = authNameInput.value.trim() || 'User';
-        const hint = authSecurityHintInput ? authSecurityHintInput.value.trim() : '';
-        const u = { name, password: pw, biometricPreferred:false, securityHint: hint };
-        db.saveUser(u);
-        enterApp();
-      } else {
-        if(pw !== existing.password){ alert('Incorrect password'); return; }
-        enterApp();
+      if (!pw) {
+        alert('Password required');
+        return;
       }
+
+      const existing = db.loadUser();
+
+      // Create account
+      if (!existing) {
+        db.saveUser({
+          name: authNameInput.value.trim() || 'User',
+          password: pw,
+          securityHint: authSecurityHintInput?.value.trim() || '',
+          biometricEnabled: false
+        });
+        enterApp();
+        return;
+      }
+
+      // Password login
+      if (pw !== existing.password) {
+        alert('Incorrect password');
+        return;
+      }
+
+      enterApp();
     });
 
-    if(forgotBtn) forgotBtn.addEventListener('click', ()=> {
+    forgotBtn?.addEventListener('click', () => {
       const u = db.loadUser();
-      if(!u){ alert('No account exists. Create one first.'); return; }
-      const name = prompt('Enter your user name to reset password:');
-      if(!name) return;
-      if(name.trim() !== u.name){ alert('Name does not match. Cannot reset.'); return; }
-      if(u.securityHint){
-        const hintAns = prompt(`Security hint: ${u.securityHint}\nType anything to confirm:`);
-        if(!hintAns){ alert('Reset cancelled'); return; }
+      if (!u) return alert('No account exists');
+
+      const name = prompt('Enter your user name:');
+      if (!name || name !== u.name) return alert('Name mismatch');
+
+      if (u.securityHint) {
+        const confirmHint = prompt(`Security hint: ${u.securityHint}`);
+        if (!confirmHint) return;
       }
-      const newPw = prompt('Enter a new password (will replace old):');
-      if(!newPw) return;
+
+      const newPw = prompt('Enter new password:');
+      if (!newPw) return;
+
       u.password = newPw;
       db.saveUser(u);
-      alert('Password reset locally. Please login with new password.');
+      alert('Password reset successfully');
     });
   }
 
-  function enterApp(){
-    if(authScreen) authScreen.style.display='none';
-    const appRoot = document.getElementById('appRoot');
-    if(appRoot) appRoot.style.display='block';
-    // after auth, initialize app modules that rely on DOM/mounted state
-    // We'll fire a small event to signal that init can continue
+  function enterApp() {
+    authScreen.style.display = 'none';
+    document.getElementById('appRoot').style.display = 'block';
     window.dispatchEvent(new Event('mt:auth-entered'));
   }
 
-  // export for other modules (optional)
+  /* ================= USER PAGE ================= */
+
+  window.addEventListener('mt:auth-entered', () => {
+
+    const nameField = document.getElementById('userNameField');
+    const hintField = document.getElementById('securityHint');
+    const oldPw = document.getElementById('oldPassword');
+    const newPw = document.getElementById('newPassword');
+    const changeBtn = document.getElementById('changePasswordBtn');
+    const status = document.getElementById('passwordStatus');
+    const enableBioBtn = document.getElementById('enableBiometricBtn');
+
+    function loadUserUI() {
+      const u = db.loadUser();
+      if (!u) return;
+      nameField.value = u.name || '';
+      hintField.value = u.securityHint || '';
+      oldPw.value = '';
+      newPw.value = '';
+      status.textContent = '';
+    }
+
+    function saveProfile() {
+      const u = db.loadUser();
+      if (!u) return;
+      u.name = nameField.value.trim() || u.name;
+      u.securityHint = hintField.value.trim();
+      db.saveUser(u);
+    }
+
+    changeBtn.addEventListener('click', () => {
+      const u = db.loadUser();
+      if (!u) return;
+
+      if (!oldPw.value || !newPw.value) {
+        status.textContent = 'Fill both fields';
+        return;
+      }
+
+      if (oldPw.value !== u.password) {
+        status.textContent = 'Current password incorrect';
+        return;
+      }
+
+      u.password = newPw.value;
+      db.saveUser(u);
+      oldPw.value = '';
+      newPw.value = '';
+      status.textContent = 'Password updated successfully';
+    });
+
+    enableBioBtn?.addEventListener('click', registerBiometric);
+    nameField.addEventListener('blur', saveProfile);
+    hintField.addEventListener('blur', saveProfile);
+
+    window.addEventListener('mt:view-changed', (e) => {
+      if (e.detail?.viewName === 'user') loadUserUI();
+    });
+
+    loadUserUI();
+  });
+
+  /* ================= INIT ================= */
+
   window.MT = window.MT || {};
   window.MT.security = { setupAuth, enterApp };
 
-  // run immediately to show auth UI
   setupAuth();
 
 })();
-
-
-
-/* ===============================
-   USER PAGE PROFILE + PASSWORD
-   (attach AFTER login)
-================================ */
-
-window.addEventListener('mt:auth-entered', () => {
-
-  const nameField   = document.getElementById('userNameField');
-  const hintField   = document.getElementById('securityHint');
-  const oldPwInput  = document.getElementById('oldPassword');
-  const newPwInput  = document.getElementById('newPassword');
-  const changeBtn   = document.getElementById('changePasswordBtn');
-  const statusEl    = document.getElementById('passwordStatus');
-
-  if (!nameField || !changeBtn) {
-    console.warn('[User page] fields not found');
-    return;
-  }
-
-  /* ---------- LOAD USER INTO UI ---------- */
-  function loadUserUI() {
-    const user = window.MT.db.loadUser();
-    if (!user) return;
-
-    nameField.value = user.name || '';
-    hintField.value = user.securityHint || '';
-    statusEl.textContent = '';
-
-    oldPwInput.value = '';
-    newPwInput.value = '';
-  }
-
-  /* ---------- SAVE PROFILE (NAME + HINT) ---------- */
-  function saveProfile() {
-    const user = window.MT.db.loadUser();
-    if (!user) return;
-
-    user.name = nameField.value.trim() || user.name;
-    user.securityHint = hintField.value.trim();
-
-    window.MT.db.saveUser(user);
-  }
-
-  /* ---------- CHANGE PASSWORD ---------- */
-  changeBtn.addEventListener('click', () => {
-    const user = window.MT.db.loadUser();
-    if (!user) return;
-
-    const oldPw = oldPwInput.value.trim();
-    const newPw = newPwInput.value.trim();
-
-    if (!oldPw || !newPw) {
-      statusEl.textContent = 'Please fill both password fields';
-      return;
-    }
-
-    if (oldPw !== user.password) {
-      statusEl.textContent = 'Current password incorrect';
-      return;
-    }
-
-    user.password = newPw;
-    window.MT.db.saveUser(user);
-
-    oldPwInput.value = '';
-    newPwInput.value = '';
-    statusEl.textContent = 'Password updated successfully';
-  });
-
-  /* ---------- AUTO-SAVE NAME & HINT ---------- */
-  nameField.addEventListener('blur', saveProfile);
-  hintField.addEventListener('blur', saveProfile);
-
-  /* ---------- REFRESH WHEN USER PAGE OPENS ---------- */
-  window.addEventListener('mt:view-changed', (e) => {
-    if (e.detail?.viewName === 'user') {
-      loadUserUI();
-    }
-  });
-
-  // initial load (first time user opens page)
-  loadUserUI();
-});
