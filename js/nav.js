@@ -6,7 +6,7 @@
 (function () {
 
   const headerTop = document.querySelector('.header-top');
-  let mainMenu   = document.getElementById('mainMenu');
+  let mainMenu = document.getElementById('mainMenu');
   let menuToggle = document.getElementById('menuToggle');
 
   // 🔥 Top + Bottom navigation buttons
@@ -185,6 +185,8 @@
       document.getElementById('view-user')?.classList.add('active');
     if (name === 'about')
       document.getElementById('view-about')?.classList.add('active');
+    if (name === 'dues')
+      document.getElementById('view-dues')?.classList.add('active');
 
     /* ===== ACTIVE STATE (TOP + BOTTOM) ===== */
     document.querySelectorAll('.nav-item, .fn-item').forEach(btn => {
@@ -246,7 +248,7 @@
 ================================ */
 (function () {
 
-  const views = ['entry', 'summary', 'accounts', 'settings', 'user', 'about'];
+  const views = ['entry', 'summary', 'accounts', 'dues', 'settings', 'user', 'about'];
   let startX = 0;
   let startY = 0;
 
