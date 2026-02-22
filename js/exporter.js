@@ -73,39 +73,49 @@
      ========================= */
   function exportCSV(month) {
     const s = loadStoreSafe();
-    const rows = [['date','type','description','category','amount']];
+    const rows = [['date', 'type', 'description', 'category', 'amount']];
     Object.keys(s.days).forEach(d => {
       if (month && !d.startsWith(month)) return;
       s.days[d].forEach(e =>
-        rows.push([d,e.type,e.description,e.category,e.amount])
+        rows.push([d, e.type, e.description, e.category, e.amount])
       );
     });
     const csv = rows.map(r => r.join(',')).join('\n');
-    download(new Blob([csv],{type:'text/csv'}),'money_tracker.csv');
+    download(new Blob([csv], { type: 'text/csv' }), 'money_tracker.csv');
   }
 
   function exportJSON() {
+    const fullBackup = {
+      main: loadStoreSafe(),
+      dues: JSON.parse(localStorage.getItem('mt_dues_v1') || '[]'),
+      budgets: JSON.parse(localStorage.getItem('mt_budgets_v1') || '{}'),
+      recurring: JSON.parse(localStorage.getItem('mt_recurring_v1') || '[]'),
+      custom: JSON.parse(localStorage.getItem('mt_custom_settings') || '{}'),
+      timestamp: new Date().toISOString(),
+      version: '2.0-full'
+    };
+
     download(
-      new Blob([JSON.stringify(loadStoreSafe(),null,2)],{type:'application/json'}),
-      'money_tracker_backup.json'
+      new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' }),
+      'money_tracker_FULL_backup.json'
     );
   }
 
   function exportXLSX(month) {
     if (!window.XLSX) return alert('XLSX library not loaded');
     const s = loadStoreSafe();
-    const rows = [['date','type','description','category','amount']];
+    const rows = [['date', 'type', 'description', 'category', 'amount']];
     Object.keys(s.days).forEach(d => {
       if (month && !d.startsWith(month)) return;
       s.days[d].forEach(e =>
-        rows.push([d,e.type,e.description,e.category,e.amount])
+        rows.push([d, e.type, e.description, e.category, e.amount])
       );
     });
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Data');
-    const out = XLSX.write(wb,{bookType:'xlsx',type:'array'});
-    download(new Blob([out]),'money_tracker.xlsx');
+    const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    download(new Blob([out]), 'money_tracker.xlsx');
   }
 
   /* =========================
@@ -132,13 +142,13 @@
     r.onload = () => {
       const s = loadStoreSafe();
       r.result.split('\n').slice(1).forEach(line => {
-        const [date,type,desc,cat,amt] = line.split(',');
+        const [date, type, desc, cat, amt] = line.split(',');
         if (!date) return;
         s.days[date] ??= [];
         s.days[date].push({
           id: Date.now(),
           type, description: desc, category: cat,
-          amount: Number(amt||0)
+          amount: Number(amt || 0)
         });
       });
       saveStoreSafe(s);
@@ -152,7 +162,7 @@
     if (!window.XLSX) return alert('XLSX library not loaded');
     const r = new FileReader();
     r.onload = e => {
-      const wb = XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
       const s = loadStoreSafe();
       rows.forEach(r => {
@@ -160,8 +170,8 @@
         s.days[r.date] ??= [];
         s.days[r.date].push({
           id: Date.now(),
-          type:r.type, description:r.description,
-          category:r.category, amount:r.amount
+          type: r.type, description: r.description,
+          category: r.category, amount: r.amount
         });
       });
       saveStoreSafe(s);
@@ -205,15 +215,15 @@
     overlay.appendChild(card);
     document.body.appendChild(overlay);
 
-  
-     overlay.addEventListener('click', (e) => {
-  if (e.target === overlay) overlay.remove();
-});
 
-// prevent clicks inside modal from closing it
-card.addEventListener('click', (e) => {
-  e.stopPropagation();
-});
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+
+    // prevent clicks inside modal from closing it
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
 
     document.getElementById('exClose').onclick = () => overlay.remove();
     document.getElementById('exCsv').onclick = () => exportCSV(exMonth.value);

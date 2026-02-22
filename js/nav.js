@@ -187,6 +187,8 @@
       document.getElementById('view-about')?.classList.add('active');
     if (name === 'dues')
       document.getElementById('view-dues')?.classList.add('active');
+    if (name === 'statement')
+      document.getElementById('view-statement')?.classList.add('active');
 
     /* ===== ACTIVE STATE (TOP + BOTTOM) ===== */
     document.querySelectorAll('.nav-item, .fn-item').forEach(btn => {
@@ -213,6 +215,9 @@
     openMainMenu,
     closeMainMenu
   };
+
+  // Compatibility with older / other modules
+  window.showView = showView;
 
   document.addEventListener('DOMContentLoaded', initNav);
 
@@ -248,7 +253,7 @@
 ================================ */
 (function () {
 
-  const views = ['entry', 'summary', 'accounts', 'dues', 'settings', 'user', 'about'];
+  const views = ['entry', 'summary', 'accounts', 'dues', 'statement', 'settings', 'user', 'about'];
   let startX = 0;
   let startY = 0;
 

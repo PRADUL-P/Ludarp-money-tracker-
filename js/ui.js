@@ -120,33 +120,16 @@ document.addEventListener('click', (e) => {
   const view = btn.dataset.view;
   if (!view) return;
 
-  if (typeof window.showView === 'function') {
-    window.showView(view);
-  }
-
-  document.querySelectorAll('.fn-item')
-    .forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-});
-
-
-/* ===============================
-   BOTTOM NAV HANDLER
-================================ */
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('.fn-item');
-  if (!btn) return;
-
-  const view = btn.dataset.view;
-  if (!view) return;
-
   // Switch view
   if (typeof window.showView === 'function') {
     window.showView(view);
+  } else if (window.MT && window.MT.nav && typeof window.MT.nav.showView === 'function') {
+    window.MT.nav.showView(view);
   }
 
-  // Active state (optional but recommended)
+  // Active state
   document.querySelectorAll('.fn-item')
     .forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 });
+

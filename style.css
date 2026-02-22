@@ -2333,3 +2333,75 @@ textarea:focus-visible {
     height: 1px;
   }
 }
+
+/* ============================================================
+   DATA TABLE & STATEMENT
+   ============================================================ */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--fg);
+}
+
+.data-table th {
+  text-align: left;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  border-bottom: 2px solid var(--card-border);
+}
+
+.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.9rem;
+}
+
+.data-table tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge.expense {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+}
+
+.badge.income {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.badge.transfer {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.table-scroll-container {
+  max-height: 60vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+}
+
+/* Scrollbar for table */
+.table-scroll-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 10px;
+}

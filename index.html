@@ -14,6 +14,9 @@
   <link rel="stylesheet" href="style.css" />
   <!-- SheetJS for Excel export/import (used by app.js) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
   <!-- SVG sprite for icons -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
@@ -59,7 +62,9 @@
         <label for="authPassword">App password</label>
         <input id="authPassword" type="password" placeholder="Set / Enter password" />
         <div class="auth-row" style="display:flex; gap:8px; margin-top:10px;">
-          <button id="authSubmitBtn" class="btn-primary" type="submit">Continue</button>
+          <button id="authSubmitBtn" class="btn-primary" style="flex:1;" type="submit">Unlock</button>
+          <button id="authBioBtn" class="btn-secondary" type="button"
+            style="display:none; width:50px; justify-content:center;" title="Unlock with Fingerprint">🧬</button>
           <button id="forgotBtn" class="btn-secondary" type="button">Forgot?</button>
         </div>
         <div id="authHint" class="info" style="margin-top:8px"></div>
@@ -118,6 +123,7 @@
           Dues
           <span id="duesBadge" class="dues-nav-badge" style="display:none;"></span>
         </button>
+        <button class="nav-item" data-view="statement">Statement</button>
         <button class="nav-item" data-view="settings">Settings</button>
         <button class="nav-item" data-view="user">User</button>
         <button class="nav-item" data-view="about">About</button>
@@ -188,8 +194,13 @@
             </div>
 
             <div class="full">
-              <label for="description">Description</label>
-              <input id="description" type="text" placeholder="Eg: Grocery / Salary" />
+              <label for="description">What for?</label>
+              <div style="display:flex; gap:8px;">
+                <input id="description" type="text" placeholder="e.g. Tea and Snacks" style="flex:1;" />
+                <button id="voiceBtn" type="button" class="btn-secondary"
+                  style="width:46px; display:flex; align-items:center; justify-content:center;"
+                  title="Voice input">🎤</button>
+              </div>
             </div>
 
             <div>
@@ -256,6 +267,12 @@
                   <label>Custom amounts for participants (comma) in same order</label>
                   <input id="splitAmounts" placeholder="20,30,10" />
                 </div>
+                <div style="margin-top:8px;">
+                  <label style="display:flex; align-items:center; gap:8px;">
+                    <input id="linkToDues" type="checkbox" checked />
+                    <span>Automatically add to Dues tracker</span>
+                  </label>
+                </div>
 
                 <div class="info" style="margin-top:0.5rem;">
                   When you save: your share becomes an Expense. Other participants become 'to receive' items and appear
@@ -289,17 +306,18 @@
             <div>
               <label for="dateMode">Period</label>
               <select id="dateMode">
-                <option value="day">Day</option>
-                <option value="month" selected>Month</option>
+                <option value="day" selected>Day</option>
+                <option value="month">Month</option>
                 <option value="year">Year</option>
+                <option value="all">Full History</option>
               </select>
             </div>
 
-            <div id="monthPickerWrap" style="display:block;">
+            <div id="monthPickerWrap" style="display:none;">
               <label for="monthPicker">Month</label>
               <input id="monthPicker" type="month" />
             </div>
-            <div id="dayPickerWrap" style="display:none;">
+            <div id="dayPickerWrap" style="display:block;">
               <label for="dayPicker">Day</label>
               <input id="dayPicker" type="date" />
             </div>
@@ -359,14 +377,23 @@
           <!-- GRID: left pie, right legend, bottom history -->
 
           <section class="card">
-            <div class="summary-chart-grid">
-              <div class="chart-col">
-                <canvas id="categoryPie" aria-label="Expense by category chart" role="img"></canvas>
+            <div class="summary-charts-container">
+              <!-- TREND CHART -->
+              <div class="card no-hover" style="margin-bottom:18px;">
+                <div class="section-title">Monthly Trend</div>
+                <div style="height:200px; position:relative; width:100%;">
+                  <canvas id="trendChart"></canvas>
+                </div>
               </div>
-              <div class="legend-col">
-                <div id="categoryLegend" class="legend"></div>
+
+              <div class="summary-chart-grid">
+                <div class="chart-col">
+                  <canvas id="categoryPie" aria-label="Expense by category chart" role="img"></canvas>
+                </div>
+                <div class="legend-col">
+                  <div id="categoryLegend" class="legend"></div>
+                </div>
               </div>
-            </div>
           </section>
           <section class="card">
             <div style="margin-top:10px;" class="section-totals-row">
@@ -556,7 +583,99 @@
           </div>
         </section>
 
-      </section>
+        <!-- ================= DAILY REMINDERS ================= -->
+        <section class="card settings-section">
+          <button class="settings-header" data-target="reminderPanel">
+            <span>🔔 Daily Reminders</span>
+            <span class="chevron">▼</span>
+          </button>
+
+          <div id="reminderPanel" class="settings-panel">
+            <div style="display:flex; flex-direction:column; gap:12px; padding:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="margin:0;">Enable Reminder</label>
+                <input type="checkbox" id="reminderToggle" style="width:20px; height:20px;">
+              </div>
+              <div id="reminderTimeWrap" style="display:none;">
+                <label>Reminder Time</label>
+                <input type="time" id="reminderTime" value="21:00" />
+              </div>
+              <button id="testNotifyBtn" class="btn-secondary" style="margin-top:4px;">Send Test Notification</button>
+              <div id="reminderStatus" class="modal-status"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= GOOGLE SHEETS ================= -->
+        <section class="card settings-section">
+          <button class="settings-header" data-target="gsheetPanel">
+            <span>📊 Google Sheets Sync</span>
+            <span class="chevron">▼</span>
+          </button>
+
+          <div id="gsheetPanel" class="settings-panel">
+            <div style="padding:10px;">
+              <div class="info" style="margin-bottom:12px;">
+                Sync your data to a Google Sheet automatically.
+                <button id="gsheetSetupBtn" class="btn-small"
+                  style="margin-top:8px; background:var(--accent); color:#000;">View Setup Guide</button>
+              </div>
+
+              <div id="gsheetInstructions"
+                style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; font-size:0.85rem; margin-bottom:12px; border:1px solid var(--card-border);">
+                <strong>How to set up:</strong>
+                <ol style="padding-left:18px; line-height:1.4;">
+                  <li>Create a new <b>Google Sheet</b>.</li>
+                  <li>Go to <b>Extensions > Apps Script</b>.</li>
+                  <li>Delete the code there and paste the code from <code>gsheets.js</code> (or the project help file).
+                  </li>
+                  <li>Click <b>Deploy > New Deployment</b>.</li>
+                  <li>Select <b>Web App</b>. Change access to <b>"Anyone"</b>.</li>
+                  <li>Copy the <b>Web App URL</b> and paste it below.</li>
+                </ol>
+                <div class="info" style="font-size:0.75rem; margin-top:8px;">
+                  <b>Note:</b> Each user on a different device needs their own URL for their own sheet.
+                  <br><br>
+                  <b>Need help or custom updates?</b><br>
+                  <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20need%20help%20with%20the%20Money%20Tracker%20Google%20Sheets%20setup."
+                    target="_blank" style="color:var(--accent); text-decoration:none; font-weight:700;">📲 Contact
+                    Developer (WhatsApp)</a>
+                  <br><br>
+                  <button id="downloadManualBtn" class="btn-small"
+                    style="background:#4ade80; color:#000; width:100%; border:none; font-weight:700;">📄 Download User
+                    Manual (PDF)</button>
+                </div>
+              </div>
+
+              <label>Google Apps Script Web App URL</label>
+              <input type="url" id="gsheetUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+              <button id="saveGsheetBtn" class="btn-primary" style="margin-top:8px;">Save Sync URL</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= AUTO EXPORT ================= -->
+        <section class="card settings-section">
+          <button class="settings-header" data-target="autoExportPanel">
+            <span>💾 Automatic Backup</span>
+            <span class="chevron">▼</span>
+          </button>
+
+          <div id="autoExportPanel" class="settings-panel">
+            <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="margin:0;">Monthly Statement Auto-Download</label>
+                <input type="checkbox" id="autoDownloadStmt" style="width:20px; height:20px;">
+              </div>
+              <div class="info">
+                If enabled, the previous month's statement will be downloaded automatically when you first open the app
+                at the start of a new month.
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </section> <!-- Close view-settings -->
 
 
       <!-- USER VIEW -->
@@ -581,7 +700,8 @@
           </div>
 
           <div style="margin-top:0.5rem;">
-            <label><input id="biometricEnabled" type="checkbox" /> Prefer biometric unlock (device support only)</label>
+            <label><input id="biometricEnabled" type="checkbox" /> Prefer biometric unlock (device support
+              only)</label>
           </div>
 
           <div style="margin-top:0.6rem;">
@@ -592,23 +712,128 @@
             <div id="passwordStatus" class="modal-status"></div>
           </div>
         </section>
-      </section>
+      </section> <!-- Close view-user -->
 
       <!-- DUES VIEW -->
       <section id="view-dues" class="view">
         <!-- Rendered dynamically by dues.js -->
       </section>
 
+      <!-- STATEMENT VIEW -->
+      <section id="view-statement" class="view">
+        <div class="card large-glass">
+          <div class="section-title">Account Statement</div>
+
+          <div class="filter-strip" style="flex-wrap: wrap;">
+            <div class="filter-item">
+              <label>Month</label>
+              <input type="month" id="stmtMonthFilter" />
+            </div>
+            <div class="filter-item">
+              <label>Type</label>
+              <select id="stmtTypeFilter">
+                <option value="All">All Types</option>
+                <option value="Expense">Expense</option>
+                <option value="Income">Income</option>
+                <option value="Transfer">Transfer</option>
+              </select>
+            </div>
+            <div class="filter-item" style="margin-left: auto; display:flex; gap:8px;">
+              <button id="stmtExportBtn" class="btn-secondary">Excel Export</button>
+              <button id="stmtPdfBtn" class="btn-secondary"
+                style="background:rgba(244,63,94,0.1); color:#fb7185; border-color:rgba(244,63,94,0.2);">Download
+                PDF</button>
+            </div>
+          </div>
+
+          <!-- Support Link in Statement -->
+          <div
+            style="margin-top: 12px; font-size: 0.85rem; border-top: 1px solid var(--card-border); padding-top: 12px;">
+            <span>Questions or custom update requests?</span>
+            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20have%20a%20question%20regarding%20the%20Money%20Tracker%20Statement%20/%20Updates."
+              target="_blank"
+              style="margin-left:8px; color:var(--accent); font-weight:700; text-decoration:none;">Contact Developer on
+              WhatsApp</a>
+          </div>
+
+          <div class="table-scroll-container" style="margin-top: 20px; overflow-x: auto;">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Details</th>
+                  <th>Method</th>
+                  <th style="text-align:right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="statementTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section> <!-- Close view-statement -->
+
       <!-- ABOUT VIEW -->
       <section id="view-about" class="view">
         <section class="card">
           <div class="section-title">About LUDARP Money Tracker</div>
           <p class="info">
-            This app keeps all data locally in your browser. It is a PWA-ready offline tracker with split/group support
-            and customizable settings.
+            This app keeps all data locally in your browser. It is a premium offline tracker designed for maximum
+            privacy and security.
           </p>
-          <p class="info small">Version: 1.0 • Offline only • No external servers (except optional library CDN for
-            Excel)</p>
+
+          <div class="about-features-grid"
+            style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px;">
+            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
+              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">📥 Entry Page</div>
+              <div style="font-size:0.8rem; color:var(--muted); color:white;">Add Income/Expenses, set Categories, use
+                Voice Input,
+                and Split bills with group members instantly.</div>
+            </div>
+            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
+              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">📊 Summary Page</div>
+              <div style="font-size:0.8rem; color:var(--muted); color:white;">Visual charts, Pie statistics by category,
+                and detailed
+                Daily/Monthly/Yearly history logs.</div>
+            </div>
+            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
+              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">🏦 Accounts</div>
+              <div style="font-size:0.8rem; color:var(--muted); color:white;">Track bank balances, UPI apps, and cards
+                in one place
+                with automatic calculation of total net worth.</div>
+            </div>
+            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
+              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">🤝 Dues Tracker</div>
+              <div style="font-size:0.8rem; color:var(--muted); color:white;">Manage 'I Owe' and 'They Owe Me'.
+                Settlement tracking
+                with account mapping and dates.</div>
+            </div>
+            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
+              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">📋 Statement</div>
+              <div style="font-size:0.8rem; color:var(--muted); color:white;">Bank-style tabular view for audit. Export
+                everything to
+                Excel or professional PDF reports.</div>
+            </div>
+            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
+              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">☁️ Sync & Backup</div>
+              <div style="font-size:0.8rem; color:var(--muted); color:white;">Connect to Google Sheets for cloud sync.
+                All data
+                encrypted and private to you.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--card-border); text-align:center;">
+            <div style="font-weight:700; margin-bottom:8px;">Need Custom Updates or Support?</div>
+            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker.%20I%20have%20some%20custom%20update%20requests."
+              class="btn-primary"
+              style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:#25d366; border:none; padding:10px 20px;">
+              💬 Contact Developer on WhatsApp
+            </a>
+          </div>
+
+          <p class="info small" style="margin-top:20px; text-align:center;">Version: 1.0 • Premium Edition • Private &
+            Secure</p>
         </section>
       </section>
     </main>
@@ -663,13 +888,17 @@
     <script src="js/entry.js" defer></script>
     <script src="js/summary.js" defer></script>
     <script src="js/accounts.js" defer></script>
-    <script src="js/settings.js"></script>
+    <script src="js/settings.js" defer></script>
     <!-- optional helpers / stubs (keep even if empty) -->
     <script src="js/pwa.js" defer></script>
     <script src="js/automation.js" defer></script>
     <script src="js/budget.js" defer></script>
     <script src="js/recurring.js" defer></script>
     <script src="js/dues.js" defer></script>
+    <script src="js/notifications.js" defer></script>
+    <script src="js/voice.js" defer></script>
+    <script src="js/statement.js" defer></script>
+    <script src="js/gsheets.js" defer></script>
 
     <!-- custom select (if you moved it out of inline HTML) -->
     <script src="js/customselect.js" defer></script>

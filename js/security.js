@@ -87,19 +87,27 @@
 
   function setupAuth() {
     const user = db.loadUser();
+    const authBioBtn = document.getElementById('authBioBtn');
 
     if (!user) {
       authNameRow.style.display = 'block';
       authSubmitBtn.textContent = 'Create & Enter';
+      if (authBioBtn) authBioBtn.style.display = 'none';
     } else {
       authNameRow.style.display = 'none';
       authSubmitBtn.textContent = 'Unlock';
       authHint.textContent = user.securityHint ? `Hint: ${user.securityHint}` : '';
+
+      // Show biometric button if configured
+      if (user.biometricEnabled && authBioBtn) {
+        authBioBtn.style.display = 'flex';
+        authBioBtn.onclick = () => tryBiometricUnlock(user);
+      }
     }
 
-    // Auto biometric unlock
+    // Auto biometric unlock on load
     if (user && user.biometricEnabled) {
-      tryBiometricUnlock(user);
+      setTimeout(() => tryBiometricUnlock(user), 500);
     }
 
     authForm.addEventListener('submit', async (e) => {
@@ -212,15 +220,36 @@
       status.textContent = 'Password updated successfully';
     });
 
+    async function checkBioSupport() {
+      if (!(await isBiometricSupported())) {
+        if (enableBioBtn) {
+          enableBioBtn.disabled = true;
+          enableBioBtn.textContent = 'Fingerprint not supported';
+          enableBioBtn.style.opacity = '0.5';
+        }
+      } else {
+        const u = db.loadUser();
+        if (u && u.biometricEnabled && enableBioBtn) {
+          enableBioBtn.textContent = 'Fingerprint enabled ✓';
+          enableBioBtn.classList.remove('btn-secondary');
+          enableBioBtn.classList.add('btn-primary');
+        }
+      }
+    }
+
     enableBioBtn?.addEventListener('click', registerBiometric);
     nameField.addEventListener('blur', saveProfile);
     hintField.addEventListener('blur', saveProfile);
 
     window.addEventListener('mt:view-changed', (e) => {
-      if (e.detail?.viewName === 'user') loadUserUI();
+      if (e.detail?.viewName === 'user') {
+        loadUserUI();
+        checkBioSupport();
+      }
     });
 
     loadUserUI();
+    checkBioSupport();
   });
 
   /* ================= INIT ================= */

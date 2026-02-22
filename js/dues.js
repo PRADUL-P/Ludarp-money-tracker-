@@ -13,69 +13,69 @@
 
 (function () {
 
-    const DUES_KEY = 'mt_dues_v1';
+  const DUES_KEY = 'mt_dues_v1';
 
-    /* ---- STORAGE ---- */
-    function loadDues() {
-        try { const r = localStorage.getItem(DUES_KEY); return r ? JSON.parse(r) : []; }
-        catch { return []; }
-    }
-    function saveDues(list) { localStorage.setItem(DUES_KEY, JSON.stringify(list)); }
+  /* ---- STORAGE ---- */
+  function loadDues() {
+    try { const r = localStorage.getItem(DUES_KEY); return r ? JSON.parse(r) : []; }
+    catch { return []; }
+  }
+  function saveDues(list) { localStorage.setItem(DUES_KEY, JSON.stringify(list)); }
 
-    /* ---- HELPERS ---- */
-    function todayISO() {
-        const d = new Date();
-        return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-    }
-    function fmtDate(iso) {
-        if (!iso) return '';
-        const d = new Date(iso + 'T00:00:00');
-        return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    function sym() { return window.MT?.db?.loadCustom()?.currency || '₹'; }
-    function fmt(v) { return sym() + Number(v || 0).toFixed(2); }
+  /* ---- HELPERS ---- */
+  function todayISO() {
+    const d = new Date();
+    return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+  function fmtDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  function sym() { return window.MT?.db?.loadCustom()?.currency || '₹'; }
+  function fmt(v) { return sym() + Number(v || 0).toFixed(2); }
 
-    /* ---- STATE ---- */
-    let activeFilter = 'pending'; // 'pending' | 'i_owe' | 'they_owe' | 'paid'
-    let activeTab = 'i_owe';  // 'i_owe' | 'they_owe'  (on the add form)
+  /* ---- STATE ---- */
+  let activeFilter = 'pending'; // 'pending' | 'i_owe' | 'they_owe' | 'paid'
+  let activeTab = 'i_owe';  // 'i_owe' | 'they_owe'  (on the add form)
 
-    /* ================================================================
-       RENDER MAIN VIEW
-    ================================================================ */
-    function renderDuesView() {
-        const root = document.getElementById('view-dues');
-        if (!root) return;
+  /* ================================================================
+     RENDER MAIN VIEW
+  ================================================================ */
+  function renderDuesView() {
+    const root = document.getElementById('view-dues');
+    if (!root) return;
 
-        const all = loadDues();
-        const currency = sym();
+    const all = loadDues();
+    const currency = sym();
 
-        // Totals
-        const pendingIOwe = all.filter(d => !d.paid && d.type === 'i_owe').reduce((s, d) => s + d.amount, 0);
-        const pendingTheyOwe = all.filter(d => !d.paid && d.type === 'they_owe').reduce((s, d) => s + d.amount, 0);
-        const net = pendingTheyOwe - pendingIOwe;
+    // Totals
+    const pendingIOwe = all.filter(d => !d.paid && d.type === 'i_owe').reduce((s, d) => s + d.amount, 0);
+    const pendingTheyOwe = all.filter(d => !d.paid && d.type === 'they_owe').reduce((s, d) => s + d.amount, 0);
+    const net = pendingTheyOwe - pendingIOwe;
 
-        // Filter list
-        let filtered = all;
-        if (activeFilter === 'pending') filtered = all.filter(d => !d.paid);
-        if (activeFilter === 'i_owe') filtered = all.filter(d => !d.paid && d.type === 'i_owe');
-        if (activeFilter === 'they_owe') filtered = all.filter(d => !d.paid && d.type === 'they_owe');
-        if (activeFilter === 'paid') filtered = all.filter(d => d.paid);
+    // Filter list
+    let filtered = all;
+    if (activeFilter === 'pending') filtered = all.filter(d => !d.paid);
+    if (activeFilter === 'i_owe') filtered = all.filter(d => !d.paid && d.type === 'i_owe');
+    if (activeFilter === 'they_owe') filtered = all.filter(d => !d.paid && d.type === 'they_owe');
+    if (activeFilter === 'paid') filtered = all.filter(d => d.paid);
 
-        // Sort: unpaid first by date, paid last
-        filtered = [...filtered].sort((a, b) => {
-            if (a.paid !== b.paid) return a.paid ? 1 : -1;
-            return (b.date || '').localeCompare(a.date || '');
-        });
+    // Sort: unpaid first by date, paid last
+    filtered = [...filtered].sort((a, b) => {
+      if (a.paid !== b.paid) return a.paid ? 1 : -1;
+      return (b.date || '').localeCompare(a.date || '');
+    });
 
-        // Group by person
-        const groups = {};
-        filtered.forEach(d => {
-            const key = (d.person || 'Unknown').trim();
-            if (!groups[key]) groups[key] = [];
-            groups[key].push(d);
-        });
+    // Group by person
+    const groups = {};
+    filtered.forEach(d => {
+      const key = (d.person || 'Unknown').trim();
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(d);
+    });
 
-        root.innerHTML = `
+    root.innerHTML = `
       <!-- SUMMARY STRIP -->
       <section class="card small-card no-hover" style="margin-bottom:14px;">
         <div class="dues-summary-strip">
@@ -110,7 +110,7 @@
         ${['pending', 'i_owe', 'they_owe', 'paid'].map(f => `
           <button class="dues-filter-btn ${activeFilter === f ? 'active' : ''}"
             onclick="window.MT.dues.setFilter('${f}')">
-            ${{ pending: 'All Pending', i_owe: 'I Owe', they_owe: 'They Owe Me', paid: '✓ Paid' }[f]}
+            ${{ pending: 'All Pending', i_owe: 'I Owe', they_owe: 'They Owe Me', paid: '✓ Settled' }[f]}
           </button>
         `).join('')}
       </div>
@@ -124,12 +124,12 @@
             <div style="font-size:12px;color:var(--muted);margin-top:4px;">Use the form below to log a due.</div>
           </div>
         ` : Object.keys(groups).map(person => {
-            const items = groups[person];
-            const personTotal = items.filter(d => !d.paid).reduce((s, d) => s + (d.type === 'they_owe' ? 1 : -1) * d.amount, 0);
-            const hasIOwe = items.some(d => !d.paid && d.type === 'i_owe');
-            const hasTheyOwe = items.some(d => !d.paid && d.type === 'they_owe');
+      const items = groups[person];
+      const personTotal = items.filter(d => !d.paid).reduce((s, d) => s + (d.type === 'they_owe' ? 1 : -1) * d.amount, 0);
+      const hasIOwe = items.some(d => !d.paid && d.type === 'i_owe');
+      const hasTheyOwe = items.some(d => !d.paid && d.type === 'they_owe');
 
-            return `
+      return `
           <div class="dues-person-group">
             <div class="dues-person-header">
               <div class="dues-person-avatar">${person.charAt(0).toUpperCase()}</div>
@@ -163,9 +163,9 @@
                     </div>
                     ${!due.paid ? `
                       <div class="due-item-actions">
-                        <button class="due-pay-btn" title="Mark as paid"
+                        <button class="due-pay-btn" title="Mark as ${due.type === 'i_owe' ? 'paid' : 'received'}"
                           onclick="window.MT.dues.markPaid('${due.id}')">
-                          ✓ Paid
+                          ${due.type === 'i_owe' ? '✓ Paid' : '✓ Received'}
                         </button>
                         <button class="due-del-btn" title="Delete"
                           onclick="window.MT.dues.deleteDue('${due.id}')">✕</button>
@@ -182,7 +182,7 @@
             </div>
           </div>
           `;
-        }).join('')}
+    }).join('')}
       </section>
 
       <!-- ADD DUE FORM -->
@@ -240,173 +240,193 @@
         <div id="dueStatus" class="modal-status"></div>
       </section>
     `;
-    }
+  }
 
-    /* ---- Known people autocomplete ---- */
-    function getKnownPeople() {
-        const dues = loadDues();
-        const set = new Set(dues.map(d => d.person).filter(Boolean));
-        return Array.from(set).sort();
-    }
+  /* ---- Known people autocomplete ---- */
+  function getKnownPeople() {
+    const dues = loadDues();
+    const set = new Set(dues.map(d => d.person).filter(Boolean));
+    return Array.from(set).sort();
+  }
 
-    /* ================================================================
-       ACTIONS
-    ================================================================ */
-    function setFilter(f) {
-        activeFilter = f;
-        renderDuesView();
-    }
+  /* ================================================================
+     ACTIONS
+  ================================================================ */
+  function setFilter(f) {
+    activeFilter = f;
+    renderDuesView();
+  }
 
-    function setAddTab(tab) {
-        activeTab = tab;
-        renderDuesView();
-        // restore form values after re-render
-    }
+  function setAddTab(tab) {
+    activeTab = tab;
+    renderDuesView();
+    // restore form values after re-render
+  }
 
-    function addDue() {
-        const person = document.getElementById('duePerson')?.value.trim();
-        const amount = parseFloat(document.getElementById('dueAmount')?.value) || 0;
-        const desc = document.getElementById('dueDesc')?.value.trim();
-        const date = document.getElementById('dueDate')?.value || todayISO();
-        const occasion = document.getElementById('dueOccasion')?.value.trim();
-        const note = document.getElementById('dueNote')?.value.trim();
-        const statusEl = document.getElementById('dueStatus');
+  function addDue() {
+    const person = document.getElementById('duePerson')?.value.trim();
+    const amount = parseFloat(document.getElementById('dueAmount')?.value) || 0;
+    const desc = document.getElementById('dueDesc')?.value.trim();
+    const date = document.getElementById('dueDate')?.value || todayISO();
+    const occasion = document.getElementById('dueOccasion')?.value.trim();
+    const note = document.getElementById('dueNote')?.value.trim();
+    const statusEl = document.getElementById('dueStatus');
 
-        if (!person) { if (statusEl) statusEl.textContent = '⚠️ Enter the person\'s name'; return; }
-        if (!amount || amount <= 0) { if (statusEl) statusEl.textContent = '⚠️ Enter a valid amount'; return; }
-        if (!desc) { if (statusEl) statusEl.textContent = '⚠️ Describe what this is for'; return; }
+    if (!person) { if (statusEl) statusEl.textContent = '⚠️ Enter the person\'s name'; return; }
+    if (!amount || amount <= 0) { if (statusEl) statusEl.textContent = '⚠️ Enter a valid amount'; return; }
+    if (!desc) { if (statusEl) statusEl.textContent = '⚠️ Describe what this is for'; return; }
 
-        const list = loadDues();
-        list.push({
-            id: `due_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-            type: activeTab,     // 'i_owe' | 'they_owe'
-            person, amount, description: desc,
-            date, occasion, note,
-            paid: false,
-            paidDate: null,
-            createdAt: new Date().toISOString()
-        });
-        saveDues(list);
-
-        const label = activeTab === 'i_owe'
-            ? `You owe ${person} ${fmt(amount)}`
-            : `${person} owes you ${fmt(amount)}`;
-        window.MT.ui?.showToast(label, 'success');
-
-        // Keep filter on pending to show new entry
-        activeFilter = 'pending';
-        renderDuesView();
-    }
-
-    function clearForm() {
-        ['duePerson', 'dueAmount', 'dueDesc', 'dueOccasion', 'dueNote'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = (id === 'dueAmount') ? '' : '';
-        });
-        const dateEl = document.getElementById('dueDate');
-        if (dateEl) dateEl.value = todayISO();
-        const statusEl = document.getElementById('dueStatus');
-        if (statusEl) statusEl.textContent = '';
-    }
-
-    function markPaid(id) {
-        const list = loadDues();
-        const idx = list.findIndex(d => d.id === id);
-        if (idx < 0) return;
-
-        const due = list[idx];
-        const currency = sym();
-
-        // Ask if they want to log it as an expense/income too
-        const logIt = confirm(
-            `Mark as paid?\n\n` +
-            `${due.type === 'i_owe'
-                ? `✓ You paid ${due.person} ${currency}${due.amount.toFixed(2)} for "${due.description}"`
-                : `✓ ${due.person} paid you ${currency}${due.amount.toFixed(2)} for "${due.description}"`
-            }\n\n` +
-            `Click OK to mark paid, Cancel to abort.`
-        );
-        if (!logIt) return;
-
-        list[idx].paid = true;
-        list[idx].paidDate = todayISO();
-        saveDues(list);
-
-        // Optionally log as transaction in the main tracker
-        const shouldLog = confirm(
-            `Also add this to your transaction history?\n\n` +
-            `${due.type === 'i_owe'
-                ? `→ Expense: ${currency}${due.amount.toFixed(2)} to ${due.person}`
-                : `→ Income: ${currency}${due.amount.toFixed(2)} from ${due.person}`
-            }`
-        );
-
-        if (shouldLog) {
-            const db = window.MT.db;
-            if (db) {
-                const store = db.loadStore();
-                const dateStr = todayISO();
-                if (!store.days[dateStr]) store.days[dateStr] = [];
-                store.days[dateStr].push({
-                    id: Date.now() + Math.random(),
-                    dateStr,
-                    type: due.type === 'i_owe' ? 'Expense' : 'Income',
-                    description: `${due.description} (${due.person})`,
-                    category: 'Due settlement',
-                    payMethod: 'Cash',
-                    paySubType: '',
-                    amount: due.amount,
-                    note: `Settled due with ${due.person}`,
-                    createdAt: new Date().toISOString(),
-                    split: null,
-                    isDueSettlement: true
-                });
-                db.saveStore(store);
-                window.dispatchEvent(new Event('mt:entries-changed'));
-            }
-        }
-
-        window.MT.ui?.showToast(`✓ Marked as paid!`, 'success');
-        renderDuesView();
-    }
-
-    function deleteDue(id) {
-        if (!confirm('Delete this due entry?')) return;
-        const list = loadDues();
-        saveDues(list.filter(d => d.id !== id));
-        window.MT.ui?.showToast('Deleted', 'warning');
-        renderDuesView();
-    }
-
-    /* ---- BADGE COUNT for nav ---- */
-    function updateDuesBadge() {
-        const list = loadDues();
-        const count = list.filter(d => !d.paid).length;
-        const badge = document.getElementById('duesBadge');
-        if (!badge) return;
-        badge.textContent = count > 0 ? count : '';
-        badge.style.display = count > 0 ? 'flex' : 'none';
-    }
-
-    /* ================================================================
-       EXPOSE & INIT
-    ================================================================ */
-    window.MT = window.MT || {};
-    window.MT.dues = {
-        loadDues, saveDues,
-        renderDuesView, setFilter, setAddTab,
-        addDue, clearForm, markPaid, deleteDue,
-        updateDuesBadge
-    };
-
-    window.addEventListener('mt:auth-entered', () => {
-        renderDuesView();
-        updateDuesBadge();
-
-        window.addEventListener('mt:view-changed', e => {
-            if (e.detail?.viewName === 'dues') renderDuesView();
-            updateDuesBadge();
-        });
+    const list = loadDues();
+    list.push({
+      id: `due_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      type: activeTab,     // 'i_owe' | 'they_owe'
+      person, amount, description: desc,
+      date, occasion, note,
+      paid: false,
+      paidDate: null,
+      createdAt: new Date().toISOString()
     });
+    saveDues(list);
+
+    const label = activeTab === 'i_owe'
+      ? `You owe ${person} ${fmt(amount)}`
+      : `${person} owes you ${fmt(amount)}`;
+    window.MT.ui?.showToast(label, 'success');
+
+    // Keep filter on pending to show new entry
+    activeFilter = 'pending';
+    renderDuesView();
+  }
+
+  function clearForm() {
+    ['duePerson', 'dueAmount', 'dueDesc', 'dueOccasion', 'dueNote'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = (id === 'dueAmount') ? '' : '';
+    });
+    const dateEl = document.getElementById('dueDate');
+    if (dateEl) dateEl.value = todayISO();
+    const statusEl = document.getElementById('dueStatus');
+    if (statusEl) statusEl.textContent = '';
+  }
+
+  function markPaid(id) {
+    const list = loadDues();
+    const idx = list.findIndex(d => d.id === id);
+    if (idx < 0) return;
+
+    const due = list[idx];
+    const currency = sym();
+
+    // Ask if they want to log it as an expense/income too
+    const isIncome = due.type === 'they_owe';
+    const actionLabel = isIncome ? 'received' : 'paid';
+    const logIt = confirm(
+      `Mark as ${actionLabel}?\n\n` +
+      `${isIncome
+        ? `✓ ${due.person} paid you ${currency}${due.amount.toFixed(2)} for "${due.description}"`
+        : `✓ You paid ${due.person} ${currency}${due.amount.toFixed(2)} for "${due.description}"`
+      }\n\n` +
+      `Click OK to mark as ${actionLabel}, Cancel to abort.`
+    );
+    if (!logIt) return;
+
+    list[idx].paid = true;
+    list[idx].paidDate = todayISO();
+    saveDues(list);
+
+    const db = window.MT.db;
+    if (db) {
+      const store = db.loadStore();
+
+      // Prompt for account/bank and date
+      const banks = store.settings?.banks || ['Cash'];
+      const bankListIdx = prompt(`Choose account used for settlement:\n${banks.map((b, i) => `${i + 1}. ${b}`).join('\n')}\n(Enter number or name)`);
+
+      let chosenBank = 'Cash';
+      if (bankListIdx) {
+        const idxVal = parseInt(bankListIdx) - 1;
+        chosenBank = banks[idxVal] || bankListIdx;
+      }
+      const customDate = prompt(`Date of receipt/payment (YYYY-MM-DD):`, todayISO()) || todayISO();
+
+      if (!store.days[customDate]) store.days[customDate] = [];
+      store.days[customDate].push({
+        id: Date.now() + Math.random(),
+        dateStr: customDate,
+        type: isIncome ? 'Income' : 'Expense',
+        description: `${due.description} (${due.person})`,
+        category: 'Due settlement',
+        payMethod: 'Bank',
+        paySubType: chosenBank,
+        amount: due.amount,
+        note: `Settled due with ${due.person} via ${chosenBank}`,
+        createdAt: new Date().toISOString(),
+        split: null,
+        isDueSettlement: true
+      });
+      db.saveStore(store);
+      window.dispatchEvent(new Event('mt:entries-changed'));
+    }
+
+    window.MT.ui?.showToast(`✓ Marked as paid!`, 'success');
+    renderDuesView();
+  }
+
+  function deleteDue(id) {
+    if (!confirm('Delete this due entry?')) return;
+    const list = loadDues();
+    saveDues(list.filter(d => d.id !== id));
+    window.MT.ui?.showToast('Deleted', 'warning');
+    renderDuesView();
+  }
+
+  /* ---- BADGE COUNT for nav ---- */
+  function updateDuesBadge() {
+    const list = loadDues();
+    const count = list.filter(d => !d.paid).length;
+
+    // Top nav badge
+    const badge = document.getElementById('duesBadge');
+    if (badge) {
+      badge.textContent = count > 0 ? count : '';
+      badge.style.display = count > 0 ? 'flex' : 'none';
+    }
+
+    // Bottom nav badge
+    const badgeFn = document.getElementById('duesBadgeFn');
+    if (badgeFn) {
+      badgeFn.textContent = count > 0 ? count : '';
+      badgeFn.style.display = count > 0 ? 'flex' : 'none';
+    }
+  }
+
+  /* ================================================================
+     EXPOSE & INIT
+  ================================================================ */
+  window.MT = window.MT || {};
+  window.MT.dues = {
+    loadDues, saveDues,
+    renderDuesView, setFilter, setAddTab,
+    addDue, clearForm, markPaid, deleteDue,
+    updateDuesBadge
+  };
+
+  window.addEventListener('mt:auth-entered', () => {
+    renderDuesView();
+    updateDuesBadge();
+
+    window.addEventListener('mt:view-changed', e => {
+      if (e.detail?.viewName === 'dues') renderDuesView();
+      updateDuesBadge();
+    });
+
+    window.addEventListener('mt:entries-changed', () => {
+      updateDuesBadge();
+      const view = document.getElementById('view-dues');
+      if (view && view.classList.contains('active')) {
+        renderDuesView();
+      }
+    });
+  });
 
 })();
