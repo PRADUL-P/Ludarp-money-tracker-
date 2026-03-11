@@ -167,6 +167,31 @@
       location.reload();
     }, 1000);
   };
+  
+  // Danger Zone Data Clear
+  const btnSettingsClearData = document.getElementById('btnSettingsClearData');
+  if (btnSettingsClearData) {
+      btnSettingsClearData.addEventListener('click', () => {
+         if (!confirm('⚠️ WARNING: This will delete ALL your data permanently.\n\nThe app will automatically download a backup file first.\n\nDo you want to proceed and wipe the data?')) return;
+         if (!confirm('Are you absolutely sure? Click OK to export and wipe your account.')) return;
+         
+         // Auto-export Full Backup
+         if (window.ExporterModule && window.ExporterModule.exportJSON) {
+            window.ExporterModule.exportJSON();
+         }
+         
+         // Wait for file download to trigger before nuking DB
+         setTimeout(() => {
+             localStorage.removeItem('money_tracker_v3');
+             localStorage.removeItem('mt_dues_v1');
+             localStorage.removeItem('mt_budgets_v1');
+             localStorage.removeItem('mt_recurring_v1');
+             localStorage.removeItem('mt_custom_settings');
+             alert('All data has been successfully cleared. The app will now reload.');
+             window.location.reload();
+         }, 1500);
+      });
+  }
 
   // Theme
   DOM.themeSelect?.addEventListener('change', () => {

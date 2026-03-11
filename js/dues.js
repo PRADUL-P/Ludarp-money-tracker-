@@ -364,6 +364,22 @@
         split: null,
         isDueSettlement: true
       });
+      
+      // Reverse sync: Mark corresponding split participant as received
+      if (due.description && due.description.startsWith('Split: ')) {
+         const descMatch = due.description.substring(7); // "Split: ".length === 7
+         const dayEntries = store.days[due.date] || [];
+         dayEntries.forEach(e => {
+            if (e.split && e.split.enabled && e.description === descMatch) {
+               e.split.participants.forEach(p => {
+                  if ((p.name || '').trim() === (due.person || '').trim() && Math.abs(p.amount - due.amount) < 0.01) {
+                     p.received = true;
+                  }
+               });
+            }
+         });
+      }
+
       db.saveStore(store);
       window.dispatchEvent(new Event('mt:entries-changed'));
     }

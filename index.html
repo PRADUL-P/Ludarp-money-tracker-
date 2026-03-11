@@ -689,6 +689,23 @@
           </div>
         </section>
 
+        <!-- ================= CLEAR APP DATA ================= -->
+        <section class="card settings-section" style="border:1px solid var(--danger-dim);">
+          <button class="settings-header" data-target="clearDataPanel" style="color: var(--danger);">
+            <span>⚠️ Danger Zone (Clear Data)</span>
+            <span class="chevron">▼</span>
+          </button>
+          <div id="clearDataPanel" class="settings-panel">
+            <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
+               <div class="info" style="color:var(--danger); border-color:var(--danger-dim);">
+                 Warning: This will permanently delete all your transactions, dues, and settings. 
+                 The app will automatically download a backup file before clearing.
+               </div>
+               <button id="btnSettingsClearData" class="btn-primary" style="background:var(--danger); border:none; color:white; font-weight:700;">Export Backup & Clear All Data</button>
+            </div>
+          </div>
+        </section>
+
       </section> <!-- Close view-settings -->
 
 
