@@ -1,91 +1,151 @@
-// exporter.js
+// exporter.js — enhanced with Settings / Transactions / Full export + smart import
 (function () {
-
-  /* =========================
-     Inject modal CSS (once)
-     ========================= */
-  if (!document.getElementById('exporter-style')) {
-    const style = document.createElement('style');
-    style.id = 'exporter-style';
-    style.textContent = `
-      .export-modal {
-        position: fixed;
-        inset: 0;
-        z-index: 999999;
-        background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(6px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .export-card {
-        width: min(92vw, 460px);
-        max-height: 90vh;
-        overflow-y: auto;
-        background: #0b1220;
-        color: #e5e7eb;
-        border-radius: 16px;
-        padding: 18px;
-        box-shadow: 0 30px 80px rgba(0,0,0,0.7);
-        animation: modalPop .2s ease;
-      }
-      .export-card h3 {
-        margin: 0 0 12px;
-        text-align: center;
-      }
-      .export-card button,
-      .export-card input {
-        width: 100%;
-        margin-top: 6px;
-      }
-      @keyframes modalPop {
-        from { transform: scale(.95); opacity: 0; }
-        to   { transform: scale(1); opacity: 1; }
-      }
-    `;
-    document.head.appendChild(style);
-  }
 
   /* =========================
      Store helpers
      ========================= */
   function loadStoreSafe() {
-    if (window.loadStore) return loadStore();
-    const raw = localStorage.getItem('money_tracker_v3');
-    return raw ? JSON.parse(raw) : { days: {}, settings: {} };
+    try {
+      if (window.MT && window.MT.db && window.MT.db.loadStore) return window.MT.db.loadStore();
+      const raw = localStorage.getItem('money_tracker_v3');
+      return raw ? JSON.parse(raw) : { days: {}, settings: {} };
+    } catch { return { days: {}, settings: {} }; }
   }
 
   function saveStoreSafe(s) {
-    if (window.saveStore) saveStore(s);
-    else localStorage.setItem('money_tracker_v3', JSON.stringify(s));
+    try {
+      if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
+      else localStorage.setItem('money_tracker_v3', JSON.stringify(s));
+    } catch(e) { console.error('Save error:', e); }
   }
 
   function download(blob, filename) {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = filename;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  function dateTag() {
+    return new Date().toISOString().slice(0, 10);
   }
 
   /* =========================
-     EXPORT FUNCTIONS
+     FLATTEN transactions for CSV / XLSX
      ========================= */
-  function exportCSV(month) {
-    const s = loadStoreSafe();
-    const rows = [['date', 'type', 'description', 'category', 'amount']];
-    Object.keys(s.days).forEach(d => {
-      if (month && !d.startsWith(month)) return;
-      s.days[d].forEach(e =>
-        rows.push([d, e.type, e.description, e.category, e.amount])
-      );
+  function flattenTransactions(s) {
+    const rows = [];
+    Object.keys(s.days || {}).sort().forEach(date => {
+      (s.days[date] || []).forEach(e => {
+        rows.push({
+          date,
+          type: e.type || '',
+          description: e.description || '',
+          category: e.category || '',
+          payMethod: e.payMethod || '',
+          paySubType: e.paySubType || '',
+          amount: e.amount || 0,
+          note: e.note || '',
+          split: e.split ? 'Yes' : 'No'
+        });
+      });
     });
-    const csv = rows.map(r => r.join(',')).join('\n');
-    download(new Blob([csv], { type: 'text/csv' }), 'money_tracker.csv');
+    return rows;
   }
 
-  function exportJSON() {
+  /* ======================================================
+     EXPORT — TRANSACTIONS ONLY
+     ====================================================== */
+  function exportTransactionsCSV() {
+    const s = loadStoreSafe();
+    const rows = flattenTransactions(s);
+    const header = ['date','type','description','category','payMethod','paySubType','amount','note','split'];
+    const lines = [header.join(','), ...rows.map(r => header.map(k => `"${String(r[k]).replace(/"/g,'""')}"`).join(','))];
+    download(new Blob([lines.join('\n')], { type: 'text/csv' }), `mt_transactions_${dateTag()}.csv`);
+  }
+
+  function exportTransactionsJSON() {
+    const s = loadStoreSafe();
+    const payload = {
+      type: 'transactions',
+      days: s.days,
+      timestamp: new Date().toISOString(),
+      version: '2.0'
+    };
+    download(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), `mt_transactions_${dateTag()}.json`);
+  }
+
+  function exportTransactionsXLSX() {
+    if (!window.XLSX) return alert('Excel library not loaded yet. Try again in a moment.');
+    const s = loadStoreSafe();
+    const rows = flattenTransactions(s);
+    const header = ['date','type','description','category','payMethod','paySubType','amount','note','split'];
+    const aoa = [header, ...rows.map(r => header.map(k => r[k]))];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Transactions');
+    const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    download(new Blob([out], { type: 'application/octet-stream' }), `mt_transactions_${dateTag()}.xlsx`);
+  }
+
+  /* ======================================================
+     EXPORT — SETTINGS ONLY
+     ====================================================== */
+  function exportSettingsJSON() {
+    const s = loadStoreSafe();
+    const custom = JSON.parse(localStorage.getItem('mt_custom_settings') || '{}');
+    const payload = {
+      type: 'settings',
+      settings: s.settings || {},
+      paymentBankMap: s.paymentBankMap || {},
+      custom,
+      timestamp: new Date().toISOString(),
+      version: '2.0'
+    };
+    download(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), `mt_settings_${dateTag()}.json`);
+  }
+
+  function exportSettingsCSV() {
+    const s = loadStoreSafe();
+    const st = s.settings || {};
+    const rows = [
+      ['type','key','value'],
+      ...((st.categories || []).map(c => ['category','name', c])),
+      ...((st.upiApps || []).map(u => ['upiApp','name', u])),
+      ...((st.cards || []).map(c => ['card','name', c])),
+      ...((st.banks || []).map(b => ['bank','name', b])),
+    ];
+    const lines = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+    download(new Blob([lines.join('\n')], { type: 'text/csv' }), `mt_settings_${dateTag()}.csv`);
+  }
+
+  function exportSettingsXLSX() {
+    if (!window.XLSX) return alert('Excel library not loaded yet.');
+    const s = loadStoreSafe();
+    const st = s.settings || {};
+    const aoa = [
+      ['type', 'key', 'value'],
+      ...((st.categories || []).map(c => ['category', 'name', c])),
+      ...((st.upiApps || []).map(u => ['upiApp', 'name', u])),
+      ...((st.cards || []).map(c => ['card', 'name', c])),
+      ...((st.banks || []).map(b => ['bank', 'name', b])),
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Settings');
+    const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    download(new Blob([out], { type: 'application/octet-stream' }), `mt_settings_${dateTag()}.xlsx`);
+  }
+
+  /* ======================================================
+     EXPORT — FULL BACKUP (ALL DATA)
+     ====================================================== */
+  function exportAllJSON() {
     const fullBackup = {
+      type: 'full',
       main: loadStoreSafe(),
       dues: JSON.parse(localStorage.getItem('mt_dues_v1') || '[]'),
       budgets: JSON.parse(localStorage.getItem('mt_budgets_v1') || '{}'),
@@ -94,159 +154,258 @@
       timestamp: new Date().toISOString(),
       version: '2.0-full'
     };
-
-    download(
-      new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' }),
-      'money_tracker_FULL_backup.json'
-    );
+    download(new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' }), `mt_FULL_backup_${dateTag()}.json`);
   }
 
-  function exportXLSX(month) {
-    if (!window.XLSX) return alert('XLSX library not loaded');
+  // Legacy alias
+  const exportJSON = exportAllJSON;
+
+  function exportAllCSV() {
     const s = loadStoreSafe();
-    const rows = [['date', 'type', 'description', 'category', 'amount']];
-    Object.keys(s.days).forEach(d => {
-      if (month && !d.startsWith(month)) return;
-      s.days[d].forEach(e =>
-        rows.push([d, e.type, e.description, e.category, e.amount])
-      );
-    });
-    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const txRows = flattenTransactions(s);
+    const dues = JSON.parse(localStorage.getItem('mt_dues_v1') || '[]');
+
+    const txHeader = ['section','date','type','description','category','payMethod','amount','note'];
+    const txLines = txRows.map(r => ['transaction', r.date, r.type, r.description, r.category, r.payMethod, r.amount, r.note]);
+
+    const dueHeader = ['section','person','type','amount','description','date','paid','paidDate'];
+    const dueLines = dues.map(d => ['due', d.person, d.type, d.amount, d.description, d.date, d.paid ? 'Yes' : 'No', d.paidDate || '']);
+
+    const allRows = [txHeader, ...txLines, [], dueHeader, ...dueLines];
+    const csv = allRows.map(r => Array.isArray(r) ? r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',') : '').join('\n');
+    download(new Blob([csv], { type: 'text/csv' }), `mt_ALL_${dateTag()}.csv`);
+  }
+
+  function exportAllXLSX() {
+    if (!window.XLSX) return alert('Excel library not loaded yet.');
+    const s = loadStoreSafe();
+    const dues = JSON.parse(localStorage.getItem('mt_dues_v1') || '[]');
+
+    // Sheet 1 – Transactions
+    const txRows = flattenTransactions(s);
+    const txHeader = ['date','type','description','category','payMethod','paySubType','amount','note','split'];
+    const txAoa = [txHeader, ...txRows.map(r => txHeader.map(k => r[k]))];
+
+    // Sheet 2 – Dues
+    const dueHeader = ['person','type','amount','description','date','paid','paidDate','note'];
+    const dueAoa = [dueHeader, ...dues.map(d => [d.person, d.type, d.amount, d.description, d.date, d.paid ? 'Yes' : 'No', d.paidDate || '', d.note || ''])];
+
+    // Sheet 3 – Settings
+    const st = s.settings || {};
+    const setAoa = [
+      ['type','value'],
+      ...((st.categories||[]).map(c => ['Category', c])),
+      ...((st.upiApps||[]).map(u => ['UPI App', u])),
+      ...((st.cards||[]).map(c => ['Card', c])),
+      ...((st.banks||[]).map(b => ['Bank', b])),
+    ];
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Data');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(txAoa), 'Transactions');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dueAoa), 'Dues');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(setAoa), 'Settings');
+
     const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    download(new Blob([out]), 'money_tracker.xlsx');
+    download(new Blob([out], { type: 'application/octet-stream' }), `mt_ALL_${dateTag()}.xlsx`);
   }
 
-  /* =========================
-     IMPORT FUNCTIONS
-     ========================= */
-  function importJSON(file) {
-    const r = new FileReader();
-    r.onload = () => {
-      try {
-        const data = JSON.parse(r.result);
-        if (!data.days) throw 0;
-        saveStoreSafe(data);
-        alert('Import successful');
+  /* ======================================================
+     SMART IMPORT — auto-detects file type + content
+     ====================================================== */
+  async function smartImport(file) {
+    if (!file) return;
+    const name = file.name.toLowerCase();
+
+    if (name.endsWith('.json')) {
+      await importJSON(file);
+    } else if (name.endsWith('.csv')) {
+      await importCSV(file);
+    } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+      await importXLSX(file);
+    } else {
+      alert('Unsupported file type. Please use .json, .csv, or .xlsx');
+    }
+  }
+
+  async function importJSON(file) {
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      // Full backup
+      if (data.main && (data.main.days !== undefined)) {
+        if (!confirm('Import FULL backup? This will overwrite ALL current data (transactions, dues, settings).')) return;
+        saveStoreSafe(data.main);
+        if (data.dues) localStorage.setItem('mt_dues_v1', JSON.stringify(data.dues));
+        if (data.budgets) localStorage.setItem('mt_budgets_v1', JSON.stringify(data.budgets));
+        if (data.recurring) localStorage.setItem('mt_recurring_v1', JSON.stringify(data.recurring));
+        if (data.custom) localStorage.setItem('mt_custom_settings', JSON.stringify(data.custom));
+        alert('✅ Full backup restored successfully!');
         location.reload();
-      } catch {
-        alert('Invalid JSON file');
+        return;
       }
-    };
-    r.readAsText(file);
+
+      // Transactions-only JSON
+      if (data.type === 'transactions' && data.days) {
+        if (!confirm('Import transaction data? This MERGES with existing transactions.')) return;
+        const s = loadStoreSafe();
+        Object.keys(data.days).forEach(date => {
+          s.days[date] = s.days[date] || [];
+          (data.days[date] || []).forEach(entry => {
+            if (!s.days[date].find(e => e.id === entry.id)) s.days[date].push(entry);
+          });
+        });
+        saveStoreSafe(s);
+        alert('✅ Transactions imported (merged)!');
+        location.reload();
+        return;
+      }
+
+      // Settings-only JSON
+      if (data.type === 'settings' && (data.settings || data.paymentBankMap || data.custom)) {
+        if (!confirm('Import settings? This will overwrite your current settings.')) return;
+        const s = loadStoreSafe();
+        if (data.settings) s.settings = data.settings;
+        if (data.paymentBankMap) s.paymentBankMap = data.paymentBankMap;
+        saveStoreSafe(s);
+        if (data.custom) localStorage.setItem('mt_custom_settings', JSON.stringify(data.custom));
+        alert('✅ Settings imported!');
+        location.reload();
+        return;
+      }
+
+      // Legacy format (old full backup without type field)
+      if (data.days !== undefined) {
+        if (!confirm('Import backup? This will overwrite current transaction data.')) return;
+        saveStoreSafe(data);
+        alert('✅ Data imported!');
+        location.reload();
+        return;
+      }
+
+      alert('⚠️ Unrecognized JSON format. Please use a file exported from this app.');
+    } catch (err) {
+      console.error(err);
+      alert('❌ Invalid JSON file. Make sure it was exported from this app.');
+    }
   }
 
-  function importCSV(file) {
-    const r = new FileReader();
-    r.onload = () => {
+  async function importCSV(file) {
+    try {
+      const text = await file.text();
+      const lines = text.trim().split('\n');
+      const header = lines[0].replace(/"/g, '').split(',').map(h => h.trim());
+
+      if (!confirm('Import CSV data? This MERGES with existing transactions.')) return;
+
       const s = loadStoreSafe();
-      r.result.split('\n').slice(1).forEach(line => {
-        const [date, type, desc, cat, amt] = line.split(',');
+      lines.slice(1).forEach(line => {
+        if (!line.trim()) return;
+        const cols = line.match(/(".*?"|[^,]+)/g) || [];
+        const row = {};
+        header.forEach((h, i) => { row[h] = (cols[i] || '').replace(/^"|"$/g, '').trim(); });
+
+        const date = row.date;
         if (!date) return;
-        s.days[date] ??= [];
+        s.days[date] = s.days[date] || [];
         s.days[date].push({
-          id: Date.now(),
-          type, description: desc, category: cat,
-          amount: Number(amt || 0)
+          id: Date.now() + Math.random(),
+          dateStr: date,
+          type: row.type || 'Expense',
+          description: row.description || '',
+          category: row.category || '',
+          payMethod: row.payMethod || row.paymethod || 'Cash',
+          paySubType: row.paySubType || row.paysubtype || '',
+          amount: parseFloat(row.amount) || 0,
+          note: row.note || '',
+          createdAt: new Date().toISOString(),
+          split: null
         });
       });
       saveStoreSafe(s);
-      alert('CSV imported');
+      alert('✅ CSV transactions imported (merged)!');
       location.reload();
-    };
-    r.readAsText(file);
+    } catch(err) {
+      console.error(err);
+      alert('❌ Failed to import CSV. Please check the file format.');
+    }
   }
 
-  function importXLSX(file) {
-    if (!window.XLSX) return alert('XLSX library not loaded');
-    const r = new FileReader();
-    r.onload = e => {
-      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+  async function importXLSX(file) {
+    if (!window.XLSX) return alert('Excel library not loaded. Try again in a moment.');
+    try {
+      const ab = await file.arrayBuffer();
+      const wb = XLSX.read(new Uint8Array(ab), { type: 'array' });
+
+      if (!confirm('Import Excel data? Transactions sheet will be MERGED with existing data.')) return;
+
       const s = loadStoreSafe();
-      rows.forEach(r => {
-        if (!r.date) return;
-        s.days[r.date] ??= [];
-        s.days[r.date].push({
-          id: Date.now(),
-          type: r.type, description: r.description,
-          category: r.category, amount: r.amount
-        });
+
+      // Process each sheet
+      wb.SheetNames.forEach(sheetName => {
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
+        if (!rows.length) return;
+        const first = rows[0];
+        
+        // Transactions sheet (has 'date' & 'amount')
+        if ('date' in first && 'amount' in first) {
+          rows.forEach(r => {
+            const date = r.date;
+            if (!date) return;
+            s.days[date] = s.days[date] || [];
+            s.days[date].push({
+              id: Date.now() + Math.random(),
+              dateStr: String(date),
+              type: r.type || 'Expense',
+              description: r.description || '',
+              category: r.category || '',
+              payMethod: r.payMethod || r.paymethod || 'Cash',
+              paySubType: r.paySubType || '',
+              amount: parseFloat(r.amount) || 0,
+              note: r.note || '',
+              createdAt: new Date().toISOString(),
+              split: null
+            });
+          });
+        }
+
+        // Settings sheet (has 'type' & 'value')
+        if ('type' in first && 'value' in first && !('date' in first)) {
+          s.settings = s.settings || {};
+          rows.forEach(r => {
+            const t = r.type; const v = r.value;
+            if (!v) return;
+            if (t === 'Category') { s.settings.categories = s.settings.categories || []; if (!s.settings.categories.includes(v)) s.settings.categories.push(v); }
+            if (t === 'UPI App') { s.settings.upiApps = s.settings.upiApps || []; if (!s.settings.upiApps.includes(v)) s.settings.upiApps.push(v); }
+            if (t === 'Card') { s.settings.cards = s.settings.cards || []; if (!s.settings.cards.includes(v)) s.settings.cards.push(v); }
+            if (t === 'Bank') { s.settings.banks = s.settings.banks || []; if (!s.settings.banks.includes(v)) s.settings.banks.push(v); }
+          });
+        }
       });
+
       saveStoreSafe(s);
-      alert('Excel imported');
+      alert('✅ Excel data imported (merged)!');
       location.reload();
-    };
-    r.readAsArrayBuffer(file);
-  }
-
-  /* =========================
-     MODAL POPUP (EXPORT + IMPORT)
-     ========================= */
-  function openExportModal() {
-    if (document.querySelector('.export-modal')) return;
-
-    const overlay = document.createElement('div');
-    overlay.className = 'export-modal';
-
-    const card = document.createElement('div');
-    card.className = 'export-card';
-    card.innerHTML = `
-      <h3>Export / Import</h3>
-
-      <label>Month (optional)</label>
-      <input id="exMonth" type="month">
-
-      <button id="exCsv">Export CSV</button>
-      <button id="exJson">Export JSON</button>
-      <button id="exXlsx">Export Excel</button>
-
-      <hr style="margin:12px 0;opacity:.3">
-
-      <label>Import file</label>
-      <input id="imFile" type="file" accept=".json,.csv,.xlsx">
-
-      <div style="text-align:right;margin-top:12px">
-        <button id="exClose">Close</button>
-      </div>
-    `;
-
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
-
-
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) overlay.remove();
-    });
-
-    // prevent clicks inside modal from closing it
-    card.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
-
-    document.getElementById('exClose').onclick = () => overlay.remove();
-    document.getElementById('exCsv').onclick = () => exportCSV(exMonth.value);
-    document.getElementById('exJson').onclick = exportJSON;
-    document.getElementById('exXlsx').onclick = () => exportXLSX(exMonth.value);
-
-    document.getElementById('imFile').onchange = e => {
-      const f = e.target.files[0];
-      if (!f) return;
-      if (f.name.endsWith('.json')) importJSON(f);
-      else if (f.name.endsWith('.csv')) importCSV(f);
-      else importXLSX(f);
-    };
+    } catch(err) {
+      console.error(err);
+      alert('❌ Failed to import Excel file.');
+    }
   }
 
   /* =========================
      GLOBAL API
      ========================= */
   window.ExporterModule = {
-    openExportModal,
-    exportCSV,
-    exportJSON,
-    exportXLSX
+    // Settings
+    exportSettingsJSON, exportSettingsCSV, exportSettingsXLSX,
+    // Transactions
+    exportTransactionsJSON, exportTransactionsCSV, exportTransactionsXLSX,
+    // Full / All
+    exportAllJSON, exportAllCSV, exportAllXLSX,
+    // Legacy aliases
+    exportJSON, exportCSV: exportTransactionsCSV, exportXLSX: exportTransactionsXLSX,
+    // Import
+    smartImport, importJSON, importCSV, importXLSX,
   };
 
 })();

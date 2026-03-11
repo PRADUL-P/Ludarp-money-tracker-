@@ -551,24 +551,63 @@
               </div>
               <div id="mapList" style="margin-top:8px; display:flex; flex-direction:column; gap:8px;"></div>
             </div>
-
           </div>
         </section>
 
         <!-- ================= EXPORT / IMPORT ================= -->
         <section class="card settings-section">
           <button class="settings-header" data-target="exportPanel">
-            <span>Export & Import</span>
+            <span>📤 Export &amp; Import</span>
             <span class="chevron">▼</span>
           </button>
 
-          <div id="exportPanel" class="settings-panel">
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button id="settingsExpCsv">Export CSV</button>
-              <button id="settingsExpJson">Export JSON</button>
-              <button id="settingsExpXlsx">Export Excel</button>
-              <label for="settingsImportFile" class="btn-secondary" style="display:inline-block; text-align:center; flex:1;">Import JSON</label>
-              <input id="settingsImportFile" type="file" accept=".json,application/json" style="display:none;" />
+          <div id="exportPanel" class="settings-panel open">
+            <div style="padding:10px; display:flex; flex-direction:column; gap:16px;">
+
+              <!-- EXPORT SETTINGS -->
+              <div>
+                <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">⚙️ EXPORT SETTINGS</div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button id="expSettingsJson" class="btn-secondary" style="flex:1;">JSON</button>
+                  <button id="expSettingsCsv" class="btn-secondary" style="flex:1;">CSV</button>
+                  <button id="expSettingsXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+                </div>
+              </div>
+
+              <!-- EXPORT TRANSACTIONS -->
+              <div>
+                <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">💳 EXPORT TRANSACTIONS</div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button id="expTxJson" class="btn-secondary" style="flex:1;">JSON</button>
+                  <button id="expTxCsv" class="btn-secondary" style="flex:1;">CSV</button>
+                  <button id="expTxXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+                </div>
+              </div>
+
+              <!-- EXPORT ALL (FULL BACKUP) -->
+              <div>
+                <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">📦 EXPORT ALL (Full Backup)</div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button id="expAllJson" class="btn-primary" style="flex:1;">JSON</button>
+                  <button id="expAllCsv" class="btn-secondary" style="flex:1;">CSV</button>
+                  <button id="expAllXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+                </div>
+              </div>
+
+              <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
+
+              <!-- IMPORT -->
+              <div>
+                <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:4px;">📥 IMPORT (Auto-detects type)</div>
+                <div class="info" style="font-size:0.78rem; margin-bottom:8px;">
+                  Accepts .json, .csv, .xlsx — auto-detects whether it's a Full Backup, Transactions or Settings file.
+                </div>
+                <label for="settingsImportFile" class="btn-primary" style="display:block; text-align:center; cursor:pointer; padding:10px 0;">
+                  📂 Choose File to Import
+                </label>
+                <input id="settingsImportFile" type="file" accept=".json,.csv,.xlsx,.xls,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none;" />
+              </div>
+
             </div>
           </div>
         </section>

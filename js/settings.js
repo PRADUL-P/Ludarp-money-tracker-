@@ -214,36 +214,30 @@
   });
 
   /* ---------- BACKUP / RESTORE ---------- */
-  document.getElementById('settingsExpJson')?.addEventListener('click', () => {
-    ExporterModule?.exportJSON();
-  });
+  // Export Settings
+  document.getElementById('expSettingsJson')?.addEventListener('click', () => ExporterModule?.exportSettingsJSON());
+  document.getElementById('expSettingsCsv')?.addEventListener('click', () => ExporterModule?.exportSettingsCSV());
+  document.getElementById('expSettingsXlsx')?.addEventListener('click', () => ExporterModule?.exportSettingsXLSX());
+  // Export Transactions
+  document.getElementById('expTxJson')?.addEventListener('click', () => ExporterModule?.exportTransactionsJSON());
+  document.getElementById('expTxCsv')?.addEventListener('click', () => ExporterModule?.exportTransactionsCSV());
+  document.getElementById('expTxXlsx')?.addEventListener('click', () => ExporterModule?.exportTransactionsXLSX());
+  // Export All
+  document.getElementById('expAllJson')?.addEventListener('click', () => ExporterModule?.exportAllJSON());
+  document.getElementById('expAllCsv')?.addEventListener('click', () => ExporterModule?.exportAllCSV());
+  document.getElementById('expAllXlsx')?.addEventListener('click', () => ExporterModule?.exportAllXLSX());
+  // Legacy buttons (if still present elsewhere)
+  document.getElementById('settingsExpJson')?.addEventListener('click', () => ExporterModule?.exportAllJSON());
+  document.getElementById('settingsExpCsv')?.addEventListener('click', () => ExporterModule?.exportTransactionsCSV());
+  document.getElementById('settingsExpXlsx')?.addEventListener('click', () => ExporterModule?.exportTransactionsXLSX());
 
+  // Smart Import — auto-detects file type + content type
   document.getElementById('settingsImportFile')?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
-    if (!file || !confirm('Import from backup? (Overwrites current data)')) return;
-    const text = await file.text();
-    try {
-      const data = JSON.parse(text);
-      if (data.main) {
-        saveStore(data.main);
-        if (data.dues) localStorage.setItem('mt_dues_v1', JSON.stringify(data.dues));
-        if (data.budgets) localStorage.setItem('mt_budgets_v1', JSON.stringify(data.budgets));
-        if (data.recurring) localStorage.setItem('mt_recurring_v1', JSON.stringify(data.recurring));
-        if (data.custom) saveCustom(data.custom);
-        alert('Restore successful');
-        location.reload();
-      } else {
-        // Legacy settings-only import
-        const s = loadStore();
-        if (data.settings) s.settings = data.settings;
-        if (data.paymentBankMap) s.paymentBankMap = data.paymentBankMap;
-        saveStore(s);
-        if (data.custom) saveCustom(data.custom);
-        renderSettingsUI();
-        fireUpdate();
-        alert('Settings imported');
-      }
-    } catch (err) { alert('Invalid backup file'); }
+    if (!file) return;
+    await ExporterModule?.smartImport(file);
+    // Reset input so same file can be re-selected
+    e.target.value = '';
   });
 
   window.MT.settings = { renderSettingsUI };
