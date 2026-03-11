@@ -153,7 +153,8 @@
     let forceDuePerson = null;
     let forceDueType = null;
     if (window.pendingQuickDueType && !isGroupCheckbox.checked) {
-       forceDuePerson = prompt(`Enter name of person for ${window.pendingQuickDueType === 'i_owe' ? 'I Owe' : 'They Owe Me'}:`);
+       const qdp = document.getElementById('quickDuePerson');
+       forceDuePerson = qdp ? qdp.value.trim() : null;
        if (!forceDuePerson) {
           alert('Name is required to log a Due.');
           return;
@@ -264,7 +265,8 @@
       }
     }
 
-    window.pendingQuickDueType = null;
+    if (typeof window.cancelQuickDue === 'function') window.cancelQuickDue();
+    else window.pendingQuickDueType = null;
 
     if (currentEdit) {
       const s2 = db.loadStore();
@@ -296,6 +298,7 @@
   clearBtn && clearBtn.addEventListener('click', () => {
     form.reset(); if (splitOptions) splitOptions.style.display = 'none'; if (customSplitsDiv) customSplitsDiv.style.display = 'none'; if (myShareWrap) myShareWrap.style.display = 'none';
     if (statusEl) statusEl.textContent = ''; currentEdit = null; submitBtn.textContent = 'Save entry';
+    if (typeof window.cancelQuickDue === 'function') window.cancelQuickDue();
   });
 
   // Render entries for the active day
@@ -433,16 +436,44 @@
   window.pendingQuickDueType = null;
   const btnIOwe = document.getElementById('btnQuickIOwe');
   const btnTheyOwe = document.getElementById('btnQuickTheyOwe');
+  const quickDueWrap = document.getElementById('quickDueWrap');
+  const quickDueBtnRow = document.getElementById('quickDueBtnRow');
+  const quickDuePerson = document.getElementById('quickDuePerson');
+  const btnCancelQuickDue = document.getElementById('btnCancelQuickDue');
+  const quickDueLabel = document.getElementById('quickDueLabel');
+  const quickDuePersonList = document.getElementById('quickDuePersonList');
 
   function triggerQuickDue(typeVal) {
       if (document.getElementById('type')) document.getElementById('type').value = typeVal === 'i_owe' ? 'Income' : 'Expense';
       window.pendingQuickDueType = typeVal;
-      ui.showToast(typeVal === 'i_owe' ? 'Selected: I Owe (Logged as Income initially)' : 'Selected: They Owe Me (Logged as Expense initially)', 'info');
-      if (document.getElementById('description')) document.getElementById('description').focus();
+      
+      if (quickDueWrap && quickDueBtnRow) {
+         quickDueBtnRow.style.display = 'none';
+         quickDueWrap.style.display = 'block';
+         quickDueLabel.textContent = typeVal === 'i_owe' ? 'Person I owe' : 'Person who owes me';
+         quickDueLabel.style.color = typeVal === 'i_owe' ? 'var(--danger)' : 'var(--success)';
+         quickDueWrap.style.borderColor = typeVal === 'i_owe' ? 'var(--danger)' : 'var(--success)';
+         
+         if (window.MT && window.MT.dues && quickDuePersonList) {
+             const known = [...new Set(window.MT.dues.loadDues().map(d => d.person).filter(Boolean))].sort();
+             quickDuePersonList.innerHTML = known.map(p => `<option value="${p}">`).join('');
+         }
+         
+         if (quickDuePerson) quickDuePerson.focus();
+      }
+      ui.showToast(typeVal === 'i_owe' ? 'Selected: I Owe (Income)' : 'Selected: They Owe Me (Expense)', 'info');
   }
+  
+  window.cancelQuickDue = function() {
+      window.pendingQuickDueType = null;
+      if (quickDuePerson) quickDuePerson.value = '';
+      if (quickDueWrap) quickDueWrap.style.display = 'none';
+      if (quickDueBtnRow) quickDueBtnRow.style.display = 'flex';
+  };
 
   if (btnIOwe) btnIOwe.addEventListener('click', () => triggerQuickDue('i_owe'));
   if (btnTheyOwe) btnTheyOwe.addEventListener('click', () => triggerQuickDue('they_owe'));
+  if (btnCancelQuickDue) btnCancelQuickDue.addEventListener('click', window.cancelQuickDue);
 
 })();
 // ✅ LIVE sync when settings change (categories / UPI / banks)
