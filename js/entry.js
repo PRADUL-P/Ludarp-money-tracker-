@@ -148,6 +148,17 @@
 
     const transferFrom = document.getElementById('transferFrom') ? document.getElementById('transferFrom').value : '';
     const transferTo = document.getElementById('transferTo') ? document.getElementById('transferTo').value : '';
+    
+    // Quick handle for pure dues where they bypass the "split" checkbox but used the quick buttons
+    let forceDuePerson = null;
+    let forceDueType = null;
+    if (window.pendingQuickDueType && !isGroupCheckbox.checked) {
+       forceDuePerson = prompt(`Enter name of person for ${window.pendingQuickDueType === 'i_owe' ? 'I Owe' : 'They Owe Me'}:`);
+       if (!forceDuePerson) {
+          alert('Name is required to log a Due.');
+          return;
+       }
+    }
 
     let entry = {
       id: currentEdit ? currentEdit.id : Date.now(),
@@ -230,8 +241,30 @@
         }
       } else {
         entry.amount = amountValue;
+
+        // Fallback for Quick Due if they didn't use split
+        if (forceDuePerson && window.MT.dues) {
+          const duesList = window.MT.dues.loadDues();
+          duesList.push({
+            id: `due_quick_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            type: forceDueType || window.pendingQuickDueType,
+            person: forceDuePerson,
+            amount: amountValue,
+            description: description,
+            date: dateStr,
+            occasion: 'Direct Entry',
+            note: note,
+            paid: false,
+            paidDate: null,
+            createdAt: new Date().toISOString()
+          });
+          window.MT.dues.saveDues(duesList);
+          window.MT.dues.updateDuesBadge();
+        }
       }
     }
+
+    window.pendingQuickDueType = null;
 
     if (currentEdit) {
       const s2 = db.loadStore();
@@ -394,8 +427,22 @@
     typeEl && typeEl.addEventListener('change', updateTransferUI);
   });
 
-  // also refresh when entries change
   window.addEventListener('mt:entries-changed', renderEntries);
+  
+  // Quick Dues Buttons Logic
+  window.pendingQuickDueType = null;
+  const btnIOwe = document.getElementById('btnQuickIOwe');
+  const btnTheyOwe = document.getElementById('btnQuickTheyOwe');
+
+  function triggerQuickDue(typeVal) {
+      if (document.getElementById('type')) document.getElementById('type').value = typeVal === 'i_owe' ? 'Income' : 'Expense';
+      window.pendingQuickDueType = typeVal;
+      ui.showToast(typeVal === 'i_owe' ? 'Selected: I Owe (Logged as Income initially)' : 'Selected: They Owe Me (Logged as Expense initially)', 'info');
+      if (document.getElementById('description')) document.getElementById('description').focus();
+  }
+
+  if (btnIOwe) btnIOwe.addEventListener('click', () => triggerQuickDue('i_owe'));
+  if (btnTheyOwe) btnTheyOwe.addEventListener('click', () => triggerQuickDue('they_owe'));
 
 })();
 // ✅ LIVE sync when settings change (categories / UPI / banks)
