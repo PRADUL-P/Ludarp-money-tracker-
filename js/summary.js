@@ -354,7 +354,30 @@
               cb.addEventListener('change', () => {
                 if (typeof toggleSplitReceived === 'function') { toggleSplitReceived(e.id, e.dateStr, pidx, cb.checked); }
                 else {
-                  const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id); if (idxItem >= 0 && day[idxItem].split) { day[idxItem].split.participants[pidx].received = cb.checked; if (typeof saveStore === 'function') saveStore(s); renderSummary(); if (typeof renderEntries === 'function') renderEntries(); }
+                  const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id); 
+                  if (idxItem >= 0 && day[idxItem].split) { 
+                    day[idxItem].split.participants[pidx].received = cb.checked; 
+                    
+                    if (window.MT && window.MT.dues && window.MT.dues.loadDues) {
+                       const duesList = window.MT.dues.loadDues();
+                       const descMatch = 'Split: ' + e.description;
+                       let updated = false;
+                       duesList.forEach(d => {
+                         if (d.date === e.dateStr && (d.person||'').trim() === (p.name||'').trim() && Math.abs(d.amount - p.amount) < 0.01 && d.description === descMatch) {
+                            d.paid = cb.checked;
+                            d.paidDate = cb.checked ? (window.MT.db && window.MT.db.todayISO ? window.MT.db.todayISO() : new Date().toISOString().slice(0,10)) : null;
+                            updated = true;
+                         }
+                       });
+                       if (updated) { window.MT.dues.saveDues(duesList); window.MT.dues.updateDuesBadge(); window.dispatchEvent(new Event('mt:entries-changed')); }
+                    }
+
+                    if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
+                    else if (typeof saveStore === 'function') saveStore(s); 
+                    renderSummary(); 
+                    if (window.MT && window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
+                    else if (typeof renderEntries === 'function') renderEntries(); 
+                  }
                 }
               });
               pright.appendChild(cb); prow.appendChild(pleft); prow.appendChild(pright); left.appendChild(prow);
@@ -368,7 +391,32 @@
           allChk.addEventListener('change', () => {
             if (typeof toggleAllSplit === 'function') { toggleAllSplit(e.id, e.dateStr, allChk.checked); }
             else {
-              const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id); if (idxItem >= 0 && day[idxItem].split) { day[idxItem].split.participants.forEach(p => p.received = allChk.checked); if (typeof saveStore === 'function') saveStore(s); renderSummary(); if (typeof renderEntries === 'function') renderEntries(); }
+              const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id); 
+              if (idxItem >= 0 && day[idxItem].split) { 
+                day[idxItem].split.participants.forEach(p => p.received = allChk.checked); 
+                
+                if (window.MT && window.MT.dues && window.MT.dues.loadDues) {
+                   const duesList = window.MT.dues.loadDues();
+                   const descMatch = 'Split: ' + e.description;
+                   let updated = false;
+                   day[idxItem].split.participants.forEach(p => {
+                       duesList.forEach(d => {
+                         if (d.date === e.dateStr && (d.person||'').trim() === (p.name||'').trim() && Math.abs(d.amount - p.amount) < 0.01 && d.description === descMatch) {
+                            d.paid = allChk.checked;
+                            d.paidDate = allChk.checked ? (window.MT.db && window.MT.db.todayISO ? window.MT.db.todayISO() : new Date().toISOString().slice(0,10)) : null;
+                            updated = true;
+                         }
+                       });
+                   });
+                   if (updated) { window.MT.dues.saveDues(duesList); window.MT.dues.updateDuesBadge(); window.dispatchEvent(new Event('mt:entries-changed')); }
+                }
+
+                if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
+                else if (typeof saveStore === 'function') saveStore(s); 
+                renderSummary(); 
+                if (window.MT && window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
+                else if (typeof renderEntries === 'function') renderEntries(); 
+              }
             }
           });
           allRow.appendChild(allChk);
