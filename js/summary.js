@@ -82,10 +82,13 @@
 
     updateVisibility(); // initial
 
-    // Default to today
-    if (modeSel) modeSel.value = 'day';
+    // Default to month
+    if (modeSel) modeSel.value = 'month';
+    if (monthInput) {
+      monthInput.value = (window.MT && window.MT.db && window.MT.db.todayISO ? window.MT.db.todayISO() : new Date().toISOString()).slice(0, 7);
+    }
     if (dayInput) {
-      dayInput.value = new Date().toISOString().slice(0, 10);
+      dayInput.value = (window.MT && window.MT.db && window.MT.db.todayISO ? window.MT.db.todayISO() : new Date().toISOString()).slice(0, 10);
     }
     updateVisibility();
   }
@@ -166,6 +169,12 @@
     const w = parent.clientWidth;
     const h = parent.clientHeight;
 
+    const cs = getComputedStyle(document.body);
+    const accent1 = cs.getPropertyValue('--accent-1').trim() || '#38bdf8';
+    const accent2 = cs.getPropertyValue('--accent-2').trim() || '#6366f1';
+    const muted = cs.getPropertyValue('--muted').trim() || '#5a7394';
+    const border = cs.getPropertyValue('--card-border').trim() || 'rgba(255,255,255,0.07)';
+
     const dpr = window.devicePixelRatio || 1;
     canvas.width = w * dpr;
     canvas.height = h * dpr;
@@ -216,8 +225,8 @@
       const y = h - padding - barH;
 
       const grad = ctx.createLinearGradient(x, y, x, h - padding);
-      grad.addColorStop(0, 'var(--accent-1)');
-      grad.addColorStop(1, 'var(--accent-2)');
+      grad.addColorStop(0, accent1);
+      grad.addColorStop(1, accent2);
 
       ctx.fillStyle = grad;
       ctx.beginPath();
@@ -233,7 +242,7 @@
 
       // Labels for few items
       if (values.length <= 15) {
-        ctx.fillStyle = 'var(--muted)';
+        ctx.fillStyle = muted;
         ctx.font = '10px Inter';
         ctx.textAlign = 'center';
         ctx.fillText(labels[i], x + barW / 2, h - padding + 15);
@@ -241,7 +250,7 @@
     });
 
     // Baseline
-    ctx.strokeStyle = 'var(--card-border)';
+    ctx.strokeStyle = border;
     ctx.beginPath();
     ctx.moveTo(padding, h - padding);
     ctx.lineTo(w - padding, h - padding);
@@ -390,6 +399,36 @@
   // expose module
   window.SummaryModule = { initSummaryControls, renderSummary, drawCategoryPie, renderHistoryList };
 
-  // auto init
-  document.addEventListener('DOMContentLoaded', () => { initSummaryControls(); try { renderSummary(); } catch (e) { } });
+  // Re-render whenever user navigates to the summary view
+  window.addEventListener('mt:view-changed', (ev) => {
+    if (ev.detail && ev.detail.viewName === 'summary') {
+      const modeSel = document.getElementById('dateMode');
+      const dayInput = document.getElementById('dayPicker');
+      const monthInput = document.getElementById('monthPicker');
+      const isoDate = (window.MT && window.MT.db && window.MT.db.todayISO) ? window.MT.db.todayISO() : new Date().toISOString();
+      
+      if (dayInput && modeSel && modeSel.value === 'day' && !dayInput.value) {
+        dayInput.value = isoDate.slice(0, 10);
+      }
+      if (monthInput && modeSel && modeSel.value === 'month' && !monthInput.value) {
+        monthInput.value = isoDate.slice(0, 7);
+      }
+      try { renderSummary(); } catch (e) { console.error('Summary render error', e); }
+    }
+  });
+
+  // Re-render whenever entries are added/changed
+  window.addEventListener('mt:entries-changed', () => {
+    const summaryView = document.getElementById('view-summary');
+    if (summaryView && summaryView.classList.contains('active')) {
+      try { renderSummary(); } catch (e) { console.error('Summary render error', e); }
+    }
+  });
+
+  // Auto-init controls on DOM ready; actual data render happens when the view is shown
+  document.addEventListener('DOMContentLoaded', () => {
+    initSummaryControls();
+    // Attempt an initial render — may show empty if user not yet authenticated, that's fine
+    try { renderSummary(); } catch (e) { }
+  });
 })();
