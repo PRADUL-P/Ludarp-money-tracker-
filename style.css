@@ -1198,6 +1198,46 @@ input[type="checkbox"]:focus {
   margin-bottom: 14px;
 }
 
+/* Settings Tabs */
+.settings-tab-bar {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: var(--card);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.settings-tab-bar::-webkit-scrollbar { display: none; }
+
+.settings-tab {
+  flex: 1;
+  min-width: 72px;
+  padding: 8px 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.settings-tab:hover { background: var(--card-hover); color: var(--text); }
+.settings-tab.active {
+  background: var(--accent-1);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.settings-tab-panel { display: none; }
+.settings-tab-panel.active { display: block; }
+
+
 .settings-header {
   width: 100%;
   background: transparent;

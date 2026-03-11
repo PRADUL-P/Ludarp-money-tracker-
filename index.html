@@ -469,284 +469,296 @@
       <!-- SETTINGS VIEW -->
       <section id="view-settings" class="view">
 
-        <!-- ================= APP CUSTOMIZATION ================= -->
-        <section class="card settings-section">
-          <button class="settings-header" data-target="customizationPanel">
-            <span>App customization & theme</span>
-            <span class="chevron">▼</span>
-          </button>
+        <!-- Settings Tab Bar -->
+        <div class="settings-tab-bar">
+          <button class="settings-tab active" data-stab="stab-general">⚙️ General</button>
+          <button class="settings-tab" data-stab="stab-payments">💳 Payments</button>
+          <button class="settings-tab" data-stab="stab-data">📦 Data</button>
+          <button class="settings-tab" data-stab="stab-auto">🤖 Auto</button>
+        </div>
 
-          <div id="customizationPanel" class="settings-panel open">
-            <label>Theme</label>
-            <select id="themeSelect">
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-            </select>
+        <!-- ======= TAB: GENERAL ======= -->
+        <div id="stab-general" class="settings-tab-panel active">
 
-            <label>Accent color</label>
-            <input id="accentColor" type="color" />
-
-            <label>Currency symbol</label>
-            <input id="currencySymbol" placeholder="₹" />
-
-            <div style="margin-top:0.6rem;">
-              <button id="saveCustomization" class="btn-primary">Save customization</button>
-              <button id="resetCustomization" class="btn-secondary">Reset to defaults</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- ================= CATEGORIES ================= -->
-        <section class="card settings-section">
-          <button class="settings-header" data-target="categoriesPanel">
-            <span>Categories</span>
-            <span class="chevron">▼</span>
-          </button>
-
-          <div id="categoriesPanel" class="settings-panel open">
-            <div id="settingsCategories" class="settings-pills-wrap"></div>
-
-            <div class="settings-add-row">
-              <input id="newCategory" placeholder="Add category" />
-              <button id="addCategoryBtn">Add</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- ================= UPI / CARDS / BANKS ================= -->
-        <section class="card settings-section">
-          <button class="settings-header" data-target="paymentsPanel">
-            <span>UPI / Cards / Banks</span>
-            <span class="chevron">▼</span>
-          </button>
-
-          <div id="paymentsPanel" class="settings-panel open">
-
-            <h4>UPI apps</h4>
-            <div id="settingsUpi" class="settings-list"></div>
-            <div class="settings-add-row">
-              <input id="newUpi" placeholder="Add UPI app" />
-              <button id="addUpiBtn">Add</button>
-            </div>
-
-            <h4>Cards</h4>
-            <div id="settingsCards" class="settings-list"></div>
-            <div class="settings-add-row">
-              <input id="newCard" placeholder="Add card" />
-              <button id="addCardBtn">Add</button>
-            </div>
-
-            <h4>Banks</h4>
-            <div id="settingsBanks" class="settings-list"></div>
-            <div class="settings-add-row">
-              <input id="newBank" placeholder="Add bank" />
-              <button id="addBankBtn">Add</button>
-            </div>
-
-            <!-- Mapping -->
-            <div id="paymentBankMapWrap" style="margin-top:12px;">
-              <div class="section-title">Map payment items to banks</div>
-              <div class="info">
-                Assign each UPI app / Card to a Bank so bank balances update automatically.
+          <!-- App Customization -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="customizationPanel">
+              <span>🎨 App Customization &amp; Theme</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="customizationPanel" class="settings-panel open">
+              <label>Theme</label>
+              <select id="themeSelect">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+              </select>
+              <label>Accent color</label>
+              <input id="accentColor" type="color" />
+              <label>Currency symbol</label>
+              <input id="currencySymbol" placeholder="₹" />
+              <div style="margin-top:0.6rem;">
+                <button id="saveCustomization" class="btn-primary">Save customization</button>
+                <button id="resetCustomization" class="btn-secondary">Reset to defaults</button>
               </div>
-              <div id="mapList" style="margin-top:8px; display:flex; flex-direction:column; gap:8px;"></div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <!-- ================= EXPORT / IMPORT ================= -->
-        <section class="card settings-section">
-          <button class="settings-header" data-target="exportPanel">
-            <span>📤 Export &amp; Import</span>
-            <span class="chevron">▼</span>
-          </button>
+          <!-- Categories -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="categoriesPanel">
+              <span>🏷️ Categories</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="categoriesPanel" class="settings-panel open">
+              <div id="settingsCategories" class="settings-pills-wrap"></div>
+              <div class="settings-add-row">
+                <input id="newCategory" placeholder="Add category" />
+                <button id="addCategoryBtn">Add</button>
+              </div>
+            </div>
+          </section>
 
-          <div id="exportPanel" class="settings-panel open">
-            <div style="padding:10px; display:flex; flex-direction:column; gap:16px;">
+          <!-- Daily Reminders -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="reminderPanel">
+              <span>🔔 Daily Reminders</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="reminderPanel" class="settings-panel">
+              <div style="display:flex; flex-direction:column; gap:12px; padding:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label style="margin:0;">Enable Reminder</label>
+                  <input type="checkbox" id="reminderToggle" style="width:20px; height:20px;">
+                </div>
+                <div id="reminderTimeWrap" style="display:none;">
+                  <label>Reminder Time</label>
+                  <input type="time" id="reminderTime" value="21:00" />
+                </div>
+                <button id="testNotifyBtn" class="btn-secondary" style="margin-top:4px;">Send Test Notification</button>
+                <div id="reminderStatus" class="modal-status"></div>
+              </div>
+            </div>
+          </section>
 
-              <!-- EXPORT SETTINGS -->
-              <div>
-                <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">⚙️ EXPORT SETTINGS</div>
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <button id="expSettingsJson" class="btn-secondary" style="flex:1;">JSON</button>
-                  <button id="expSettingsCsv" class="btn-secondary" style="flex:1;">CSV</button>
-                  <button id="expSettingsXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+        </div>
+
+        <!-- ======= TAB: PAYMENTS ======= -->
+        <div id="stab-payments" class="settings-tab-panel">
+
+          <!-- UPI / Cards / Banks -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="paymentsPanel">
+              <span>🏦 UPI / Cards / Banks</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="paymentsPanel" class="settings-panel open">
+              <h4>UPI apps</h4>
+              <div id="settingsUpi" class="settings-list"></div>
+              <div class="settings-add-row">
+                <input id="newUpi" placeholder="Add UPI app" />
+                <button id="addUpiBtn">Add</button>
+              </div>
+
+              <h4>Cards</h4>
+              <div id="settingsCards" class="settings-list"></div>
+              <div class="settings-add-row">
+                <input id="newCard" placeholder="Add card" />
+                <button id="addCardBtn">Add</button>
+              </div>
+
+              <h4>Banks</h4>
+              <div id="settingsBanks" class="settings-list"></div>
+              <div class="settings-add-row">
+                <input id="newBank" placeholder="Add bank" />
+                <button id="addBankBtn">Add</button>
+              </div>
+
+              <!-- Mapping -->
+              <div id="paymentBankMapWrap" style="margin-top:12px;">
+                <div class="section-title">Map payment items to banks</div>
+                <div class="info">
+                  Assign each UPI app / Card to a Bank so bank balances update automatically.
+                </div>
+                <div id="mapList" style="margin-top:8px; display:flex; flex-direction:column; gap:8px;"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Budget Tracking -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="budgetPanel">
+              <span>🎯 Budget Tracking</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="budgetPanel" class="settings-panel open">
+              <div id="budgetContainer"></div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- ======= TAB: DATA ======= -->
+        <div id="stab-data" class="settings-tab-panel">
+
+          <!-- Export & Import -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="exportPanel">
+              <span>📤 Export &amp; Import</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="exportPanel" class="settings-panel open">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:16px;">
+
+                <!-- EXPORT SETTINGS -->
+                <div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">⚙️ EXPORT SETTINGS</div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button id="expSettingsJson" class="btn-secondary" style="flex:1;">JSON</button>
+                    <button id="expSettingsCsv" class="btn-secondary" style="flex:1;">CSV</button>
+                    <button id="expSettingsXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+                  </div>
+                </div>
+
+                <!-- EXPORT TRANSACTIONS -->
+                <div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">💳 EXPORT TRANSACTIONS</div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button id="expTxJson" class="btn-secondary" style="flex:1;">JSON</button>
+                    <button id="expTxCsv" class="btn-secondary" style="flex:1;">CSV</button>
+                    <button id="expTxXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+                  </div>
+                </div>
+
+                <!-- EXPORT ALL -->
+                <div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">📦 EXPORT ALL (Full Backup)</div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button id="expAllJson" class="btn-primary" style="flex:1;">JSON</button>
+                    <button id="expAllCsv" class="btn-secondary" style="flex:1;">CSV</button>
+                    <button id="expAllXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+                  </div>
+                </div>
+
+                <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
+
+                <!-- IMPORT -->
+                <div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:4px;">📥 IMPORT (Auto-detects type)</div>
+                  <div class="info" style="font-size:0.78rem; margin-bottom:8px;">
+                    Accepts .json, .csv, .xlsx — auto-detects whether it's a Full Backup, Transactions or Settings file.
+                  </div>
+                  <label for="settingsImportFile" class="btn-primary" style="display:block; text-align:center; cursor:pointer; padding:10px 0;">
+                    📂 Choose File to Import
+                  </label>
+                  <input id="settingsImportFile" type="file" accept=".json,.csv,.xlsx,.xls,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none;" />
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          <!-- Danger Zone -->
+          <section class="card settings-section" style="border:1px solid var(--danger-dim);">
+            <button class="settings-header" data-target="clearDataPanel" style="color: var(--danger);">
+              <span>⚠️ Danger Zone (Clear Data)</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="clearDataPanel" class="settings-panel">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
+                 <div class="info" style="color:var(--danger); border-color:var(--danger-dim);">
+                   Warning: This will permanently delete all your transactions, dues, and settings.
+                   The app will automatically download a backup file before clearing.
+                 </div>
+                 <button id="btnSettingsClearData" class="btn-primary" style="background:var(--danger); border:none; color:white; font-weight:700;">Export Backup &amp; Clear All Data</button>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- ======= TAB: AUTO ======= -->
+        <div id="stab-auto" class="settings-tab-panel">
+
+          <!-- Recurring Transactions -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="recurringPanel">
+              <span>🔁 Recurring Transactions</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="recurringPanel" class="settings-panel open">
+              <div id="recurringContainer"></div>
+            </div>
+          </section>
+
+          <!-- Automatic Backup -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="autoExportPanel">
+              <span>💾 Automatic Monthly Backup</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="autoExportPanel" class="settings-panel">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label style="margin:0;">Monthly Statement Auto-Download</label>
+                  <input type="checkbox" id="autoDownloadStmt" style="width:20px; height:20px;">
+                </div>
+                <div class="info">
+                  If enabled, the previous month's statement will be downloaded automatically when you first open the app
+                  at the start of a new month.
                 </div>
               </div>
+            </div>
+          </section>
 
-              <!-- EXPORT TRANSACTIONS -->
-              <div>
-                <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">💳 EXPORT TRANSACTIONS</div>
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <button id="expTxJson" class="btn-secondary" style="flex:1;">JSON</button>
-                  <button id="expTxCsv" class="btn-secondary" style="flex:1;">CSV</button>
-                  <button id="expTxXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+          <!-- Google Sheets -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="gsheetPanel">
+              <span>📊 Google Sheets Sync</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="gsheetPanel" class="settings-panel">
+              <div style="padding:10px;">
+                <div class="info" style="margin-bottom:12px;">
+                  Sync your data to a Google Sheet automatically.
+                  <button id="gsheetSetupBtn" class="btn-small"
+                    style="margin-top:8px; background:var(--accent); color:#000;">View Setup Guide</button>
                 </div>
-              </div>
 
-              <!-- EXPORT ALL (FULL BACKUP) -->
-              <div>
-                <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">📦 EXPORT ALL (Full Backup)</div>
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <button id="expAllJson" class="btn-primary" style="flex:1;">JSON</button>
-                  <button id="expAllCsv" class="btn-secondary" style="flex:1;">CSV</button>
-                  <button id="expAllXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+                <div id="gsheetInstructions"
+                  style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; font-size:0.85rem; margin-bottom:12px; border:1px solid var(--card-border);">
+                  <strong>How to set up:</strong>
+                  <ol style="padding-left:18px; line-height:1.4;">
+                    <li>Create a new <b>Google Sheet</b>.</li>
+                    <li>Go to <b>Extensions &gt; Apps Script</b>.</li>
+                    <li>Delete the code there and paste the code from <code>gsheets.js</code> (or the project help file).</li>
+                    <li>Click <b>Deploy &gt; New Deployment</b>.</li>
+                    <li>Select <b>Web App</b>. Change access to <b>"Anyone"</b>.</li>
+                    <li>Copy the <b>Web App URL</b> and paste it below.</li>
+                  </ol>
+                  <div class="info" style="font-size:0.75rem; margin-top:8px;">
+                    <b>Note:</b> Each user on a different device needs their own URL for their own sheet.
+                    <br><br>
+                    <b>Need help or custom updates?</b><br>
+                    <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20need%20help%20with%20the%20Money%20Tracker%20Google%20Sheets%20setup."
+                      target="_blank" style="color:var(--accent); text-decoration:none; font-weight:700;">📲 Contact Developer (WhatsApp)</a>
+                    <br><br>
+                    <button id="downloadManualBtn" class="btn-small"
+                      style="background:#4ade80; color:#000; width:100%; border:none; font-weight:700;">📄 Download User Manual (PDF)</button>
+                  </div>
                 </div>
-              </div>
 
-              <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
-
-              <!-- IMPORT -->
-              <div>
-                <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:4px;">📥 IMPORT (Auto-detects type)</div>
-                <div class="info" style="font-size:0.78rem; margin-bottom:8px;">
-                  Accepts .json, .csv, .xlsx — auto-detects whether it's a Full Backup, Transactions or Settings file.
-                </div>
-                <label for="settingsImportFile" class="btn-primary" style="display:block; text-align:center; cursor:pointer; padding:10px 0;">
-                  📂 Choose File to Import
-                </label>
-                <input id="settingsImportFile" type="file" accept=".json,.csv,.xlsx,.xls,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none;" />
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-
-        <!-- ================= BUDGET TRACKING ================= -->
-        <section class="card settings-section">
-          <button class="settings-header" data-target="budgetPanel">
-            <span>🎯 Budget Tracking</span>
-            <span class="chevron">▼</span>
-          </button>
-
-          <div id="budgetPanel" class="settings-panel open">
-            <div id="budgetContainer"></div>
-          </div>
-        </section>
-
-        <!-- ================= RECURRING TRANSACTIONS ================= -->
-        <section class="card settings-section">
-          <button class="settings-header" data-target="recurringPanel">
-            <span>🔁 Recurring Transactions</span>
-            <span class="chevron">▼</span>
-          </button>
-
-          <div id="recurringPanel" class="settings-panel open">
-            <div id="recurringContainer"></div>
-          </div>
-        </section>
-
-        <!-- ================= DAILY REMINDERS ================= -->
-        <section class="card settings-section">
-          <button class="settings-header" data-target="reminderPanel">
-            <span>🔔 Daily Reminders</span>
-            <span class="chevron">▼</span>
-          </button>
-
-          <div id="reminderPanel" class="settings-panel">
-            <div style="display:flex; flex-direction:column; gap:12px; padding:10px;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <label style="margin:0;">Enable Reminder</label>
-                <input type="checkbox" id="reminderToggle" style="width:20px; height:20px;">
-              </div>
-              <div id="reminderTimeWrap" style="display:none;">
-                <label>Reminder Time</label>
-                <input type="time" id="reminderTime" value="21:00" />
-              </div>
-              <button id="testNotifyBtn" class="btn-secondary" style="margin-top:4px;">Send Test Notification</button>
-              <div id="reminderStatus" class="modal-status"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ================= GOOGLE SHEETS ================= -->
-        <section class="card settings-section">
-          <button class="settings-header" data-target="gsheetPanel">
-            <span>📊 Google Sheets Sync</span>
-            <span class="chevron">▼</span>
-          </button>
-
-          <div id="gsheetPanel" class="settings-panel">
-            <div style="padding:10px;">
-              <div class="info" style="margin-bottom:12px;">
-                Sync your data to a Google Sheet automatically.
-                <button id="gsheetSetupBtn" class="btn-small"
-                  style="margin-top:8px; background:var(--accent); color:#000;">View Setup Guide</button>
-              </div>
-
-              <div id="gsheetInstructions"
-                style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; font-size:0.85rem; margin-bottom:12px; border:1px solid var(--card-border);">
-                <strong>How to set up:</strong>
-                <ol style="padding-left:18px; line-height:1.4;">
-                  <li>Create a new <b>Google Sheet</b>.</li>
-                  <li>Go to <b>Extensions > Apps Script</b>.</li>
-                  <li>Delete the code there and paste the code from <code>gsheets.js</code> (or the project help file).
-                  </li>
-                  <li>Click <b>Deploy > New Deployment</b>.</li>
-                  <li>Select <b>Web App</b>. Change access to <b>"Anyone"</b>.</li>
-                  <li>Copy the <b>Web App URL</b> and paste it below.</li>
-                </ol>
-                <div class="info" style="font-size:0.75rem; margin-top:8px;">
-                  <b>Note:</b> Each user on a different device needs their own URL for their own sheet.
-                  <br><br>
-                  <b>Need help or custom updates?</b><br>
-                  <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20need%20help%20with%20the%20Money%20Tracker%20Google%20Sheets%20setup."
-                    target="_blank" style="color:var(--accent); text-decoration:none; font-weight:700;">📲 Contact
-                    Developer (WhatsApp)</a>
-                  <br><br>
-                  <button id="downloadManualBtn" class="btn-small"
-                    style="background:#4ade80; color:#000; width:100%; border:none; font-weight:700;">📄 Download User
-                    Manual (PDF)</button>
-                </div>
-              </div>
-
-              <label>Google Apps Script Web App URL</label>
-              <input type="url" id="gsheetUrl" placeholder="https://script.google.com/macros/s/.../exec" />
-              <button id="saveGsheetBtn" class="btn-primary" style="margin-top:8px;">Save Sync URL</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- ================= AUTO EXPORT ================= -->
-        <section class="card settings-section">
-          <button class="settings-header" data-target="autoExportPanel">
-            <span>💾 Automatic Backup</span>
-            <span class="chevron">▼</span>
-          </button>
-
-          <div id="autoExportPanel" class="settings-panel">
-            <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <label style="margin:0;">Monthly Statement Auto-Download</label>
-                <input type="checkbox" id="autoDownloadStmt" style="width:20px; height:20px;">
-              </div>
-              <div class="info">
-                If enabled, the previous month's statement will be downloaded automatically when you first open the app
-                at the start of a new month.
+                <label>Google Apps Script Web App URL</label>
+                <input type="url" id="gsheetUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+                <button id="saveGsheetBtn" class="btn-primary" style="margin-top:8px;">Save Sync URL</button>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <!-- ================= CLEAR APP DATA ================= -->
-        <section class="card settings-section" style="border:1px solid var(--danger-dim);">
-          <button class="settings-header" data-target="clearDataPanel" style="color: var(--danger);">
-            <span>⚠️ Danger Zone (Clear Data)</span>
-            <span class="chevron">▼</span>
-          </button>
-          <div id="clearDataPanel" class="settings-panel">
-            <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
-               <div class="info" style="color:var(--danger); border-color:var(--danger-dim);">
-                 Warning: This will permanently delete all your transactions, dues, and settings. 
-                 The app will automatically download a backup file before clearing.
-               </div>
-               <button id="btnSettingsClearData" class="btn-primary" style="background:var(--danger); border:none; color:white; font-weight:700;">Export Backup & Clear All Data</button>
-            </div>
-          </div>
-        </section>
+        </div>
 
       </section> <!-- Close view-settings -->
+
+
 
 
       <!-- USER VIEW -->

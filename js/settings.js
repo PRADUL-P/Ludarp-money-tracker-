@@ -213,6 +213,18 @@
     }
   });
 
+  // Settings Sub-Tabs
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.settings-tab');
+    if (!btn || !btn.dataset.stab) return;
+    const targetId = btn.dataset.stab;
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.settings-tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const panel = document.getElementById(targetId);
+    if (panel) panel.classList.add('active');
+  });
+
   /* ---------- BACKUP / RESTORE ---------- */
   // Export Settings
   document.getElementById('expSettingsJson')?.addEventListener('click', () => ExporterModule?.exportSettingsJSON());
