@@ -320,6 +320,9 @@
     // Ask if they want to log it as an expense/income too
     const isIncome = due.type === 'they_owe';
     const actionLabel = isIncome ? 'received' : 'paid';
+    // Check if this is a Split due
+    const isSplitDue = due.description && due.description.startsWith('Split: ');
+
     const logIt = confirm(
       `Mark as ${actionLabel}?\n\n` +
       `${isIncome
@@ -338,35 +341,8 @@
     if (db) {
       const store = db.loadStore();
 
-      // Prompt for account/bank and date
-      const banks = store.settings?.banks || ['Cash'];
-      const bankListIdx = prompt(`Choose account used for settlement:\n${banks.map((b, i) => `${i + 1}. ${b}`).join('\n')}\n(Enter number or name)`);
-
-      let chosenBank = 'Cash';
-      if (bankListIdx) {
-        const idxVal = parseInt(bankListIdx) - 1;
-        chosenBank = banks[idxVal] || bankListIdx;
-      }
-      const customDate = prompt(`Date of receipt/payment (YYYY-MM-DD):`, todayISO()) || todayISO();
-
-      if (!store.days[customDate]) store.days[customDate] = [];
-      store.days[customDate].push({
-        id: Date.now() + Math.random(),
-        dateStr: customDate,
-        type: isIncome ? 'Income' : 'Expense',
-        description: `${due.description} (${due.person})`,
-        category: 'Due settlement',
-        payMethod: 'Bank',
-        paySubType: chosenBank,
-        amount: due.amount,
-        note: `Settled due with ${due.person} via ${chosenBank}`,
-        createdAt: new Date().toISOString(),
-        split: null,
-        isDueSettlement: true
-      });
-      
-      // Reverse sync: Mark corresponding split participant as received
-      if (due.description && due.description.startsWith('Split: ')) {
+      if (isSplitDue) {
+         // ONLY reverse sync, do NOT create a new transaction since split already minimized entry
          const descMatch = due.description.substring(7); // "Split: ".length === 7
          const dayEntries = store.days[due.date] || [];
          dayEntries.forEach(e => {
@@ -377,6 +353,33 @@
                   }
                });
             }
+         });
+      } else {
+         // Quick Due: Create explicit settlement transaction
+         const banks = store.settings?.banks || ['Cash'];
+         const bankListIdx = prompt(`Choose account used for settlement:\n${banks.map((b, i) => `${i + 1}. ${b}`).join('\n')}\n(Enter number or name)`);
+
+         let chosenBank = 'Cash';
+         if (bankListIdx) {
+           const idxVal = parseInt(bankListIdx) - 1;
+           chosenBank = banks[idxVal] || bankListIdx;
+         }
+         const customDate = prompt(`Date of receipt/payment (YYYY-MM-DD):`, todayISO()) || todayISO();
+
+         if (!store.days[customDate]) store.days[customDate] = [];
+         store.days[customDate].push({
+           id: Date.now() + Math.random(),
+           dateStr: customDate,
+           type: isIncome ? 'Income' : 'Expense',
+           description: `${due.description} (${due.person})`,
+           category: 'Due settlement',
+           payMethod: 'Bank',
+           paySubType: chosenBank,
+           amount: due.amount,
+           note: `Settled due with ${due.person} via ${chosenBank}`,
+           createdAt: new Date().toISOString(),
+           split: null,
+           isDueSettlement: true
          });
       }
 
