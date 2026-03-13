@@ -9,7 +9,7 @@ const CUSTOM_KEY = 'money_tracker_custom_v3';
 
 const DEFAULTS = {
   settings: {
-    categories: ['Food','Travel','Bills','Shopping','Salary','Other'],
+    categories: ['Food','Travel','Bills','Shopping','Salary','Petrol','Bike Maint','Hostel','Other'],
     upiApps: ['GPay','PhonePe','Paytm'],
     cards: ['Canara','HDFC','SBI','Credit Card'],
     banks: ['Canara','HDFC','SBI']

@@ -288,6 +288,27 @@
     });
     saveDues(list);
 
+    // Link back to main history (Entry page)
+    if (window.MT.db) {
+       const store = window.MT.db.loadStore();
+       if (!store.days[date]) store.days[date] = [];
+       store.days[date].push({
+          id: `due_history_${Date.now()}`,
+          dateStr: date,
+          type: activeTab === 'i_owe' ? 'Income' : 'Expense',
+          description: desc,
+          category: activeTab === 'i_owe' ? 'Debt' : 'Loan',
+          payMethod: 'Cash',
+          amount: 0, // MINIMIZED as requested
+          note: `Auto-linked due for ${person}`,
+          createdAt: new Date().toISOString(),
+          occasion: 'Direct Entry', // Tagged for linking settlement logic
+          isLinkedDue: true
+       });
+       window.MT.db.saveStore(store);
+       window.dispatchEvent(new Event('mt:entries-changed'));
+    }
+
     const label = activeTab === 'i_owe'
       ? `You owe ${person} ${fmt(amount)}`
       : `${person} owes you ${fmt(amount)}`;
@@ -320,8 +341,9 @@
     // Ask if they want to log it as an expense/income too
     const isIncome = due.type === 'they_owe';
     const actionLabel = isIncome ? 'received' : 'paid';
-    // Check if this is a Split due
-    const isSplitDue = due.description && due.description.startsWith('Split: ');
+    // Check if this is a Linked due (Split or Quick Due)
+    // Linked dues have the main transaction already logged (minimised)
+    const isLinkedDue = (due.description && due.description.startsWith('Split: ')) || (due.occasion === 'Direct Entry');
 
     const logIt = confirm(
       `Mark as ${actionLabel}?\n\n` +
@@ -341,19 +363,22 @@
     if (db) {
       const store = db.loadStore();
 
-      if (isSplitDue) {
-         // ONLY reverse sync, do NOT create a new transaction since split already minimized entry
-         const descMatch = due.description.substring(7); // "Split: ".length === 7
-         const dayEntries = store.days[due.date] || [];
-         dayEntries.forEach(e => {
-            if (e.split && e.split.enabled && e.description === descMatch) {
-               e.split.participants.forEach(p => {
-                  if ((p.name || '').trim() === (due.person || '').trim() && Math.abs(p.amount - due.amount) < 0.01) {
-                     p.received = true;
-                  }
-               });
-            }
-         });
+      if (isLinkedDue) {
+         // ONLY reverse sync for Splits, for Direct Entry just update metadata
+         if (due.description && due.description.startsWith('Split: ')) {
+           const descMatch = due.description.substring(7); // "Split: ".length === 7
+           const dayEntries = store.days[due.date] || [];
+           dayEntries.forEach(e => {
+              if (e.split && e.split.enabled && e.description === descMatch) {
+                 e.split.participants.forEach(p => {
+                    if ((p.name || '').trim() === (due.person || '').trim() && Math.abs(p.amount - due.amount) < 0.01) {
+                       p.received = true;
+                    }
+                 });
+              }
+           });
+         }
+         // No new transaction created because original entry was already minimised 
       } else {
          // Quick Due: Create explicit settlement transaction
          const banks = store.settings?.banks || ['Cash'];

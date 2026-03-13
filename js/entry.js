@@ -151,8 +151,9 @@
     
     // Quick handle for pure dues where they bypass the "split" checkbox but used the quick buttons
     let forceDuePerson = null;
-    let forceDueType = null;
-    if (window.pendingQuickDueType && !isGroupCheckbox.checked) {
+    let forceDueType = window.pendingQuickDueType; // Capture the type immediately
+
+    if (forceDueType && !isGroupCheckbox.checked) {
        const qdp = document.getElementById('quickDuePerson');
        forceDuePerson = qdp ? qdp.value.trim() : null;
        if (!forceDuePerson) {
@@ -241,14 +242,15 @@
           window.MT.dues.updateDuesBadge();
         }
       } else {
-        entry.amount = amountValue;
-
         // Fallback for Quick Due if they didn't use split
         if (forceDuePerson && window.MT.dues) {
+          // Minimise the value: user wants the entry itself to be 0 since it's a 100% due
+          entry.amount = 0; 
+          
           const duesList = window.MT.dues.loadDues();
           duesList.push({
             id: `due_quick_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-            type: forceDueType || window.pendingQuickDueType,
+            type: forceDueType, // use the captured type
             person: forceDuePerson,
             amount: amountValue,
             description: description,
@@ -261,6 +263,8 @@
           });
           window.MT.dues.saveDues(duesList);
           window.MT.dues.updateDuesBadge();
+        } else {
+          entry.amount = amountValue;
         }
       }
     }
