@@ -332,96 +332,141 @@
 
   function markPaid(id) {
     const list = loadDues();
-    const idx = list.findIndex(d => d.id === id);
-    if (idx < 0) return;
+    const due = list.find(d => d.id === id);
+    if (!due) return;
 
-    const due = list[idx];
-    const currency = sym();
-
-    // Ask if they want to log it as an expense/income too
     const isIncome = due.type === 'they_owe';
-    const actionLabel = isIncome ? 'received' : 'paid';
-    // Check if this is a Linked due (Split or Quick Due)
-    // Linked dues have the main transaction already logged (minimised)
-    const isLinkedDue = (due.description && due.description.startsWith('Split: ')) || (due.occasion === 'Direct Entry');
+    const actionLabel = isIncome ? 'Received' : 'Paid';
 
-    const logIt = confirm(
-      `Mark as ${actionLabel}?\n\n` +
-      `${isIncome
-        ? `✓ ${due.person} paid you ${currency}${due.amount.toFixed(2)} for "${due.description}"`
-        : `✓ You paid ${due.person} ${currency}${due.amount.toFixed(2)} for "${due.description}"`
-      }\n\n` +
-      `Click OK to mark as ${actionLabel}, Cancel to abort.`
-    );
-    if (!logIt) return;
+    // Show inline settlement panel instead of prompt()
+    const itemEl = document.querySelector(`.due-item[data-id="${id}"]`);
+    if (!itemEl) return;
 
-    list[idx].paid = true;
-    list[idx].paidDate = todayISO();
-    saveDues(list);
-
-    const db = window.MT.db;
-    if (db) {
-      const store = db.loadStore();
-
-      if (isLinkedDue) {
-         // ONLY reverse sync for Splits, for Direct Entry just update metadata
-         if (due.description && due.description.startsWith('Split: ')) {
-           const descMatch = due.description.substring(7); // "Split: ".length === 7
-           const dayEntries = store.days[due.date] || [];
-           dayEntries.forEach(e => {
-              if (e.split && e.split.enabled && e.description === descMatch) {
-                 e.split.participants.forEach(p => {
-                    if ((p.name || '').trim() === (due.person || '').trim() && Math.abs(p.amount - due.amount) < 0.01) {
-                       p.received = true;
-                    }
-                 });
-              }
-           });
-         }
-         // No new transaction created because original entry was already minimised 
-      } else {
-         // Quick Due: Create explicit settlement transaction
-         const banks = store.settings?.banks || ['Cash'];
-         const bankListIdx = prompt(`Choose account used for settlement:\n${banks.map((b, i) => `${i + 1}. ${b}`).join('\n')}\n(Enter number or name)`);
-
-         let chosenBank = 'Cash';
-         if (bankListIdx) {
-           const idxVal = parseInt(bankListIdx) - 1;
-           chosenBank = banks[idxVal] || bankListIdx;
-         }
-         const customDate = prompt(`Date of receipt/payment (YYYY-MM-DD):`, todayISO()) || todayISO();
-
-         if (!store.days[customDate]) store.days[customDate] = [];
-         store.days[customDate].push({
-           id: Date.now() + Math.random(),
-           dateStr: customDate,
-           type: isIncome ? 'Income' : 'Expense',
-           description: `${due.description} (${due.person})`,
-           category: 'Due settlement',
-           payMethod: 'Bank',
-           paySubType: chosenBank,
-           amount: due.amount,
-           note: `Settled due with ${due.person} via ${chosenBank}`,
-           createdAt: new Date().toISOString(),
-           split: null,
-           isDueSettlement: true
-         });
-      }
-
-      db.saveStore(store);
-      window.dispatchEvent(new Event('mt:entries-changed'));
+    // Avoid duplicates
+    if (itemEl.querySelector('.settle-panel')) {
+      itemEl.querySelector('.settle-panel').remove();
+      return;
     }
 
-    window.MT.ui?.showToast(`✓ Marked as paid!`, 'success');
-    renderDuesView();
+    const banks = window.MT.db?.loadStore()?.settings?.banks || ['Cash'];
+    const panel = document.createElement('div');
+    panel.className = 'settle-panel';
+    panel.style.cssText = `
+      background: var(--card-hover); border: 1px solid var(--accent);
+      border-radius: 10px; padding: 12px; margin-top: 10px; grid-column: 1/-1;
+    `;
+    panel.innerHTML = `
+      <div style="font-size:12px; font-weight:700; margin-bottom:8px; color:var(--accent);">
+        ✓ Settle — ${isIncome ? 'Mark as Received' : 'Mark as Paid'}
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+        <div style="flex:1; min-width:110px;">
+          <label style="font-size:11px; color:var(--muted);">Account</label>
+          <select id="settleBank_${id}" style="width:100%;">
+            ${banks.map(b => `<option value="${b}">${b}</option>`).join('')}
+          </select>
+        </div>
+        <div style="flex:1; min-width:120px;">
+          <label style="font-size:11px; color:var(--muted);">Date</label>
+          <input id="settleDate_${id}" type="date" value="${todayISO()}" style="width:100%;" />
+        </div>
+        <button id="settleConfirm_${id}" class="btn-primary" style="height:38px; padding:0 16px; font-size:13px;">✓ Confirm</button>
+        <button id="settleCancel_${id}" class="btn-secondary" style="height:38px; padding:0 12px;">✕</button>
+      </div>
+    `;
+
+    // Insert panel into the due item
+    itemEl.appendChild(panel);
+
+    document.getElementById(`settleCancel_${id}`)?.addEventListener('click', () => panel.remove());
+
+    document.getElementById(`settleConfirm_${id}`)?.addEventListener('click', () => {
+      const chosenBank = document.getElementById(`settleBank_${id}`)?.value || 'Cash';
+      const customDate = document.getElementById(`settleDate_${id}`)?.value || todayISO();
+
+      const allDues = loadDues();
+      const idx = allDues.findIndex(d => d.id === id);
+      if (idx < 0) return;
+      allDues[idx].paid = true;
+      allDues[idx].paidDate = customDate;
+      saveDues(allDues);
+
+      const db = window.MT.db;
+      if (db) {
+        const store = db.loadStore();
+        const isLinkedDue = (due.description?.startsWith('Split: ')) || (due.occasion === 'Direct Entry');
+
+        if (isLinkedDue && due.description?.startsWith('Split: ')) {
+          const descMatch = due.description.substring(7);
+          (store.days[due.date] || []).forEach(e => {
+            if (e.split?.enabled && e.description === descMatch) {
+              e.split.participants.forEach(p => {
+                if ((p.name || '').trim() === (due.person || '').trim() && Math.abs(p.amount - due.amount) < 0.01) {
+                  p.received = true;
+                }
+              });
+            }
+          });
+        } else {
+          // Create settlement transaction
+          if (!store.days[customDate]) store.days[customDate] = [];
+          store.days[customDate].push({
+            id: Date.now() + Math.random(),
+            dateStr: customDate,
+            type: isIncome ? 'Income' : 'Expense',
+            description: `${due.description} (${due.person})`,
+            category: 'Due settlement',
+            payMethod: 'Bank',
+            paySubType: chosenBank,
+            amount: due.amount,
+            note: `Settled due with ${due.person} via ${chosenBank}`,
+            createdAt: new Date().toISOString(),
+            split: null,
+            isDueSettlement: true
+          });
+        }
+
+        db.saveStore(store);
+        window.dispatchEvent(new Event('mt:entries-changed'));
+      }
+
+      window.MT.ui?.showToast(`✓ ${actionLabel}! ₹${due.amount.toFixed(0)} logged`, 'success');
+      renderDuesView();
+    });
   }
 
+
   function deleteDue(id) {
-    if (!confirm('Delete this due entry?')) return;
-    const list = loadDues();
-    saveDues(list.filter(d => d.id !== id));
-    window.MT.ui?.showToast('Deleted', 'warning');
-    renderDuesView();
+    const itemEl = document.querySelector(`.due-item[data-id="${id}"]`);
+    if (!itemEl) return;
+
+    // If already showing confirm, go ahead and delete
+    if (itemEl.querySelector('.delete-confirm')) {
+      const list = loadDues();
+      saveDues(list.filter(d => d.id !== id));
+      window.MT.ui?.showToast('Deleted', 'warning');
+      renderDuesView();
+      return;
+    }
+
+    // Show inline confirm strip
+    const strip = document.createElement('div');
+    strip.className = 'delete-confirm';
+    strip.style.cssText = 'display:flex; align-items:center; gap:8px; margin-top:8px; padding:8px 10px; background:rgba(244,63,94,0.08); border:1px solid var(--danger); border-radius:8px;';
+    strip.innerHTML = `
+      <span style="flex:1; font-size:12px; color:var(--danger); font-weight:600;">🗑 Delete this due?</span>
+      <button class="btn-small" style="background:var(--danger); color:#fff; border:none; padding:4px 12px;">Yes</button>
+      <button class="btn-small" style="padding:4px 12px;">No</button>
+    `;
+    itemEl.appendChild(strip);
+
+    strip.querySelectorAll('.btn-small')[0].addEventListener('click', () => {
+      const list = loadDues();
+      saveDues(list.filter(d => d.id !== id));
+      window.MT.ui?.showToast('Deleted', 'warning');
+      renderDuesView();
+    });
+    strip.querySelectorAll('.btn-small')[1].addEventListener('click', () => strip.remove());
   }
 
   /* ---- BADGE COUNT for nav ---- */
@@ -455,7 +500,7 @@
     updateDuesBadge
   };
 
-  window.addEventListener('mt:auth-entered', () => {
+  function initDues() {
     renderDuesView();
     updateDuesBadge();
 
@@ -471,6 +516,13 @@
         renderDuesView();
       }
     });
-  });
+  }
+
+  // Handle both late load and event-based init
+  if (document.getElementById('appRoot') && document.getElementById('appRoot').style.display !== 'none') {
+    initDues();
+  } else {
+    window.addEventListener('mt:auth-entered', initDues);
+  }
 
 })();

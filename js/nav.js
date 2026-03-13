@@ -164,6 +164,27 @@
       positionMenuToggle();
       if (mainMenu?.classList.contains('open')) positionMainMenu();
     });
+
+    /* ===== FINANCE TABS ===== */
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.finance-tab-bar .tab-btn');
+      if (!btn) return;
+      const targetId = btn.dataset.target;
+      const bar = btn.parentElement;
+      bar.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('active');
+          // Inline style reset
+          b.style.background = 'none';
+          b.style.color = 'var(--text-secondary)';
+      });
+      btn.classList.add('active');
+      btn.style.background = 'var(--accent)';
+      btn.style.color = '#fff';
+      
+      document.querySelectorAll('.tab-content').forEach(p => p.style.display = 'none');
+      const target = document.getElementById(targetId);
+      if (target) target.style.display = 'block';
+    });
   }
 
   /* ================= VIEW SWITCHER ================= */
@@ -177,7 +198,7 @@
       document.getElementById('view-entry')?.classList.add('active');
     if (name === 'summary')
       document.getElementById('view-summary')?.classList.add('active');
-    if (name === 'accounts')
+    if (name === 'accounts' || name === 'statement')
       document.getElementById('view-accounts')?.classList.add('active');
     if (name === 'settings')
       document.getElementById('view-settings')?.classList.add('active');
@@ -187,8 +208,6 @@
       document.getElementById('view-about')?.classList.add('active');
     if (name === 'dues')
       document.getElementById('view-dues')?.classList.add('active');
-    if (name === 'statement')
-      document.getElementById('view-statement')?.classList.add('active');
 
     /* ===== ACTIVE STATE (TOP + BOTTOM) ===== */
     document.querySelectorAll('.nav-item, .fn-item').forEach(btn => {
@@ -253,7 +272,7 @@
 ================================ */
 (function () {
 
-  const views = ['entry', 'summary', 'accounts', 'dues', 'statement', 'settings', 'user', 'about'];
+  const views = ['entry', 'summary', 'accounts', 'dues', 'settings', 'about'];
   let startX = 0;
   let startY = 0;
 

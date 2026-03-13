@@ -161,6 +161,8 @@
     renderHistoryList(filtered);
   }
 
+
+
   function drawTrendChart(dailyTotals, mode, monthVal, yearVal) {
     const canvas = DOM.trendChartCanvas;
     if (!canvas) return;
@@ -332,6 +334,11 @@
         }
         const row = document.createElement('div'); row.className = 'entry';
         const left = document.createElement('div'); left.className = 'entry-main';
+        left.style.cursor = 'pointer';
+        left.title = 'Click to expand/collapse';
+        left.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'INPUT') row.classList.toggle('collapsed');
+        });
         const desc = (e.description || '').toString().toUpperCase();
         const title = document.createElement('div'); title.className = 'entry-title'; title.style.color = '#ffffff'; title.textContent = `${(idx + 1)}. ${desc}`;
         const meta = document.createElement('div'); meta.className = 'entry-meta'; meta.style.color = 'var(--muted)';
@@ -340,6 +347,19 @@
         meta.textContent = metaText;
         left.appendChild(title); left.appendChild(meta);
         if (e.note) { const n = document.createElement('div'); n.className = 'entry-note'; n.textContent = e.note; left.appendChild(n); }
+
+        if (e.fuel && e.fuel.mileage > 0) {
+          const fn = document.createElement('div'); fn.className = 'entry-note';
+          fn.style.color = 'var(--warning)';
+          fn.innerHTML = `⛽ <strong>Mileage: ${e.fuel.mileage.toFixed(1)} km/l</strong> · ODO: ${e.fuel.currentKm} km${e.fuel.liters ? ` · ${e.fuel.liters}L` : ''}`;
+          left.appendChild(fn);
+        }
+        if (e.tripDate) {
+          const tn = document.createElement('div'); tn.className = 'entry-note';
+          tn.style.color = 'var(--accent)';
+          tn.innerHTML = `🚉 <strong>Trip Date: ${formatDateLabel(e.tripDate)}</strong>`;
+          left.appendChild(tn);
+        }
 
         if (e.split && e.split.enabled) {
           const sp = document.createElement('div'); sp.className = 'entry-note';
@@ -430,11 +450,28 @@
           left.appendChild(tr);
         }
 
+        if (e.category && e.category.toLowerCase() === 'petrol' && e.fuel && e.fuel.currentKm) {
+          const fr = document.createElement('div'); fr.className = 'entry-note'; 
+          fr.style.color = 'var(--warning)'; fr.style.fontSize = '11px'; fr.style.marginTop = '4px';
+          const dist = e.fuel.currentKm - (e.fuel.prevKm || 0);
+          const mil = dist / (e.fuel.liters || 1);
+          fr.textContent = `⛽ ODO: ${e.fuel.currentKm} | ${dist}km run | ${mil.toFixed(1)} km/l`;
+          left.appendChild(fr);
+        }
+
         const right = document.createElement('div'); right.className = 'entry-right';
         const amt = document.createElement('div'); amt.className = 'entry-amount ' + (e.type === 'Income' ? 'income' : (e.type === 'Transfer' ? '' : 'expense'));
         amt.textContent = (e.type === 'Income' ? '+' : '-') + currencyFmt(e.amount || 0);
         const edit = document.createElement('button'); edit.className = 'btn-small'; edit.innerHTML = `Edit`;
-        edit.addEventListener('click', () => { if (typeof startEdit === 'function') startEdit(e.dateStr, e); else if (window.startEdit) window.startEdit(e.dateStr, e); });
+        edit.addEventListener('click', () => {
+          if (window.MT && window.MT.entry && window.MT.entry.startEdit) {
+            window.MT.entry.startEdit(e.dateStr, e);
+          } else if (typeof startEdit === 'function') {
+            startEdit(e.dateStr, e);
+          } else if (window.startEdit) {
+            window.startEdit(e.dateStr, e);
+          }
+        });
         right.appendChild(amt); right.appendChild(edit);
 
         row.appendChild(left); row.appendChild(right); el.appendChild(row);
@@ -478,5 +515,13 @@
     initSummaryControls();
     // Attempt an initial render — may show empty if user not yet authenticated, that's fine
     try { renderSummary(); } catch (e) { }
+  });
+
+  /* Expand/Collapse logic */
+  document.getElementById('btnExpandAll')?.addEventListener('click', () => {
+      document.querySelectorAll('#summaryHistory .entry').forEach(e => e.classList.remove('collapsed'));
+  });
+  document.getElementById('btnCollapseAll')?.addEventListener('click', () => {
+      document.querySelectorAll('#summaryHistory .entry').forEach(e => e.classList.add('collapsed'));
   });
 })();

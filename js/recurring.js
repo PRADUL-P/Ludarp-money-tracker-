@@ -177,6 +177,7 @@
               <span class="${badgeClass}">${badgeText}</span>
             </div>
             <div class="recurring-actions">
+              <button class="btn-small" onclick="window.MT.recurring.openEdit(${idx})" title="Edit">✏️</button>
               <button class="btn-small" onclick="window.MT.recurring.toggleActive(${idx})">${rule.active ? '⏸' : '▶'}</button>
               <button class="btn-small" onclick="window.MT.recurring.deleteRule(${idx})" style="color:var(--danger)">🗑</button>
             </div>
@@ -278,6 +279,65 @@
     saveRecurring(list);
     window.MT.ui?.showToast('Recurring transaction added');
     renderRecurringUI();
+    // Clear form
+    document.getElementById('recurDesc').value = '';
+    document.getElementById('recurAmount').value = '';
+  }
+
+  function openEdit(idx) {
+      const list = loadRecurring();
+      const rule = list[idx];
+      if (!rule) return;
+
+      // Fill add form with data and scroll to it (or we could use a modal, but let's make it simple for now as requested)
+      // Actually, a modal is better for "Edit option" as requested
+      const modal = document.createElement('div');
+      modal.className = 'modal-backdrop';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;';
+      
+      const sym = window.MT.db?.loadCustom().currency || '₹';
+      
+      modal.innerHTML = `
+        <div class="card" style="width:100%; max-width:400px; padding:20px;">
+          <div class="section-title">Edit Recurring Rule</div>
+          <div class="form-grid" style="display:grid; gap:12px; margin-top:15px;">
+            <div><label>Description</label><input id="editRecDesc" value="${rule.description || ''}" /></div>
+            <div><label>Amount (${sym})</label><input id="editRecAmt" type="number" step="0.01" value="${rule.amount || 0}" /></div>
+            <div>
+              <label>Frequency</label>
+              <select id="editRecFreq">
+                <option value="daily" ${rule.frequency === 'daily' ? 'selected' : ''}>Daily</option>
+                <option value="weekly" ${rule.frequency === 'weekly' ? 'selected' : ''}>Weekly</option>
+                <option value="monthly" ${rule.frequency === 'monthly' ? 'selected' : ''}>Monthly</option>
+                <option value="yearly" ${rule.frequency === 'yearly' ? 'selected' : ''}>Yearly</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:20px; display:flex; gap:10px;">
+            <button id="saveEditRec" class="btn-primary" style="flex:1;">Save Changes</button>
+            <button id="cancelEditRec" class="btn-secondary" style="flex:1;">Cancel</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      document.getElementById('cancelEditRec').onclick = () => modal.remove();
+      document.getElementById('saveEditRec').onclick = () => {
+          const newDesc = document.getElementById('editRecDesc').value.trim();
+          const newAmt = parseFloat(document.getElementById('editRecAmt').value) || 0;
+          const newFreq = document.getElementById('editRecFreq').value;
+
+          if (!newDesc || newAmt <= 0) {
+              alert('Please enter valid description and amount');
+              return;
+          }
+
+          list[idx] = { ...rule, description: newDesc, amount: newAmt, frequency: newFreq };
+          saveRecurring(list);
+          modal.remove();
+          renderRecurringUI();
+          window.MT.ui?.showToast('Recurring rule updated');
+      };
   }
 
   function deleteRule(idx) {
@@ -301,7 +361,7 @@
   window.MT.recurring = {
     loadRecurring, saveRecurring,
     applyDueRecurring, renderRecurringUI,
-    addRule, deleteRule, toggleActive,
+    addRule, deleteRule, toggleActive, openEdit,
     getDueDate, daysUntil
   };
 

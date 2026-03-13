@@ -118,14 +118,12 @@
       <nav class="main-nav" role="navigation" aria-label="Main">
         <button class="nav-item active" data-view="entry">Entry</button>
         <button class="nav-item" data-view="summary">Summary</button>
-        <button class="nav-item" data-view="accounts">Accounts</button>
+        <button class="nav-item" data-view="accounts">Finance</button>
         <button class="nav-item" data-view="dues" style="position:relative;">
           Dues
           <span id="duesBadge" class="dues-nav-badge" style="display:none;"></span>
         </button>
-        <button class="nav-item" data-view="statement">Statement</button>
         <button class="nav-item" data-view="settings">Settings</button>
-        <button class="nav-item" data-view="user">User</button>
         <button class="nav-item" data-view="about">About</button>
       </nav>
 
@@ -136,7 +134,7 @@
         <button data-to="about">About</button>
         <button data-to="entry">Home</button>
         <button data-to="summary">Summary</button>
-        <button data-to="accounts">Accounts</button>
+        <button data-to="accounts">Accounts & Statement</button>
         <button id="exportMenuBtn" data-to="backup">Export/Backup</button>
         <hr style="opacity:.06;margin:8px 0" />
         <button id="clearAppDataBtn" class="btn-secondary">Clear all (Export first)</button>
@@ -179,32 +177,58 @@
           </div>
 
           <form id="money-form" class="form-grid">
-            <div>
-              <label for="type">Type</label>
-              <select id="type">
-                <option>Expense</option>
-                <option>Income</option>
-                <option>Transfer</option>
-              </select>
+            <!-- ⚡ Quick Presets (Dynamic from Settings) -->
+            <div class="full" id="quickEntryPresets" style="background:var(--card); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--card-border); margin-bottom:10px;">
+               <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px; font-weight:600; display:flex; align-items:center; gap:5px; justify-content:space-between;">
+                  <span>⚡ Quick Actions</span>
+                  <button type="button" onclick="MT.nav.showView('settings')" style="font-size:10px; opacity:0.6; background:none; border:none; color:var(--accent);">Edit Prefills</button>
+               </div>
+               <div id="presetButtonsContainer" style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <!-- Buttons rendered by entry.js -->
+               </div>
             </div>
 
-            <div class="full" id="quickDueBtnRow" style="display:flex; gap:8px;">
-               <button type="button" id="btnQuickIOwe" class="btn-secondary" style="flex:1; background:var(--card-hover); color:#fff; border:1px solid var(--danger);">⬇️ I Owe</button>
-               <button type="button" id="btnQuickTheyOwe" class="btn-secondary" style="flex:1; background:var(--card-hover); color:#fff; border:1px solid var(--success);">⬆️ They Owe</button>
-            </div>
-            
-            <div id="quickDueWrap" class="full" style="display:none; background:var(--card); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--accent-1);">
-                <label id="quickDueLabel" style="color:var(--accent-1); margin-bottom:4px;">Person</label>
-                <div style="display:flex; gap:8px;">
-                   <input id="quickDuePerson" type="text" placeholder="Name (Required)" style="flex:1; background:var(--bg2);" list="quickDuePersonList" />
-                   <datalist id="quickDuePersonList"></datalist>
-                   <button type="button" id="btnCancelQuickDue" class="btn-secondary" style="padding:6px 12px; border:1px solid var(--danger); color:var(--danger);">Cancel</button>
-                </div>
+            <div>
+              <label for="category">Category</label>
+              <input id="category" type="text" placeholder="Food, Travel..." />
+              <div id="category-pills" class="pill-row"></div>
             </div>
 
             <div>
               <label for="amount">Amount</label>
-              <input id="amount" type="number" min="0" step="0.01" placeholder="0.00" />
+              <div style="display:flex; gap:8px;">
+                <input id="amount" type="number" min="0" step="0.01" placeholder="0.00" style="flex:1;" />
+                <button type="button" id="btnCalcToggle" class="btn-secondary" style="width:46px; display:flex; align-items:center; justify-content:center; font-size:18px;" title="Open Mini Calculator">🧮</button>
+              </div>
+              
+              <!-- 🧮 Mini Calculator Panel -->
+              <div id="miniCalc" class="card" style="display:none; margin-top:10px; padding:12px; background:rgba(255,255,255,0.05); border:1px solid var(--card-border); border-radius:var(--radius-sm); box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+                <div id="calcDisplay" style="background:rgba(0,0,0,0.2); padding:10px; border-radius:calc(var(--radius-sm) - 4px); text-align:right; font-family:monospace; font-size:20px; margin-bottom:10px; min-height:44px; overflow:hidden;">0</div>
+                <div class="calc-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
+                  <button type="button" onclick="MT.calc.append('7')" class="btn-secondary">7</button>
+                  <button type="button" onclick="MT.calc.append('8')" class="btn-secondary">8</button>
+                  <button type="button" onclick="MT.calc.append('9')" class="btn-secondary">9</button>
+                  <button type="button" onclick="MT.calc.setOp('/')" class="btn-secondary" style="background:var(--accent-2);">÷</button>
+                  
+                  <button type="button" onclick="MT.calc.append('4')" class="btn-secondary">4</button>
+                  <button type="button" onclick="MT.calc.append('5')" class="btn-secondary">5</button>
+                  <button type="button" onclick="MT.calc.append('6')" class="btn-secondary">6</button>
+                  <button type="button" onclick="MT.calc.setOp('*')" class="btn-secondary" style="background:var(--accent-2);">×</button>
+                  
+                  <button type="button" onclick="MT.calc.append('1')" class="btn-secondary">1</button>
+                  <button type="button" onclick="MT.calc.append('2')" class="btn-secondary">2</button>
+                  <button type="button" onclick="MT.calc.append('3')" class="btn-secondary">3</button>
+                  <button type="button" onclick="MT.calc.setOp('-')" class="btn-secondary" style="background:var(--accent-2);">−</button>
+                  
+                  <button type="button" onclick="MT.calc.append('0')" class="btn-secondary">0</button>
+                  <button type="button" onclick="MT.calc.append('.')" class="btn-secondary">.</button>
+                  <button type="button" onclick="MT.calc.clear()" class="btn-secondary" style="color:var(--danger);">C</button>
+                  <button type="button" onclick="MT.calc.setOp('+')" class="btn-secondary" style="background:var(--accent-2);">+</button>
+                  
+                  <button type="button" onclick="MT.calc.calculate()" class="btn-primary" style="grid-column: span 3;">= Calculate & Add</button>
+                  <button type="button" onclick="MT.calc.close()" class="btn-secondary">Done</button>
+                </div>
+              </div>
             </div>
 
             <div class="full">
@@ -218,20 +242,69 @@
             </div>
 
             <div>
-              <label for="category">Category</label>
-              <input id="category" type="text" placeholder="Food, Travel..." />
-              <div id="category-pills" class="pill-row"></div>
+              <label>Transaction Type</label>
+              <input type="hidden" id="type" value="Expense" />
+              <div id="type-pills" class="pill-row" style="margin-top:5px;">
+                  <button type="button" class="type-pill active" data-value="Expense">Expense</button>
+                  <button type="button" class="type-pill" data-value="Income">Income</button>
+                  <button type="button" class="type-pill" data-value="Transfer">Transfer</button>
+              </div>
+            </div>
+
+            <!-- ⛽ Fuel Efficiency Widget (Hidden by default, shown for 'Petrol') -->
+            <div id="fuelPanel" class="full" style="display:none; background:rgba(251, 191, 36, 0.05); padding:12px; border:1px solid var(--warning); border-radius:var(--radius-sm); margin-top:10px;">
+               <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; color:var(--warning);">
+                  <span>⛽</span> <strong>Fuel Efficiency Tracker</strong>
+               </div>
+               <div class="row" style="gap:10px;">
+                  <div>
+                    <label style="font-size:12px;">Previous KM</label>
+                    <input id="fuelPrevKm" type="number" readonly style="background:var(--bg2); color:var(--muted); font-size:13px;" />
+                  </div>
+                  <div>
+                    <label style="font-size:12px;">Current ODO (KM)</label>
+                    <input id="fuelCurrentKm" type="number" placeholder="KM reading" />
+                  </div>
+                  <div>
+                    <label style="font-size:12px;">Liters Refilled</label>
+                    <input id="fuelLiters" type="number" step="0.01" placeholder="0.00" />
+                  </div>
+               </div>
+               <div id="fuelStats" style="margin-top:10px; font-size:12px; display:flex; gap:15px; color:var(--text); font-weight:600;">
+                  <!-- Stats like Mileage/CostPerKM filled via JS -->
+               </div>
+            </div>
+
+            <!-- 🚉 Trip Date (Shown for 'Travel') -->
+            <div id="tripDateWrap" class="full" style="display:none; margin-top:10px;">
+               <label>Actual Trip Date (if Advance Booking)</label>
+               <input id="tripDate" type="date" />
+            </div>
+
+            <div class="full" id="quickDueBtnRow" style="display:flex; gap:8px; margin-top:10px;">
+               <button type="button" id="btnQuickIOwe" class="btn-secondary" style="flex:1; background:var(--card-hover); color:#fff; border:1px solid var(--danger);">⬇️ I Owe</button>
+               <button type="button" id="btnQuickTheyOwe" class="btn-secondary" style="flex:1; background:var(--card-hover); color:#fff; border:1px solid var(--success);">⬆️ They Owe</button>
+            </div>
+            
+            <div id="quickDueWrap" class="full" style="display:none; background:var(--card); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--accent-1); margin-top:10px;">
+                <label id="quickDueLabel" style="color:var(--accent-1); margin-bottom:4px;">Person</label>
+                <div style="display:flex; gap:8px;">
+                   <input id="quickDuePerson" type="text" placeholder="Name (Required)" style="flex:1; background:var(--bg2);" list="quickDuePersonList" />
+                   <datalist id="quickDuePersonList"></datalist>
+                   <button type="button" id="btnCancelQuickDue" class="btn-secondary" style="padding:6px 12px; border:1px solid var(--danger); color:var(--danger);">Cancel</button>
+                </div>
             </div>
 
             <div>
-              <label for="payMethod">Payment Method</label>
-              <select id="payMethod">
-                <option>Cash</option>
-                <option>UPI</option>
-                <option>Card</option>
-                <option>Bank</option>
-                <option>Self transfer</option>
-              </select>
+              <label>Payment Method</label>
+              <input type="hidden" id="payMethod" value="Cash" />
+              <div id="pay-pills" class="pill-row" style="margin-top:5px;">
+                  <button type="button" class="pay-pill active" data-value="Cash">Cash</button>
+                  <button type="button" class="pay-pill" data-value="UPI">UPI</button>
+                  <button type="button" class="pay-pill" data-value="Card">Card</button>
+                  <button type="button" class="pay-pill" data-value="Bank">Bank</button>
+                  <button type="button" class="pay-pill" data-value="Self transfer">Transfer</button>
+              </div>
             </div>
 
             <div id="paySubTypeWrap" style="display:none;">
@@ -257,6 +330,8 @@
               <label for="note">Note</label>
               <textarea id="note" rows="2" placeholder="Extra details..."></textarea>
             </div>
+
+
 
             <div class="full split-block">
               <label><input id="isGroup" type="checkbox" /> Group / Split expense</label>
@@ -408,6 +483,10 @@
                   <div id="categoryLegend" class="legend"></div>
                 </div>
               </div>
+
+
+
+            </div>
           </section>
           <section class="card">
             <div style="margin-top:10px;" class="section-totals-row">
@@ -429,41 +508,92 @@
             </div>
           </section>
           <section class="card">
-            <div class="section-title">History (filtered)</div>
+            <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>History (filtered)</span>
+              <div style="display:flex; gap:8px;">
+                 <button id="btnExpandAll" class="btn-small" style="font-size:10px; opacity:0.8;">Expand All</button>
+                 <button id="btnCollapseAll" class="btn-small" style="font-size:10px; opacity:0.8;">Collapse All</button>
+              </div>
+            </div>
             <div id="summaryHistory" class="list"></div>
           </section>
         </section>
       </section>
 
-      <!-- ACCOUNTS VIEW -->
-      <!-- ACCOUNTS VIEW -->
       <section id="view-accounts" class="view">
-        <section class="card">
-          <div class="section-title">Accounts / Bank balances</div>
+        <div class="finance-tab-bar" style="display:flex; gap:10px; margin-bottom:15px; background:var(--card); padding:8px; border-radius:var(--radius-sm); border:1px solid var(--card-border);">
+           <button class="tab-btn active" data-target="finance-accounts" style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">🏦 Balances</button>
+           <button class="tab-btn" data-target="finance-statement" style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">📄 Statement</button>
+           <button class="tab-btn" data-target="finance-petrol" style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">⛽ Petrol Log</button>
+        </div>
 
-          <div class="row">
-            <div>
-              <label>Select month</label>
-              <input id="accountsMonth" type="month" />
+        <section id="finance-accounts" class="tab-content active">
+          <section class="card">
+            <div class="section-title">Bank balances</div>
+            <div class="row">
+              <div><label>Month</label><input id="accountsMonth" type="month" /></div>
+              <div><label>Bank</label><select id="accountsBankSelect"></select></div>
+              <div><label>Initial</label><input id="accountsInitialAmount" type="number" step="0.01" /></div>
+              <div style="align-self:flex-end;"><button id="saveInitialBtn" class="btn-primary">Set</button></div>
             </div>
-            <div>
-              <label>Bank</label>
-              <select id="accountsBankSelect"></select>
-            </div>
-            <div>
-              <label>Initial amount</label>
-              <input id="accountsInitialAmount" type="number" step="0.01" />
-            </div>
-            <div style="align-self:flex-end;">
-              <button id="saveInitialBtn" class="btn-primary">Set initial</button>
-            </div>
-          </div>
-
-          <div style="margin-top:12px;">
-            <div class="section-title">Bank balances (selected month)</div>
-            <div id="bankBalancesList" class="list"></div>
-          </div>
+            <div style="margin-top:12px;"><div id="bankBalancesList" class="list"></div></div>
+          </section>
         </section>
+
+        <section id="finance-statement" class="tab-content" style="display:none;">
+          <section class="card">
+            <div class="section-title">Transaction History</div>
+            <div class="row" style="gap:10px; align-items:center; flex-wrap:wrap;">
+              <div><label>Month</label><input id="stmtMonthFilter" type="month" /></div>
+              <div><label>Type</label><select id="stmtTypeFilter"><option value="All">All</option><option>Expense</option><option>Income</option><option>Transfer</option></select></div>
+              <div style="margin-left:auto; display:flex; gap:5px;">
+                <button id="stmtExportBtn" class="btn-secondary" style="font-size:11px;">Excel</button>
+                <button id="stmtPdfBtn" class="btn-secondary" style="font-size:11px; background:rgba(244,63,94,0.1); color:#fb7185;">PDF</button>
+              </div>
+            </div>
+            <div class="table-scroll-container" style="margin-top: 15px; overflow-x: auto;">
+              <table class="data-table" style="width: 100%; font-size:13px;">
+                <thead><tr style="border-bottom: 2px solid var(--card-border);"><th>Date</th><th>Type</th><th>Cat</th><th>Details</th><th>Method</th><th style="text-align:right;">Amt</th></tr></thead>
+                <tbody id="statementTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <!-- ⛽ PETROL LOG TAB -->
+        <section id="finance-petrol" class="tab-content" style="display:none;">
+          <section class="card">
+
+            <!-- Filter bar -->
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;">
+              <div style="flex:1; min-width:130px;">
+                <label style="font-size:11px; color:var(--muted); margin-bottom:2px;">Month</label>
+                <input id="petrolMonthFilter" type="month" style="width:100%;" />
+              </div>
+              <div>
+                <label style="font-size:11px; color:var(--muted); margin-bottom:2px;">Year</label>
+                <select id="petrolYearFilter" style="min-width:90px;">
+                  <option value="">All Years</option>
+                </select>
+              </div>
+              <div style="align-self:flex-end;">
+                <button id="petrolClearFilter" class="btn-secondary" style="font-size:12px; padding:8px 14px;">Clear</button>
+              </div>
+            </div>
+
+            <!-- Summary stats bar -->
+            <div id="petrolStatsBar" style="display:flex; gap:0; border-radius:10px; overflow:hidden; margin-bottom:16px; border:1px solid var(--card-border);"></div>
+
+            <!-- Title row -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <div class="section-title" style="margin:0;">⛽ Fill-up History</div>
+              <div id="petrolSummaryLine" style="font-size:11px; color:var(--muted);"></div>
+            </div>
+
+            <div id="petrolLogList" class="list"></div>
+          </section>
+        </section>
+
       </section>
 
       <!-- SETTINGS VIEW -->
@@ -472,16 +602,21 @@
         <!-- Settings Tab Bar -->
         <div class="settings-tab-bar">
           <button class="settings-tab active" data-stab="stab-general">⚙️ General</button>
-          <button class="settings-tab" data-stab="stab-payments">💳 Payments</button>
-          <button class="settings-tab" data-stab="stab-data">📦 Data</button>
-          <button class="settings-tab" data-stab="stab-auto">🤖 Auto</button>
+          <button class="settings-tab" data-stab="stab-payments">💳 Payments & Recurring</button>
+          <button class="settings-tab" data-stab="stab-data">📦 Data & Sync</button>
+          <button class="settings-tab" data-stab="stab-user">👤 User Profile</button>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin: -10px 15px 15px 0;">
+          <button id="btnSettingsExpandAll" class="btn-small" style="font-size:11px; background:rgba(255,255,255,0.05);">↔️ Expand All</button>
+          <button id="btnSettingsCollapseAll" class="btn-small" style="font-size:11px; background:rgba(255,255,255,0.05);">↕️ Collapse All</button>
         </div>
 
         <!-- ======= TAB: GENERAL ======= -->
         <div id="stab-general" class="settings-tab-panel active">
 
           <!-- App Customization -->
-          <section class="card settings-section">
+          <section id="gs-customization" class="card settings-section">
             <button class="settings-header" data-target="customizationPanel">
               <span>🎨 App Customization &amp; Theme</span>
               <span class="chevron">▼</span>
@@ -503,8 +638,20 @@
             </div>
           </section>
 
+          <!-- Presets -->
+          <section id="gs-presets" class="card settings-section">
+            <button class="settings-header" data-target="presetsPanel">
+              <span>⚡ Quick Action Prefills</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="presetsPanel" class="settings-panel open">
+               <div id="settingsPresetsList" class="list" style="margin-bottom:12px;"></div>
+               <button id="addPresetBtn" class="btn-secondary" style="width:100%; border:1px dashed var(--accent);">+ Add New Preset</button>
+            </div>
+          </section>
+
           <!-- Categories -->
-          <section class="card settings-section">
+          <section id="gs-categories" class="card settings-section">
             <button class="settings-header" data-target="categoriesPanel">
               <span>🏷️ Categories</span>
               <span class="chevron">▼</span>
@@ -519,7 +666,7 @@
           </section>
 
           <!-- Daily Reminders -->
-          <section class="card settings-section">
+          <section id="gs-reminders" class="card settings-section">
             <button class="settings-header" data-target="reminderPanel">
               <span>🔔 Daily Reminders</span>
               <span class="chevron">▼</span>
@@ -536,6 +683,65 @@
                 </div>
                 <button id="testNotifyBtn" class="btn-secondary" style="margin-top:4px;">Send Test Notification</button>
                 <div id="reminderStatus" class="modal-status"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- All Tab Order in One Card -->
+          <section id="gs-taborder" class="card settings-section">
+            <button class="settings-header" data-target="allTabOrderPanel">
+              <span>🗂️ Tab &amp; Navigation Order</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="allTabOrderPanel" class="settings-panel">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:18px;">
+
+                <!-- Bottom Nav -->
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    📱 Bottom Navigation
+                  </div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">The ➕ Add button always stays in the center.</div>
+                  <div id="navOrderList"></div>
+                  <button id="resetNavOrderBtn" class="btn-secondary" style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                </div>
+
+                <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
+
+                <!-- Finance Tabs -->
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    🏦 Finance Page Tabs
+                  </div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">Balances · Statement · Petrol Log</div>
+                  <div id="financeTabOrderList"></div>
+                  <button id="resetFinanceTabOrderBtn" class="btn-secondary" style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                </div>
+
+                <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
+
+                <!-- Settings Tabs -->
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    ⚙️ Settings Tabs
+                  </div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">General · Payments · Data &amp; Sync · User Profile</div>
+                  <div id="settingsTabOrderList"></div>
+                  <button id="resetSettingsTabOrderBtn" class="btn-secondary" style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                </div>
+
+                <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
+
+                <!-- General Tab Sections -->
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    📋 General Tab Sections
+                  </div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">Reorder the accordion sections inside the General settings tab.</div>
+                  <div id="generalSectionsOrderList"></div>
+                  <button id="resetGeneralSectionsOrderBtn" class="btn-secondary" style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                </div>
+
               </div>
             </div>
           </section>
@@ -590,8 +796,19 @@
               <span>🎯 Budget Tracking</span>
               <span class="chevron">▼</span>
             </button>
-            <div id="budgetPanel" class="settings-panel open">
+            <div id="budgetPanel" class="settings-panel">
               <div id="budgetContainer"></div>
+            </div>
+          </section>
+
+          <!-- Recurring Transactions (Moved here) -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="recurringPanel">
+              <span>🔁 Recurring Transactions</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="recurringPanel" class="settings-panel open">
+              <div id="recurringContainer"></div>
             </div>
           </section>
 
@@ -657,40 +874,7 @@
             </div>
           </section>
 
-          <!-- Danger Zone -->
-          <section class="card settings-section" style="border:1px solid var(--danger-dim);">
-            <button class="settings-header" data-target="clearDataPanel" style="color: var(--danger);">
-              <span>⚠️ Danger Zone (Clear Data)</span>
-              <span class="chevron">▼</span>
-            </button>
-            <div id="clearDataPanel" class="settings-panel">
-              <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
-                 <div class="info" style="color:var(--danger); border-color:var(--danger-dim);">
-                   Warning: This will permanently delete all your transactions, dues, and settings.
-                   The app will automatically download a backup file before clearing.
-                 </div>
-                 <button id="btnSettingsClearData" class="btn-primary" style="background:var(--danger); border:none; color:white; font-weight:700;">Export Backup &amp; Clear All Data</button>
-              </div>
-            </div>
-          </section>
-
-        </div>
-
-        <!-- ======= TAB: AUTO ======= -->
-        <div id="stab-auto" class="settings-tab-panel">
-
-          <!-- Recurring Transactions -->
-          <section class="card settings-section">
-            <button class="settings-header" data-target="recurringPanel">
-              <span>🔁 Recurring Transactions</span>
-              <span class="chevron">▼</span>
-            </button>
-            <div id="recurringPanel" class="settings-panel open">
-              <div id="recurringContainer"></div>
-            </div>
-          </section>
-
-          <!-- Automatic Backup -->
+          <!-- Automatic Backup (Moved here) -->
           <section class="card settings-section">
             <button class="settings-header" data-target="autoExportPanel">
               <span>💾 Automatic Monthly Backup</span>
@@ -702,15 +886,11 @@
                   <label style="margin:0;">Monthly Statement Auto-Download</label>
                   <input type="checkbox" id="autoDownloadStmt" style="width:20px; height:20px;">
                 </div>
-                <div class="info">
-                  If enabled, the previous month's statement will be downloaded automatically when you first open the app
-                  at the start of a new month.
-                </div>
               </div>
             </div>
           </section>
 
-          <!-- Google Sheets -->
+          <!-- Google Sheets (Moved here) -->
           <section class="card settings-section">
             <button class="settings-header" data-target="gsheetPanel">
               <span>📊 Google Sheets Sync</span>
@@ -718,41 +898,70 @@
             </button>
             <div id="gsheetPanel" class="settings-panel">
               <div style="padding:10px;">
-                <div class="info" style="margin-bottom:12px;">
-                  Sync your data to a Google Sheet automatically.
-                  <button id="gsheetSetupBtn" class="btn-small"
-                    style="margin-top:8px; background:var(--accent); color:#000;">View Setup Guide</button>
-                </div>
-
-                <div id="gsheetInstructions"
-                  style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; font-size:0.85rem; margin-bottom:12px; border:1px solid var(--card-border);">
-                  <strong>How to set up:</strong>
-                  <ol style="padding-left:18px; line-height:1.4;">
-                    <li>Create a new <b>Google Sheet</b>.</li>
-                    <li>Go to <b>Extensions &gt; Apps Script</b>.</li>
-                    <li>Delete the code there and paste the code from <code>gsheets.js</code> (or the project help file).</li>
-                    <li>Click <b>Deploy &gt; New Deployment</b>.</li>
-                    <li>Select <b>Web App</b>. Change access to <b>"Anyone"</b>.</li>
-                    <li>Copy the <b>Web App URL</b> and paste it below.</li>
-                  </ol>
-                  <div class="info" style="font-size:0.75rem; margin-top:8px;">
-                    <b>Note:</b> Each user on a different device needs their own URL for their own sheet.
-                    <br><br>
-                    <b>Need help or custom updates?</b><br>
-                    <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20need%20help%20with%20the%20Money%20Tracker%20Google%20Sheets%20setup."
-                      target="_blank" style="color:var(--accent); text-decoration:none; font-weight:700;">📲 Contact Developer (WhatsApp)</a>
-                    <br><br>
-                    <button id="downloadManualBtn" class="btn-small"
-                      style="background:#4ade80; color:#000; width:100%; border:none; font-weight:700;">📄 Download User Manual (PDF)</button>
-                  </div>
-                </div>
-
                 <label>Google Apps Script Web App URL</label>
                 <input type="url" id="gsheetUrl" placeholder="https://script.google.com/macros/s/.../exec" />
-                <button id="saveGsheetBtn" class="btn-primary" style="margin-top:8px;">Save Sync URL</button>
+                <div style="margin-top:8px; display:flex; gap:8px;">
+                   <button id="saveGsheetBtn" class="btn-primary" style="flex:1;">Save Sync URL</button>
+                   <button id="gsheetSetupBtn" class="btn-secondary" style="flex:1;">Help</button>
+                </div>
               </div>
             </div>
           </section>
+
+          <!-- Danger Zone -->
+          <section class="card settings-section" style="border:1px solid var(--danger-dim);">
+            <button class="settings-header" data-target="clearDataPanel" style="color: var(--danger);">
+              <span>⚠️ Danger Zone (Clear Data)</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="clearDataPanel" class="settings-panel">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
+                 <div class="info" style="color:var(--danger); border-color:var(--danger-dim);">
+                   Warning: This will permanently delete all your data. A backup will be auto-downloaded first.
+                 </div>
+                 <button id="btnSettingsClearData" class="btn-primary" style="background:var(--danger); border:none; color:white; font-weight:700;">Export Backup &amp; Clear All Data</button>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+
+
+          <!-- ======= TAB: USER PROFILE ======= -->
+          <div id="stab-user" class="settings-tab-panel">
+            <section class="card settings-section">
+              <div class="section-title">Personal Information</div>
+              <div class="row">
+                 <div><label>Your Name</label><input id="userNameField" placeholder="Admin" /></div>
+                 <div><label>Security hint (optional)</label><input id="securityHint" placeholder="e.g. Mother's name" /></div>
+              </div>
+              <div class="row" style="margin-top:10px;">
+                 <div style="flex:1;"><label>Bio/Note</label><input id="userBio" placeholder="Hosteler" /></div>
+              </div>
+              <button id="saveUserBtn" class="btn-primary" style="margin-top:12px;">Save Profile</button>
+            </section>
+
+            <section class="card settings-section">
+              <div class="section-title">🔒 Security & Authentication</div>
+              <div style="margin-top:0.6rem;">
+                <button id="enableBiometricBtn" class="btn-secondary" style="width:100%;">
+                  Enable fingerprint unlock
+                </button>
+                <div id="biometricStatus" class="modal-status"></div>
+              </div>
+
+              <div style="margin-top:1.5rem;">
+                <div class="section-title" style="font-size:0.9rem;">Change Password</div>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+                  <input id="oldPassword" type="password" placeholder="Current password" />
+                  <input id="newPassword" type="password" placeholder="New password" />
+                  <button id="changePasswordBtn" class="btn-primary">Update password</button>
+                </div>
+                <div id="passwordStatus" class="modal-status"></div>
+              </div>
+            </section>
+          </div>
 
         </div>
 
@@ -761,101 +970,14 @@
 
 
 
-      <!-- USER VIEW -->
-      <section id="view-user" class="view">
-        <section class="card">
-          <div class="section-title">User info & security</div>
 
-          <div>
-            <label>Your name</label>
-            <input id="userNameField" />
-          </div>
-
-          <div>
-            <label>Security hint (optional)</label>
-            <input id="securityHint" placeholder="e.g. Mother's name" />
-          </div>
-          <div style="margin-top:0.6rem;">
-            <button id="enableBiometricBtn" class="btn-secondary">
-              Enable fingerprint unlock
-            </button>
-            <div id="biometricStatus" class="modal-status"></div>
-          </div>
-
-          <div style="margin-top:0.5rem;">
-            <label><input id="biometricEnabled" type="checkbox" /> Prefer biometric unlock (device support
-              only)</label>
-          </div>
-
-          <div style="margin-top:0.6rem;">
-            <label>Change password</label>
-            <input id="oldPassword" type="password" placeholder="Current password" />
-            <input id="newPassword" type="password" placeholder="New password" />
-            <button id="changePasswordBtn" class="btn-primary">Update password</button>
-            <div id="passwordStatus" class="modal-status"></div>
-          </div>
-        </section>
-      </section> <!-- Close view-user -->
 
       <!-- DUES VIEW -->
       <section id="view-dues" class="view">
         <!-- Rendered dynamically by dues.js -->
       </section>
 
-      <!-- STATEMENT VIEW -->
-      <section id="view-statement" class="view">
-        <div class="card large-glass">
-          <div class="section-title">Account Statement</div>
 
-          <div class="filter-strip" style="flex-wrap: wrap;">
-            <div class="filter-item">
-              <label>Month</label>
-              <input type="month" id="stmtMonthFilter" />
-            </div>
-            <div class="filter-item">
-              <label>Type</label>
-              <select id="stmtTypeFilter">
-                <option value="All">All Types</option>
-                <option value="Expense">Expense</option>
-                <option value="Income">Income</option>
-                <option value="Transfer">Transfer</option>
-              </select>
-            </div>
-            <div class="filter-item" style="margin-left: auto; display:flex; gap:8px;">
-              <button id="stmtExportBtn" class="btn-secondary">Excel Export</button>
-              <button id="stmtPdfBtn" class="btn-secondary"
-                style="background:rgba(244,63,94,0.1); color:#fb7185; border-color:rgba(244,63,94,0.2);">Download
-                PDF</button>
-            </div>
-          </div>
-
-          <!-- Support Link in Statement -->
-          <div
-            style="margin-top: 12px; font-size: 0.85rem; border-top: 1px solid var(--card-border); padding-top: 12px;">
-            <span>Questions or custom update requests?</span>
-            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20have%20a%20question%20regarding%20the%20Money%20Tracker%20Statement%20/%20Updates."
-              target="_blank"
-              style="margin-left:8px; color:var(--accent); font-weight:700; text-decoration:none;">Contact Developer on
-              WhatsApp</a>
-          </div>
-
-          <div class="table-scroll-container" style="margin-top: 20px; overflow-x: auto;">
-            <table class="data-table" style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Category</th>
-                  <th>Details</th>
-                  <th>Method</th>
-                  <th style="text-align:right;">Amount</th>
-                </tr>
-              </thead>
-              <tbody id="statementTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section> <!-- Close view-statement -->
 
       <!-- ABOUT VIEW -->
       <section id="view-about" class="view">
@@ -923,16 +1045,18 @@
 
     <!-- Floating bottom nav -->
     <div class="floating-nav-wrap">
-      <nav class="floating-nav">
+      <nav class="floating-nav" id="floatingNav">
 
         <!-- SUMMARY / INSIGHTS -->
         <button class="fn-item" data-view="summary" title="Insights">
-          📊
+          <span class="fn-icon">📊</span>
+          <span class="fn-label">Summary</span>
         </button>
 
         <!-- DUES -->
         <button class="fn-item" data-view="dues" title="Dues" style="position:relative;">
-          🤝
+          <span class="fn-icon">🤝</span>
+          <span class="fn-label">Dues</span>
           <span id="duesBadgeFn" class="dues-nav-badge" style="display:none;"></span>
         </button>
 
@@ -944,13 +1068,15 @@
         </div>
 
         <!-- ACCOUNTS -->
-        <button class="fn-item" data-view="accounts" title="Accounts">
-          🏦
+        <button class="fn-item" data-view="accounts" title="Finance">
+          <span class="fn-icon">🏦</span>
+          <span class="fn-label">Finance</span>
         </button>
 
         <!-- SETTINGS -->
         <button class="fn-item" data-view="settings" title="Settings">
-          ⚙️
+          <span class="fn-icon">⚙️</span>
+          <span class="fn-label">Settings</span>
         </button>
 
       </nav>

@@ -184,18 +184,20 @@
     function loadUserUI() {
       const u = db.loadUser();
       if (!u) return;
-      nameField.value = u.name || '';
-      hintField.value = u.securityHint || '';
-      oldPw.value = '';
-      newPw.value = '';
-      status.textContent = '';
+      if (nameField) nameField.value = u.name || '';
+      if (document.getElementById('userBio')) document.getElementById('userBio').value = u.bio || '';
+      if (hintField) hintField.value = u.securityHint || '';
+      if (oldPw) oldPw.value = '';
+      if (newPw) newPw.value = '';
+      if (status) status.textContent = '';
     }
 
     function saveProfile() {
       const u = db.loadUser();
       if (!u) return;
-      u.name = nameField.value.trim() || u.name;
-      u.securityHint = hintField.value.trim();
+      u.name = nameField?.value.trim() || u.name;
+      u.securityHint = hintField?.value.trim();
+      u.bio = document.getElementById('userBio')?.value.trim() || '';
       db.saveUser(u);
     }
 
@@ -242,10 +244,15 @@
     hintField.addEventListener('blur', saveProfile);
 
     window.addEventListener('mt:view-changed', (e) => {
-      if (e.detail?.viewName === 'user') {
+      if (e.detail?.viewName === 'user' || e.detail?.viewName === 'settings') {
         loadUserUI();
         checkBioSupport();
       }
+    });
+
+    document.getElementById('saveUserBtn')?.addEventListener('click', () => {
+        saveProfile();
+        window.MT.ui?.showToast('Profile updated');
     });
 
     loadUserUI();

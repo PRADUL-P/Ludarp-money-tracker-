@@ -55,15 +55,51 @@
   }
   function updateSelectedDateLabel() { if (selectedDateLabel) selectedDateLabel.textContent = db.formatDateLabel(dateInput.value); }
 
+  // --- Presets Rendering ---
+  function renderPresets() {
+    const container = document.getElementById('presetButtonsContainer');
+    if (!container) return;
+    const s = db.loadStore();
+    const presets = s.settings?.presets || [];
+    container.innerHTML = '';
+    
+    presets.forEach(p => {
+       const b = document.createElement('button');
+       b.type = 'button';
+       b.className = 'btn-secondary preset-run-btn';
+       b.style.cssText = 'flex:1; min-width:80px; font-size:12px; padding:10px; border:1px solid var(--card-border);';
+       // Give petrol a distinct look if requested or just use defaults
+       if (p.category.toLowerCase() === 'petrol') b.style.borderColor = 'var(--warning-dim)';
+       
+       b.textContent = p.label;
+       b.onclick = () => {
+           descriptionEl.value = p.description || '';
+           categoryEl.value = p.category || '';
+           amountEl.value = p.amount || '';
+           noteInput.value = p.note || '';
+           // Trigger panel visibility logic
+           categoryEl.dispatchEvent(new Event('input', { bubbles: true }));
+       };
+       container.appendChild(b);
+    });
+  }
+
   function renderCategoryPills() {
     const s = db.loadStore();
     const cats = s.settings && s.settings.categories ? s.settings.categories : db.DEFAULTS.settings.categories;
     if (!categoryPillsRow) return;
     categoryPillsRow.innerHTML = '';
     cats.forEach(cat => {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'pill'; b.textContent = cat;
-      b.addEventListener('click', () => { if (categoryEl) categoryEl.value = cat; });
-      categoryPillsRow.appendChild(b);
+      const pill = document.createElement('div');
+    pill.className = 'pill';
+    pill.textContent = cat;
+    pill.addEventListener('click', () => {
+      categoryEl.value = cat;
+      // Manually trigger the input event so Petrol/Travel widgets show up
+      categoryEl.dispatchEvent(new Event('input', { bubbles: true }));
+      renderCategoryPills();
+    });
+    categoryPillsRow.appendChild(pill);
     });
   }
 
@@ -144,6 +180,14 @@
     const paySubType = (paySubTypeWrap.style.display === 'none') ? '' : (paySubTypeSelect.value === '__custom__' ? '' : paySubTypeSelect.value);
     const note = noteInput.value.trim();
 
+    // Fuel data
+    const currentKm = parseFloat(document.getElementById('fuelCurrentKm')?.value) || 0;
+    const liters = parseFloat(document.getElementById('fuelLiters')?.value) || 0;
+    const prevKm = parseFloat(document.getElementById('fuelPrevKm')?.value) || 0;
+
+    // Trip data
+    const tripDate = document.getElementById('tripDate')?.value || null;
+
     if (!description || (!amountEl.value && type !== 'Transfer')) { statusEl.textContent = 'Enter description and amount'; return; }
 
     const transferFrom = document.getElementById('transferFrom') ? document.getElementById('transferFrom').value : '';
@@ -173,7 +217,9 @@
       amount: 0,
       note,
       createdAt: new Date().toISOString(),
-      split: null
+      split: null,
+      fuel: (category === 'Petrol' && currentKm > 0) ? { currentKm, liters, prevKm, mileage: (liters > 0 ? (currentKm - prevKm) / liters : 0) } : null,
+      tripDate: (category === 'Travel' && tripDate) ? tripDate : null
     };
 
     // map payment to bank automatically if mapping exists
@@ -293,6 +339,10 @@
     }
 
     form.reset(); if (splitOptions) splitOptions.style.display = 'none'; if (customSplitsDiv) customSplitsDiv.style.display = 'none'; if (myShareWrap) myShareWrap.style.display = 'none';
+    if (document.getElementById('fuelPanel')) document.getElementById('fuelPanel').style.display = 'none';
+    if (document.getElementById('travelPresets')) document.getElementById('travelPresets').style.display = 'none';
+    if (document.getElementById('tripDateWrap')) document.getElementById('tripDateWrap').style.display = 'none';
+
     updatePaySubTypeOptions(); updateTransferUI();
     renderCategoryPills(); renderEntries();
     window.dispatchEvent(new Event('mt:entries-changed'));
@@ -368,10 +418,17 @@
 
   function startEdit(dateStr, entry) {
     currentEdit = { id: entry.id, dateStr };
-    // ensure entry view visible
+    // Navigate to entry view first
     window.MT && window.MT.nav && window.MT.nav.showView && window.MT.nav.showView('entry');
     dateInput.value = dateStr; updateSelectedDateLabel();
-    if (typeEl) typeEl.value = entry.type || 'Expense';
+
+    // --- Set type pill ---
+    const entryType = entry.type || 'Expense';
+    if (typeEl) typeEl.value = entryType;
+    document.querySelectorAll('#type-pills button').forEach(b => {
+      b.classList.toggle('active', b.dataset.value === entryType);
+    });
+
     if (entry.split && entry.split.enabled) {
       const others = entry.split.participants.reduce((a, p) => a + (p.amount || 0), 0);
       const total = +((entry.split.myShare || 0) + others).toFixed(2);
@@ -389,7 +446,16 @@
     }
     descriptionEl.value = entry.description || '';
     categoryEl.value = entry.category || '';
-    payMethodSelect.value = entry.payMethod || 'Cash';
+    // Trigger category input so petrol/travel panels show if needed
+    categoryEl.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // --- Set pay method pill ---
+    const pm = entry.payMethod || 'Cash';
+    if (payMethodSelect) payMethodSelect.value = pm;
+    document.querySelectorAll('#pay-pills button').forEach(b => {
+      b.classList.toggle('active', b.dataset.value === pm);
+    });
+
     updatePaySubTypeOptions();
     if (entry.paySubType) paySubTypeSelect.value = entry.paySubType;
     noteInput.value = entry.note || '';
@@ -403,6 +469,10 @@
     }
     submitBtn.textContent = 'Update entry';
     statusEl.textContent = 'Editing...';
+
+    // Scroll to form top
+    const entryView = document.getElementById('view-entry');
+    if (entryView) entryView.scrollTop = 0;
   }
 
   function deleteEntry(dateStr, id) {
@@ -479,36 +549,151 @@
   if (btnTheyOwe) btnTheyOwe.addEventListener('click', () => triggerQuickDue('they_owe'));
   if (btnCancelQuickDue) btnCancelQuickDue.addEventListener('click', window.cancelQuickDue);
 
+  // --- Fuel & Travel Special Logic ---
+  const fuelPanel = document.getElementById('fuelPanel');
+  const travelPresets = document.getElementById('travelPresets');
+  const tripDateWrap = document.getElementById('tripDateWrap');
+
+  categoryEl && categoryEl.addEventListener('input', () => {
+      const cat = categoryEl.value.trim().toLowerCase();
+      if (fuelPanel) fuelPanel.style.display = (cat === 'petrol') ? 'block' : 'none';
+      if (tripDateWrap) tripDateWrap.style.display = (cat === 'travel') ? 'block' : 'none';
+      
+      if (cat === 'petrol') updateFuelContext();
+  });
+
+  function updateFuelContext() {
+      const s = db.loadStore();
+      let lastKm = 0;
+      // Find latest petrol entry with ODO
+      const allEntries = [];
+      Object.keys(s.days).forEach(d => allEntries.push(...s.days[d]));
+      const petrols = allEntries.filter(e => (e.category || '').toLowerCase() === 'petrol' && e.fuel && e.fuel.currentKm).sort((a,b) => new Date(b.dateStr) - new Date(a.dateStr));
+      
+      if (petrols.length > 0) {
+          lastKm = petrols[0].fuel.currentKm;
+      }
+      const prevKmInput = document.getElementById('fuelPrevKm');
+      if (prevKmInput) prevKmInput.value = lastKm;
+  }
+
+  const fuelCurrentKm = document.getElementById('fuelCurrentKm');
+  const fuelLiters = document.getElementById('fuelLiters');
+  const fuelStats = document.getElementById('fuelStats');
+
+  function reCalcBusStats() {
+      const cur = parseFloat(fuelCurrentKm.value) || 0;
+      const prev = parseFloat(document.getElementById('fuelPrevKm').value) || 0;
+      const l = parseFloat(fuelLiters.value) || 0;
+      const amt = parseFloat(amountEl.value) || 0;
+      
+      if (cur > prev && l > 0) {
+          const mil = (cur - prev) / l;
+          const cpkm = amt / (cur - prev);
+          fuelStats.innerHTML = `<span>📊 Mileage: ${mil.toFixed(1)} km/l</span> <span>💰 Cost: ₹${cpkm.toFixed(1)}/km</span>`;
+      } else {
+          fuelStats.innerHTML = '';
+      }
+  }
+
+  fuelCurrentKm?.addEventListener('input', reCalcBusStats);
+  fuelLiters?.addEventListener('input', reCalcBusStats);
+  amountEl?.addEventListener('input', () => { if(categoryEl.value==='Petrol') reCalcBusStats(); });
+  // --- Entry Pills Logic ---
+  const typeInput = document.getElementById('type');
+  const payMethodInput = document.getElementById('payMethod');
+  
+  function setupPills(containerId, inputId, callback) {
+      const container = document.getElementById(containerId);
+      const input = document.getElementById(inputId);
+      if (!container || !input) return;
+      
+      container.addEventListener('click', (e) => {
+          const btn = e.target.closest('button');
+          if (!btn) return;
+          
+          container.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          input.value = btn.dataset.value;
+          
+          if (callback) callback(input.value);
+      });
+  }
+
+  setupPills('type-pills', 'type', (val) => {
+      // Any specific logic for type change
+  });
+  
+  setupPills('pay-pills', 'payMethod', (val) => {
+      updatePaySubTypeOptions();
+      updateTransferUI();
+  });
+
+  // ✅ LIVE sync when settings change (categories / UPI / banks / presets)
+  document.addEventListener('settingsUpdated', () => {
+    renderCategoryPills();
+    renderPresets();
+    updatePaySubTypeOptions();
+    renderEntries();
+  });
+
+  // Re-render whenever entries are changed globally
+  window.addEventListener('mt:entries-changed', renderEntries);
+
+  // --- 🧮 Mini Calculator Logic ---
+  let calcInput = '0';
+  let calcOp = null;
+  let calcPrev = null;
+  const cDisp = document.getElementById('calcDisplay');
+  const mCalc = document.getElementById('miniCalc');
+  const btnCT = document.getElementById('btnCalcToggle');
+
+  function updateCalc() { if (cDisp) cDisp.textContent = calcInput; }
+
+  window.MT = window.MT || {};
+  window.MT.calc = {
+      append: (v) => {
+          if (calcInput === '0' && v !== '.') calcInput = v;
+          else calcInput += v;
+          updateCalc();
+      },
+      setOp: (op) => {
+          calcPrev = parseFloat(calcInput);
+          calcOp = op;
+          calcInput = '0';
+          updateCalc();
+      },
+      clear: () => { calcInput = '0'; calcOp = null; calcPrev = null; updateCalc(); },
+      calculate: () => {
+          const cur = parseFloat(calcInput);
+          if (calcPrev !== null && calcOp) {
+              let res = 0;
+              if (calcOp === '+') res = calcPrev + cur;
+              if (calcOp === '-') res = calcPrev - cur;
+              if (calcOp === '*') res = calcPrev * cur;
+              if (calcOp === '/') res = calcPrev / (cur || 1);
+              calcInput = res.toFixed(2).replace(/\.00$/, '');
+              updateCalc();
+              calcOp = null;
+              calcPrev = null;
+              // Auto fill the amount input
+              if (amountEl) amountEl.value = calcInput;
+          }
+      },
+      close: () => { if (mCalc) mCalc.style.display = 'none'; },
+      toggle: () => { 
+          if (!mCalc) return;
+          const isOff = mCalc.style.display === 'none';
+          mCalc.style.display = isOff ? 'block' : 'none';
+          if (isOff && amountEl && amountEl.value) {
+              calcInput = amountEl.value;
+              updateCalc();
+          }
+      }
+  };
+
+  btnCT?.addEventListener('click', () => window.MT.calc.toggle());
+
+  // Init presets
+  renderPresets();
 })();
-// ✅ LIVE sync when settings change (categories / UPI / banks)
-document.addEventListener('settingsUpdated', () => {
-  if (!window.MT || !window.MT.entry) return;
-
-  window.MT.entry.renderCategoryPills();
-  window.MT.entry.updatePaySubTypeOptions();
-  window.MT.entry.renderEntries();
-});
-
-// 🔥 AUTO-REFRESH when settings change (categories, UPI, banks)
-document.addEventListener('settingsUpdated', () => {
-  const s = window.MT?.db?.loadStore?.();
-  if (!s) return;
-
-  // Refresh categories
-  renderCategoryPills();
-
-  // Keep pay subtype in sync too
-  updatePaySubTypeOptions();
-
-  // Re-render entries to reflect category text changes
-  renderEntries();
-});
-window.MT.entry = {
-  initDatePickers,
-  renderCategoryPills,
-  updatePaySubTypeOptions,
-  updateTransferUI,
-  renderEntries,
-  startEdit,
-  deleteEntry
-};

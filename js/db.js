@@ -12,7 +12,12 @@ const DEFAULTS = {
     categories: ['Food','Travel','Bills','Shopping','Salary','Petrol','Bike Maint','Hostel','Other'],
     upiApps: ['GPay','PhonePe','Paytm'],
     cards: ['Canara','HDFC','SBI','Credit Card'],
-    banks: ['Canara','HDFC','SBI']
+    banks: ['Canara','HDFC','SBI'],
+    presets: [
+      { id: 1, label: '⛽ Petrol', category: 'Petrol', amount: 0, description: 'Bike Petrol Refill', note: '' },
+      { id: 2, label: '🏠 Home Trip', category: 'Travel', amount: 450, description: 'Weekly Trip to Home', note: 'Train + Auto' },
+      { id: 3, label: '🚕 Auto', category: 'Travel', amount: 100, description: 'Auto to Office/Room', note: '' }
+    ]
   },
   custom: {
     accent: '#2563eb',
@@ -34,6 +39,11 @@ function saveUser(u){ localStorage.setItem(USER_KEY, JSON.stringify(u)); }
 function loadCustom(){ try{ const r=localStorage.getItem(CUSTOM_KEY); return r?JSON.parse(r):DEFAULTS.custom;}catch{return DEFAULTS.custom;} }
 function saveCustom(c){ localStorage.setItem(CUSTOM_KEY, JSON.stringify(c)); applyCustom(); }
 
+function applyCustom() {
+    const c = loadCustom();
+    if (c.accent) document.documentElement.style.setProperty('--accent', c.accent);
+}
+
 // small util formatters used broadly
 function getTZOffsetMs(){ return new Date().getTimezoneOffset()*60000; }
 function todayISO(){ const d=new Date(); return new Date(d - getTZOffsetMs()).toISOString().slice(0,10); }
@@ -54,5 +64,22 @@ window.MT.db = {
   loadStore, saveStore, loadUser, saveUser, loadCustom, saveCustom,
   getTZOffsetMs, todayISO, formatDateLabel, currencyFmt
 };
-// 🔥 AUTO-SEED ON FIRST LOAD
+
+function ensureSettingsSeeded() {
+    const s = loadStore();
+    let changed = false;
+    if (!s.settings) { 
+        s.settings = JSON.parse(JSON.stringify(DEFAULTS.settings)); 
+        changed = true; 
+    } else {
+        if (!s.settings.presets) { 
+            s.settings.presets = JSON.parse(JSON.stringify(DEFAULTS.settings.presets)); 
+            changed = true; 
+        }
+    }
+    if (changed) saveStore(s);
+}
+
+// 🔥 AUTO-INIT
 ensureSettingsSeeded();
+applyCustom();
