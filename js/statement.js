@@ -37,15 +37,40 @@
         if (m) entries = entries.filter(e => e.dateStr.startsWith(m));
         if (t && t !== 'All') entries = entries.filter(e => e.type === t);
 
+        const sortBy = document.getElementById('stmtSortBy')?.value || 'date';
+        const sortOrder = document.getElementById('stmtSortOrder')?.value || 'desc';
+
+        entries.sort((a, b) => {
+            let valA, valB;
+            if (sortBy === 'amount') { valA = a.amount; valB = b.amount; }
+            else if (sortBy === 'category') { valA = (a.category || '').toLowerCase(); valB = (b.category || '').toLowerCase(); }
+            else { valA = a.dateStr + (a.id || ''); valB = b.dateStr + (b.id || ''); }
+
+            if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+            if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+
         DOM.tbody.innerHTML = '';
         if (entries.length === 0) {
             DOM.tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--muted);">No records found for this period</td></tr>';
             return;
         }
 
+        let lastDate = null;
         entries.forEach(e => {
+            // Add date grouping header if sorting by date
+            if (sortBy === 'date' && e.dateStr !== lastDate) {
+                lastDate = e.dateStr;
+                const groupTr = document.createElement('tr');
+                groupTr.style.background = 'rgba(255,255,255,0.02)';
+                const dLabel = new Date(e.dateStr + 'T00:00:00').toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+                groupTr.innerHTML = `<td colspan="6" style="padding:6px 12px; font-size:10px; font-weight:700; color:var(--accent); text-transform:uppercase;">📅 ${dLabel}</td>`;
+                DOM.tbody.appendChild(groupTr);
+            }
+
             const tr = document.createElement('tr');
-            const dStr = new Date(e.dateStr + 'T00:00:00').toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+            const dStr = new Date(e.dateStr + 'T00:00:00').toLocaleDateString(undefined, { day: '2-digit', month: 'short' });
             let amtStr = window.MT.db.currencyFmt(e.amount);
             let amtClass = '';
             if (e.type === 'Income') { amtStr = '+' + amtStr; amtClass = 'income'; }
@@ -255,6 +280,8 @@
         if (!DOM.view) return;
         DOM.monthFilter?.addEventListener('change', renderStatement);
         DOM.typeFilter?.addEventListener('change', renderStatement);
+        document.getElementById('stmtSortBy')?.addEventListener('change', renderStatement);
+        document.getElementById('stmtSortOrder')?.addEventListener('change', renderStatement);
         DOM.exportBtn?.addEventListener('click', () => {
             const m = DOM.monthFilter?.value;
             if (window.ExporterModule?.exportXLSX) window.ExporterModule.exportXLSX(m || null);

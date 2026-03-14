@@ -20,7 +20,10 @@
     monthSumExpenseEl: document.getElementById('monthSumExpense'),
     monthSumIncomeEl: document.getElementById('monthSumIncome'),
     splitOutstandingEl: document.getElementById('splitOutstanding'),
+    avgDailySpendEl: document.getElementById('avgDailySpend'),
+    vsLastMonthEl: document.getElementById('vsLastMonth'),
     rowsPerPageSelect: document.getElementById('rowsPerPage'),
+    summarySearchInput: document.getElementById('summarySearch'),
     summaryExportBtn: document.getElementById('summaryExportBtn'),
   };
 
@@ -80,6 +83,8 @@
       ExporterModule?.openExportModal();
     });
 
+    DOM.summarySearchInput?.addEventListener('input', renderSummary);
+
     updateVisibility(); // initial
 
     // Default to month
@@ -118,7 +123,7 @@
     const payFilter = DOM.filterPaymentSelect ? DOM.filterPaymentSelect.value : 'All';
     if (payFilter && payFilter !== 'All') filtered = filtered.filter(e => e.payMethod === payFilter);
 
-    // populate category dropdown based on filtered
+    // populate category dropdown based on current set
     const cats = new Set(filtered.map(e => e.category || 'Uncategorized'));
     if (DOM.filterCategorySelect) {
       const prev = DOM.filterCategorySelect.value || 'All';
@@ -130,6 +135,17 @@
     }
     const catNow = DOM.filterCategorySelect ? DOM.filterCategorySelect.value : 'All';
     if (catNow && catNow !== 'All') filtered = filtered.filter(e => (e.category || 'Uncategorized') === catNow);
+
+    // -- SEARCH FILTER --
+    const searchQuery = (DOM.summarySearchInput?.value || '').toLowerCase().trim();
+    if (searchQuery) {
+      filtered = filtered.filter(e => 
+        (e.description || '').toLowerCase().includes(searchQuery) ||
+        (e.category || '').toLowerCase().includes(searchQuery) ||
+        (e.note || '').toLowerCase().includes(searchQuery) ||
+        (e.payMethod || '').toLowerCase().includes(searchQuery)
+      );
+    }
 
     // totals + category totals + daily totals for trend
     let totalExp = 0, totalInc = 0, splitOutstanding = 0;
@@ -156,9 +172,59 @@
     if (DOM.monthSumIncomeEl) DOM.monthSumIncomeEl.textContent = currencyFmt(totalInc);
     if (DOM.splitOutstandingEl) DOM.splitOutstandingEl.textContent = currencyFmt(splitOutstanding);
 
+    // Advanced Insight: Avg Daily Spend
+    if (DOM.avgDailySpendEl) {
+      let daysCount = 0;
+      if (mode === 'month' && monthVal) {
+        const year = parseInt(monthVal.split('-')[0]), month = parseInt(monthVal.split('-')[1]);
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const today = new Date();
+        const isCurrentMonth = today.toISOString().startsWith(monthVal);
+        daysCount = isCurrentMonth ? today.getDate() : daysInMonth;
+      } else if (mode === 'day') {
+        daysCount = 1;
+      } else {
+        const uniqueDates = new Set(filtered.map(e => e.dateStr));
+        daysCount = Math.max(uniqueDates.size, 1);
+      }
+      const avg = totalExp / (daysCount || 1);
+      DOM.avgDailySpendEl.textContent = currencyFmt(avg);
+    }
+
     drawTrendChart(dailyTotals, mode, monthVal, yearVal);
     drawCategoryPie(categoryTotals);
     renderHistoryList(filtered);
+
+    // Advanced Insight: Vs Last Month (Only shows in Month mode)
+    if (DOM.vsLastMonthEl) {
+      if (mode === 'month' && monthVal) {
+        const [y, m] = monthVal.split('-').map(Number);
+        const prevMonthVal = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`;
+        
+        let prevTotal = 0;
+        arr.filter(e => e.dateStr.startsWith(prevMonthVal)).forEach(e => {
+          if (e.type === 'Expense' && (!e.split || !e.split.enabled)) prevTotal += Number(e.amount || 0);
+          else if (e.split && e.split.enabled) prevTotal += Number(e.split.myShare || 0);
+        });
+
+        if (prevTotal > 0) {
+          const diff = totalExp - prevTotal;
+          const pct = (diff / prevTotal) * 100;
+          const isUp = pct > 0;
+          DOM.vsLastMonthEl.parentElement.style.display = 'block';
+          DOM.vsLastMonthEl.innerHTML = `
+            <span style="color:${isUp ? 'var(--danger)' : 'var(--success)'}; font-weight:800;">
+              ${isUp ? '↑' : '↓'} ${Math.abs(pct).toFixed(0)}%
+            </span>
+            <span style="font-size:10px; color:var(--muted); margin-left:4px;">vs last month</span>
+          `;
+        } else {
+          DOM.vsLastMonthEl.parentElement.style.display = 'none';
+        }
+      } else {
+        DOM.vsLastMonthEl.parentElement.style.display = 'none';
+      }
+    }
   }
 
 
@@ -314,33 +380,108 @@
     });
   }
 
+  const CAT_ICONS = {
+    'food': '🍔', 'dining': '🍕', 'grocery': '🛒', 'groceries': '🛒',
+    'travel': '✈️', 'transport': '🚗', 'fuel': '⛽', 'petrol': '⛽',
+    'rent': '🏠', 'emi': '💳', 'loan': '🤝', 'debt': '🤝',
+    'shopping': '🛍️', 'online': '📦', 'amazon': '📦',
+    'health': '🏥', 'medicine': '💊', 'medical': '🏥',
+    'salary': '💰', 'income': '💹', 'bonus': '🎁',
+    'entertainment': '🎬', 'movie': '🍿', 'sports': '⚽',
+    'utilities': '💡', 'bills': '🧾', 'recharge': '📱', 'mobile': '📱',
+    'others': '📁', 'uncategorized': '❓'
+  };
+  function getCatIcon(cat = '') {
+    const c = cat.toLowerCase().trim();
+    for(const key in CAT_ICONS) if(c.includes(key)) return CAT_ICONS[key];
+    return '📝';
+  }
+
+  // Carousel logic
+  let currentChartIdx = 0;
+  const chartTitles = ["Monthly Trend", "Expense Categories"];
+  
+  function showChart(idx) {
+    currentChartIdx = idx;
+    document.querySelectorAll('.chart-slide').forEach((s, i) => {
+      s.classList.toggle('active', i === idx);
+    });
+    document.querySelectorAll('.chart-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === idx);
+    });
+    const titleEl = document.getElementById('chartTitle');
+    if (titleEl) titleEl.textContent = chartTitles[idx];
+  }
+  
+  function nextChart() {
+    showChart((currentChartIdx + 1) % 2);
+  }
+  
+  function prevChart() {
+    showChart((currentChartIdx + 1) % 2); // 2 slides total
+  }
+
   // history list rendering
   function renderHistoryList(entries) {
     const el = DOM.summaryHistoryEl;
     if (!el) return;
     el.innerHTML = '';
     if (!entries || entries.length === 0) { el.innerHTML = '<div class="info">No entries for this filter.</div>'; return; }
-    const sorted = [...entries].sort((a, b) => a.dateStr === b.dateStr ? b.id - a.id : (a.dateStr < b.dateStr ? 1 : -1));
+    
+    // --- SORTING ---
+    const sortBy = document.getElementById('summarySortBy')?.value || 'date';
+    const sortOrder = document.getElementById('summarySortOrder')?.value || 'desc';
+    
+    const sorted = [...entries].sort((a, b) => {
+      let valA, valB;
+      if (sortBy === 'amount') { valA = a.amount; valB = b.amount; }
+      else if (sortBy === 'category') { valA = (a.category || '').toLowerCase(); valB = (b.category || '').toLowerCase(); }
+      else if (sortBy === 'description') { valA = (a.description || '').toLowerCase(); valB = (b.description || '').toLowerCase(); }
+      else { valA = a.dateStr + (a.id || ''); valB = b.dateStr + (b.id || ''); } // date
+
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
     const rows = getRowsPerPage();
     const paged = sorted.slice(0, rows);
-    let cur = null;
+    const groupMode = document.getElementById('summaryGroupMode')?.value || 'date';
+    
+    let lastGroup = null;
+    let groupTotal = 0;
+
     paged.forEach((e, idx) => {
       try {
         if (!e) return;
-        if (e.dateStr !== cur) {
-          cur = e.dateStr;
-          const dl = document.createElement('div'); dl.className = 'summary-history-date'; dl.textContent = formatDateLabel(cur);
-          el.appendChild(dl);
+        
+        // --- GROUPING HEADERS ---
+        let currentGroup = null;
+        if (groupMode === 'date') currentGroup = formatDateLabel(e.dateStr);
+        else if (groupMode === 'month') {
+           const d = new Date(e.dateStr + 'T00:00:00');
+           currentGroup = d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
         }
+
+        if (groupMode !== 'none' && currentGroup !== lastGroup) {
+          lastGroup = currentGroup;
+          const header = document.createElement('div');
+          header.className = 'history-group-header';
+          header.innerHTML = `<span>${currentGroup}</span>`;
+          el.appendChild(header);
+        }
+
         const row = document.createElement('div'); row.className = 'entry';
         const left = document.createElement('div'); left.className = 'entry-main';
         left.style.cursor = 'pointer';
         left.title = 'Click to expand/collapse';
-        left.addEventListener('click', (e) => {
-            if (e.target.tagName !== 'INPUT') row.classList.toggle('collapsed');
+        left.addEventListener('click', (ev) => {
+            if (ev.target.tagName !== 'INPUT') row.classList.toggle('collapsed');
         });
         const desc = (e.description || '').toString().toUpperCase();
-        const title = document.createElement('div'); title.className = 'entry-title'; title.style.color = '#ffffff'; title.textContent = `${(idx + 1)}. ${desc}`;
+        const catIcon = getCatIcon(e.category);
+        const title = document.createElement('div'); title.className = 'entry-title'; title.style.color = '#ffffff'; 
+        title.innerHTML = `<span style="opacity:0.6; font-size:12px; margin-right:6px;">${idx + 1}.</span> <span>${catIcon}</span> ${desc}`;
         const meta = document.createElement('div'); meta.className = 'entry-meta'; meta.style.color = 'var(--muted)';
         let metaText = `${e.type || ''} • ${(e.category || 'No category')} • ${e.payMethod || ''}` + (e.paySubType ? (' • ' + e.paySubType) : '');
         if (e.mappedBank) metaText += ` • ${e.mappedBank}`;
@@ -482,7 +623,7 @@
   }
 
   // expose module
-  window.SummaryModule = { initSummaryControls, renderSummary, drawCategoryPie, renderHistoryList };
+  window.SummaryModule = { initSummaryControls, renderSummary, drawCategoryPie, renderHistoryList, nextChart, prevChart, showChart };
 
   // Re-render whenever user navigates to the summary view
   window.addEventListener('mt:view-changed', (ev) => {

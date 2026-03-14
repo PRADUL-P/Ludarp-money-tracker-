@@ -362,9 +362,23 @@
     const dateStr = dateInput.value;
     const s = db.loadStore();
     const entries = s.days[dateStr] || [];
-    if (entries.length === 0) { entriesListEl.innerHTML = '<div class="info">No entries for this day.</div>'; updateDailySummary(entries); return; }
+    if (entries.length === 0) { entriesListEl.innerHTML = `<div class="info">No entries for this day.</div>`; updateDailySummary(entries); return; }
 
-    entries.forEach(entry => {
+    const sortBy = document.getElementById('entrySortBy')?.value || 'time';
+    const sortOrder = document.getElementById('entrySortOrder')?.value || 'desc';
+
+    const sorted = [...entries].sort((a, b) => {
+      let valA, valB;
+      if (sortBy === 'amount') { valA = a.amount; valB = b.amount; }
+      else if (sortBy === 'category') { valA = (a.category || '').toLowerCase(); valB = (b.category || '').toLowerCase(); }
+      else { valA = a.id; valB = b.id; } // time
+
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    sorted.forEach(entry => {
       const row = document.createElement('div'); row.className = 'entry';
       const main = document.createElement('div'); main.className = 'entry-main';
       const title = document.createElement('div'); title.className = 'entry-title'; title.textContent = (entry.description || '').toUpperCase();

@@ -751,4 +751,9 @@
     });
   }
 
+  /* Start all ordering modules */
+  document.addEventListener('DOMContentLoaded', initNavOrder);
+  // Also try immediate in case DOM already loaded
+  if (document.readyState === 'interactive' || document.readyState === 'complete') initNavOrder();
+
 })();

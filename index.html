@@ -4,14 +4,45 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LUDARP Money Tracker</title>
-  <meta name="description"
-    content="LUDARP Money Tracker — offline daily expense tracker, secure on your device. Track income, expenses, splits, budgets and recurring transactions." />
+  
+  <!-- SEO & Primary Meta Tags -->
+  <title>LUDARP Money Tracker Premium | Secure Private Expense Manager</title>
+  <meta name="title" content="LUDARP Money Tracker Premium | Secure Private Expense Manager" />
+  <meta name="description" content="Manage your finances with LUDARP Money Tracker. A secure, offline-first PWA for tracking expenses, income, splits, and petrol logs without cloud privacy risks." />
+  <meta name="keywords" content="money tracker, expense manager, petrol log, split bill, finance app, offline tracker, private finance, PWA tracker" />
+  <meta name="author" content="LUDARP" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Open Graph / Facebook / LinkedIn -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://pradul-p.github.io/Money-Tracker/" />
+  <meta property="og:title" content="LUDARP Money Tracker Premium | Secure & Private" />
+  <meta property="og:description" content="Track every rupee securely on your device. Zero cloud sync, 100% privacy. Features include Petrol Logs, Split Bills, and Real-time Analytics." />
+  <meta property="og:image" content="https://pradul-p.github.io/Money-Tracker/icons/og-preview.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://pradul-p.github.io/Money-Tracker/" />
+  <meta property="twitter:title" content="LUDARP Money Tracker Premium" />
+  <meta property="twitter:description" content="Modern tracking for modern living. Get the ultimate offline-first finance manager for free." />
+  <meta property="twitter:image" content="https://pradul-p.github.io/Money-Tracker/icons/og-preview.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <meta name="theme-color" content="#2563eb" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-7W6WR450XN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-7W6WR450XN');
+  </script>
+
   <!-- SheetJS for Excel export/import (used by app.js) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- jsPDF for PDF export -->
@@ -178,14 +209,18 @@
 
           <form id="money-form" class="form-grid">
             <!-- ⚡ Quick Presets (Dynamic from Settings) -->
-            <div class="full" id="quickEntryPresets" style="background:var(--card); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--card-border); margin-bottom:10px;">
-               <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px; font-weight:600; display:flex; align-items:center; gap:5px; justify-content:space-between;">
-                  <span>⚡ Quick Actions</span>
-                  <button type="button" onclick="MT.nav.showView('settings')" style="font-size:10px; opacity:0.6; background:none; border:none; color:var(--accent);">Edit Prefills</button>
-               </div>
-               <div id="presetButtonsContainer" style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <!-- Buttons rendered by entry.js -->
-               </div>
+            <div class="full" id="quickEntryPresets"
+              style="background:var(--card); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--card-border); margin-bottom:10px;">
+              <div
+                style="font-size:12px; color:var(--text-secondary); margin-bottom:8px; font-weight:600; display:flex; align-items:center; gap:5px; justify-content:space-between;">
+                <span>⚡ Quick Actions</span>
+                <button type="button" onclick="MT.nav.showView('settings')"
+                  style="font-size:10px; opacity:0.6; background:none; border:none; color:var(--accent);">Edit
+                  Prefills</button>
+              </div>
+              <div id="presetButtonsContainer" style="display:flex; gap:8px; flex-wrap:wrap;">
+                <!-- Buttons rendered by entry.js -->
+              </div>
             </div>
 
             <div>
@@ -198,34 +233,45 @@
               <label for="amount">Amount</label>
               <div style="display:flex; gap:8px;">
                 <input id="amount" type="number" min="0" step="0.01" placeholder="0.00" style="flex:1;" />
-                <button type="button" id="btnCalcToggle" class="btn-secondary" style="width:46px; display:flex; align-items:center; justify-content:center; font-size:18px;" title="Open Mini Calculator">🧮</button>
+                <button type="button" id="btnCalcToggle" class="btn-secondary"
+                  style="width:46px; display:flex; align-items:center; justify-content:center; font-size:18px;"
+                  title="Open Mini Calculator">🧮</button>
               </div>
-              
+
               <!-- 🧮 Mini Calculator Panel -->
-              <div id="miniCalc" class="card" style="display:none; margin-top:10px; padding:12px; background:rgba(255,255,255,0.05); border:1px solid var(--card-border); border-radius:var(--radius-sm); box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-                <div id="calcDisplay" style="background:rgba(0,0,0,0.2); padding:10px; border-radius:calc(var(--radius-sm) - 4px); text-align:right; font-family:monospace; font-size:20px; margin-bottom:10px; min-height:44px; overflow:hidden;">0</div>
+              <div id="miniCalc" class="card"
+                style="display:none; margin-top:10px; padding:12px; background:rgba(255,255,255,0.05); border:1px solid var(--card-border); border-radius:var(--radius-sm); box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+                <div id="calcDisplay"
+                  style="background:rgba(0,0,0,0.2); padding:10px; border-radius:calc(var(--radius-sm) - 4px); text-align:right; font-family:monospace; font-size:20px; margin-bottom:10px; min-height:44px; overflow:hidden;">
+                  0</div>
                 <div class="calc-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
                   <button type="button" onclick="MT.calc.append('7')" class="btn-secondary">7</button>
                   <button type="button" onclick="MT.calc.append('8')" class="btn-secondary">8</button>
                   <button type="button" onclick="MT.calc.append('9')" class="btn-secondary">9</button>
-                  <button type="button" onclick="MT.calc.setOp('/')" class="btn-secondary" style="background:var(--accent-2);">÷</button>
-                  
+                  <button type="button" onclick="MT.calc.setOp('/')" class="btn-secondary"
+                    style="background:var(--accent-2);">÷</button>
+
                   <button type="button" onclick="MT.calc.append('4')" class="btn-secondary">4</button>
                   <button type="button" onclick="MT.calc.append('5')" class="btn-secondary">5</button>
                   <button type="button" onclick="MT.calc.append('6')" class="btn-secondary">6</button>
-                  <button type="button" onclick="MT.calc.setOp('*')" class="btn-secondary" style="background:var(--accent-2);">×</button>
-                  
+                  <button type="button" onclick="MT.calc.setOp('*')" class="btn-secondary"
+                    style="background:var(--accent-2);">×</button>
+
                   <button type="button" onclick="MT.calc.append('1')" class="btn-secondary">1</button>
                   <button type="button" onclick="MT.calc.append('2')" class="btn-secondary">2</button>
                   <button type="button" onclick="MT.calc.append('3')" class="btn-secondary">3</button>
-                  <button type="button" onclick="MT.calc.setOp('-')" class="btn-secondary" style="background:var(--accent-2);">−</button>
-                  
+                  <button type="button" onclick="MT.calc.setOp('-')" class="btn-secondary"
+                    style="background:var(--accent-2);">−</button>
+
                   <button type="button" onclick="MT.calc.append('0')" class="btn-secondary">0</button>
                   <button type="button" onclick="MT.calc.append('.')" class="btn-secondary">.</button>
-                  <button type="button" onclick="MT.calc.clear()" class="btn-secondary" style="color:var(--danger);">C</button>
-                  <button type="button" onclick="MT.calc.setOp('+')" class="btn-secondary" style="background:var(--accent-2);">+</button>
-                  
-                  <button type="button" onclick="MT.calc.calculate()" class="btn-primary" style="grid-column: span 3;">= Calculate & Add</button>
+                  <button type="button" onclick="MT.calc.clear()" class="btn-secondary"
+                    style="color:var(--danger);">C</button>
+                  <button type="button" onclick="MT.calc.setOp('+')" class="btn-secondary"
+                    style="background:var(--accent-2);">+</button>
+
+                  <button type="button" onclick="MT.calc.calculate()" class="btn-primary" style="grid-column: span 3;">=
+                    Calculate & Add</button>
                   <button type="button" onclick="MT.calc.close()" class="btn-secondary">Done</button>
                 </div>
               </div>
@@ -245,65 +291,75 @@
               <label>Transaction Type</label>
               <input type="hidden" id="type" value="Expense" />
               <div id="type-pills" class="pill-row" style="margin-top:5px;">
-                  <button type="button" class="type-pill active" data-value="Expense">Expense</button>
-                  <button type="button" class="type-pill" data-value="Income">Income</button>
-                  <button type="button" class="type-pill" data-value="Transfer">Transfer</button>
+                <button type="button" class="type-pill active" data-value="Expense">Expense</button>
+                <button type="button" class="type-pill" data-value="Income">Income</button>
+                <button type="button" class="type-pill" data-value="Transfer">Transfer</button>
               </div>
             </div>
 
             <!-- ⛽ Fuel Efficiency Widget (Hidden by default, shown for 'Petrol') -->
-            <div id="fuelPanel" class="full" style="display:none; background:rgba(251, 191, 36, 0.05); padding:12px; border:1px solid var(--warning); border-radius:var(--radius-sm); margin-top:10px;">
-               <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; color:var(--warning);">
-                  <span>⛽</span> <strong>Fuel Efficiency Tracker</strong>
-               </div>
-               <div class="row" style="gap:10px;">
-                  <div>
-                    <label style="font-size:12px;">Previous KM</label>
-                    <input id="fuelPrevKm" type="number" readonly style="background:var(--bg2); color:var(--muted); font-size:13px;" />
-                  </div>
-                  <div>
-                    <label style="font-size:12px;">Current ODO (KM)</label>
-                    <input id="fuelCurrentKm" type="number" placeholder="KM reading" />
-                  </div>
-                  <div>
-                    <label style="font-size:12px;">Liters Refilled</label>
-                    <input id="fuelLiters" type="number" step="0.01" placeholder="0.00" />
-                  </div>
-               </div>
-               <div id="fuelStats" style="margin-top:10px; font-size:12px; display:flex; gap:15px; color:var(--text); font-weight:600;">
-                  <!-- Stats like Mileage/CostPerKM filled via JS -->
-               </div>
+            <div id="fuelPanel" class="full"
+              style="display:none; background:rgba(251, 191, 36, 0.05); padding:12px; border:1px solid var(--warning); border-radius:var(--radius-sm); margin-top:10px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; color:var(--warning);">
+                <span>⛽</span> <strong>Fuel Efficiency Tracker</strong>
+              </div>
+              <div class="row" style="gap:10px;">
+                <div>
+                  <label style="font-size:12px;">Previous KM</label>
+                  <input id="fuelPrevKm" type="number" readonly
+                    style="background:var(--bg2); color:var(--muted); font-size:13px;" />
+                </div>
+                <div>
+                  <label style="font-size:12px;">Current ODO (KM)</label>
+                  <input id="fuelCurrentKm" type="number" placeholder="KM reading" />
+                </div>
+                <div>
+                  <label style="font-size:12px;">Liters Refilled</label>
+                  <input id="fuelLiters" type="number" step="0.01" placeholder="0.00" />
+                </div>
+              </div>
+              <div id="fuelStats"
+                style="margin-top:10px; font-size:12px; display:flex; gap:15px; color:var(--text); font-weight:600;">
+                <!-- Stats like Mileage/CostPerKM filled via JS -->
+              </div>
             </div>
 
             <!-- 🚉 Trip Date (Shown for 'Travel') -->
             <div id="tripDateWrap" class="full" style="display:none; margin-top:10px;">
-               <label>Actual Trip Date (if Advance Booking)</label>
-               <input id="tripDate" type="date" />
+              <label>Actual Trip Date (if Advance Booking)</label>
+              <input id="tripDate" type="date" />
             </div>
 
             <div class="full" id="quickDueBtnRow" style="display:flex; gap:8px; margin-top:10px;">
-               <button type="button" id="btnQuickIOwe" class="btn-secondary" style="flex:1; background:var(--card-hover); color:#fff; border:1px solid var(--danger);">⬇️ I Owe</button>
-               <button type="button" id="btnQuickTheyOwe" class="btn-secondary" style="flex:1; background:var(--card-hover); color:#fff; border:1px solid var(--success);">⬆️ They Owe</button>
+              <button type="button" id="btnQuickIOwe" class="btn-secondary"
+                style="flex:1; background:var(--card-hover); color:#fff; border:1px solid var(--danger);">⬇️ I
+                Owe</button>
+              <button type="button" id="btnQuickTheyOwe" class="btn-secondary"
+                style="flex:1; background:var(--card-hover); color:#fff; border:1px solid var(--success);">⬆️ They
+                Owe</button>
             </div>
-            
-            <div id="quickDueWrap" class="full" style="display:none; background:var(--card); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--accent-1); margin-top:10px;">
-                <label id="quickDueLabel" style="color:var(--accent-1); margin-bottom:4px;">Person</label>
-                <div style="display:flex; gap:8px;">
-                   <input id="quickDuePerson" type="text" placeholder="Name (Required)" style="flex:1; background:var(--bg2);" list="quickDuePersonList" />
-                   <datalist id="quickDuePersonList"></datalist>
-                   <button type="button" id="btnCancelQuickDue" class="btn-secondary" style="padding:6px 12px; border:1px solid var(--danger); color:var(--danger);">Cancel</button>
-                </div>
+
+            <div id="quickDueWrap" class="full"
+              style="display:none; background:var(--card); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--accent-1); margin-top:10px;">
+              <label id="quickDueLabel" style="color:var(--accent-1); margin-bottom:4px;">Person</label>
+              <div style="display:flex; gap:8px;">
+                <input id="quickDuePerson" type="text" placeholder="Name (Required)"
+                  style="flex:1; background:var(--bg2);" list="quickDuePersonList" />
+                <datalist id="quickDuePersonList"></datalist>
+                <button type="button" id="btnCancelQuickDue" class="btn-secondary"
+                  style="padding:6px 12px; border:1px solid var(--danger); color:var(--danger);">Cancel</button>
+              </div>
             </div>
 
             <div>
               <label>Payment Method</label>
               <input type="hidden" id="payMethod" value="Cash" />
               <div id="pay-pills" class="pill-row" style="margin-top:5px;">
-                  <button type="button" class="pay-pill active" data-value="Cash">Cash</button>
-                  <button type="button" class="pay-pill" data-value="UPI">UPI</button>
-                  <button type="button" class="pay-pill" data-value="Card">Card</button>
-                  <button type="button" class="pay-pill" data-value="Bank">Bank</button>
-                  <button type="button" class="pay-pill" data-value="Self transfer">Transfer</button>
+                <button type="button" class="pay-pill active" data-value="Cash">Cash</button>
+                <button type="button" class="pay-pill" data-value="UPI">UPI</button>
+                <button type="button" class="pay-pill" data-value="Card">Card</button>
+                <button type="button" class="pay-pill" data-value="Bank">Bank</button>
+                <button type="button" class="pay-pill" data-value="Self transfer">Transfer</button>
               </div>
             </div>
 
@@ -381,7 +437,20 @@
         </section>
 
         <section class="card">
-          <div class="section-title">Entries for this day</div>
+          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Daily History</span>
+              <div style="display:flex; gap:6px;">
+                <select id="entrySortBy" style="font-size:11px; height:28px; width:80px;" onchange="window.MT.entry.renderEntries()">
+                  <option value="time">Time</option>
+                  <option value="amount">Amount</option>
+                  <option value="category">Category</option>
+                </select>
+                <select id="entrySortOrder" style="font-size:11px; height:28px; width:70px;" onchange="window.MT.entry.renderEntries()">
+                  <option value="desc">Desc</option>
+                  <option value="asc">Asc</option>
+                </select>
+              </div>
+            </div>
           <div id="entriesList" class="list"></div>
         </section>
       </section>
@@ -391,8 +460,9 @@
         <section class="card">
           <div class="section-title">Filters & totals</div>
 
-          <div style="display:grid; grid-template-columns: 200px 1fr 160px; gap:12px; align-items:end;">
-            <div>
+          <!-- FIRST ROW: Period & Date Pickers -->
+          <div class="summary-controls-row">
+            <div class="summary-control-item">
               <label for="dateMode">Period</label>
               <select id="dateMode">
                 <option value="day">Day</option>
@@ -402,23 +472,29 @@
               </select>
             </div>
 
-            <div id="monthPickerWrap" style="display:block;">
+            <div id="monthPickerWrap" class="summary-control-item date-picker-wrap" style="display:block;">
               <label for="monthPicker">Month</label>
               <input id="monthPicker" type="month" />
             </div>
-            <div id="dayPickerWrap" style="display:none;">
+            <div id="dayPickerWrap" class="summary-control-item date-picker-wrap" style="display:none;">
               <label for="dayPicker">Day</label>
               <input id="dayPicker" type="date" />
             </div>
-
-            <div id="yearPickerWrap" style="display:none;">
+            <div id="yearPickerWrap" class="summary-control-item date-picker-wrap" style="display:none;">
               <label for="yearPicker">Year</label>
               <input id="yearPicker" type="number" min="2000" max="2100" />
             </div>
+          </div>
 
-            <div style="display:flex; gap:8px; align-items:center;">
-              <label for="rowsPerPage" style="margin-right:6px;">Rows</label>
-              <select id="rowsPerPage" style="width:100px;">
+          <!-- SECOND ROW: Search, Rows & Sort -->
+          <div class="summary-search-row">
+            <div class="search-input-wrap">
+              <input id="summarySearch" type="text" placeholder="🔍 Search description, category or note..." />
+              <span class="search-icon">🔍</span>
+            </div>
+            <div class="rows-select-wrap">
+              <label for="rowsPerPage" style="font-size:10px; margin-right:4px;">Rows</label>
+              <select id="rowsPerPage">
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
@@ -427,8 +503,29 @@
             </div>
           </div>
 
-          <div style="display:flex; gap:12px; margin-top:12px; align-items:center;">
-            <div style="flex:1;">
+          <!-- NEW: SORTING CONTROLS -->
+          <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:120px;">
+              <label style="font-size:10px; color:var(--muted); margin-bottom:4px; display:block;">Sort By</label>
+              <select id="summarySortBy" onchange="window.SummaryModule.renderSummary()">
+                <option value="date">Date</option>
+                <option value="amount">Amount</option>
+                <option value="category">Category</option>
+                <option value="description">Description</option>
+              </select>
+            </div>
+            <div style="flex:1; min-width:120px;">
+              <label style="font-size:10px; color:var(--muted); margin-bottom:4px; display:block;">Order</label>
+              <select id="summarySortOrder" onchange="window.SummaryModule.renderSummary()">
+                <option value="desc">Newest / Highest</option>
+                <option value="asc">Oldest / Lowest</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- THIRD ROW: Type, Payment, Category, Export -->
+          <div class="summary-filters-grid">
+            <div class="filter-item">
               <label for="typeFilter">Type filter</label>
               <select id="typeFilter">
                 <option>All</option>
@@ -439,15 +536,15 @@
               </select>
             </div>
 
-            <div style="flex:1;">
+            <div class="filter-item">
               <label for="filterPayment">Payment</label>
               <select id="filterPayment">
                 <option>All</option>
-                <!-- options populated by JS from settings -->
+                <!-- options populated by JS -->
               </select>
             </div>
 
-            <div style="flex:1;">
+            <div class="filter-item">
               <label for="filterCategory">Category</label>
               <select id="filterCategory">
                 <option>All</option>
@@ -455,64 +552,82 @@
               </select>
             </div>
 
-            <div style="width:140px; display:flex; align-items:flex-end;">
-              <button id="summaryExportBtn" class="btn-primary" style="width:100%"><svg width="16" height="16"
-                  aria-hidden="true">
-                  <use href="#icon-export"></use>
-                </svg> Export</button>
+            <div class="filter-item export-wrap">
+              <button id="summaryExportBtn" class="btn-primary">
+                <svg width="14" height="14" aria-hidden="true"><use href="#icon-export"></use></svg> Export
+              </button>
             </div>
           </div>
 
           <!-- GRID: left pie, right legend, bottom history -->
 
-          <section class="card">
-            <div class="summary-charts-container">
-              <!-- TREND CHART -->
-              <div class="card no-hover" style="margin-bottom:18px;">
-                <div class="section-title">Monthly Trend</div>
-                <div style="height:200px; position:relative; width:100%;">
+          <section class="card" style="padding: 10px; position:relative;">
+            <!-- CHART CAROUSEL CONTROLS -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+               <button onclick="window.SummaryModule.prevChart()" class="btn-small" style="padding:4px 10px;">◀</button>
+               <div id="chartTitle" style="font-size:13px; font-weight:700; color:var(--accent);">Monthly Trend</div>
+               <button onclick="window.SummaryModule.nextChart()" class="btn-small" style="padding:4px 10px;">▶</button>
+            </div>
+
+            <div class="summary-charts-container overflow-hidden" style="height:260px; position:relative;">
+              <div id="chartSlot1" class="chart-slide active">
+                <!-- TREND CHART -->
+                <div style="height:220px; position:relative; width:100%;">
                   <canvas id="trendChart"></canvas>
                 </div>
               </div>
 
-              <div class="summary-chart-grid">
-                <div class="chart-col">
-                  <canvas id="categoryPie" aria-label="Expense by category chart" role="img"></canvas>
-                </div>
-                <div class="legend-col">
-                  <div id="categoryLegend" class="legend"></div>
+              <div id="chartSlot2" class="chart-slide">
+                <!-- PIE CHART -->
+                <div class="summary-chart-grid" style="align-items:flex-start;">
+                  <div class="chart-col">
+                    <canvas id="categoryPie" style="max-height:180px;"></canvas>
+                  </div>
+                  <div class="legend-col" style="max-height:160px; overflow-y:auto;">
+                    <div id="categoryLegend" class="legend"></div>
+                  </div>
                 </div>
               </div>
-
-
-
+            </div>
+            
+            <!-- Dots -->
+            <div style="display:flex; justify-content:center; gap:6px; margin-top:8px;">
+               <div class="chart-dot active" onclick="window.SummaryModule.showChart(0)"></div>
+               <div class="chart-dot" onclick="window.SummaryModule.showChart(1)"></div>
             </div>
           </section>
           <section class="card">
-            <div style="margin-top:10px;" class="section-totals-row">
-              <div>
-                <div class="summary-tag">Total Expense</div>
-                <div id="monthSumExpense" class="summary-value expense">₹0</div>
+            <div class="summary-stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; text-align:center;">
+              <div class="card mini-card" style="margin:0; padding:12px; background:rgba(244,63,94,0.03); border-color:rgba(244,63,94,0.1);">
+                <div style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Expense</div>
+                <div id="monthSumExpense" style="font-size:18px; font-weight:800; color:var(--danger);">₹0.00</div>
               </div>
-
-              <div>
-                <div class="summary-tag">Total Income</div>
-                <div id="monthSumIncome" class="summary-value income">₹0</div>
+              <div class="card mini-card" style="margin:0; padding:12px; background:rgba(52,211,153,0.03); border-color:rgba(52,211,153,0.1);">
+                <div style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Income</div>
+                <div id="monthSumIncome" style="font-size:18px; font-weight:800; color:var(--success);">₹0.00</div>
               </div>
-
-              <div>
-                <div class="summary-tag">Split outstanding</div>
-                <div id="splitOutstanding" class="summary-value">₹0</div>
+              <div class="card mini-card" style="margin:0; padding:12px; background:rgba(99,102,241,0.03); border-color:rgba(99,102,241,0.1);">
+                <div style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Owed To You</div>
+                <div id="splitOutstanding" style="font-size:18px; font-weight:800; color:var(--accent);">₹0.00</div>
               </div>
-              <!-- <div style="margin-left:auto;"><button id="summaryExportBtn" class="btn-primary">Export / Import</button></div> -->
+              <div id="avgDailyWrap" class="card mini-card" style="margin:0; padding:12px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; justify-content:center;">
+                <div style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Avg / Day</div>
+                <div id="avgDailySpend" style="font-size:18px; font-weight:800; color:var(--text-secondary);">₹0.00</div>
+                <div id="vsLastMonth" style="font-size:11px; margin-top:4px; display:none;"></div>
+              </div>
             </div>
           </section>
           <section class="card">
             <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
               <span>History (filtered)</span>
-              <div style="display:flex; gap:8px;">
-                 <button id="btnExpandAll" class="btn-small" style="font-size:10px; opacity:0.8;">Expand All</button>
-                 <button id="btnCollapseAll" class="btn-small" style="font-size:10px; opacity:0.8;">Collapse All</button>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <select id="summaryGroupMode" style="font-size:11px; height:32px; padding:0 8px;" onchange="window.SummaryModule.renderSummary()">
+                  <option value="date">By Date</option>
+                  <option value="month">By Month</option>
+                  <option value="none">No Grouping</option>
+                </select>
+                <button id="btnExpandAll" class="btn-small" style="font-size:10px; opacity:0.8;">Expand All</button>
+                <button id="btnCollapseAll" class="btn-small" style="font-size:10px; opacity:0.8;">Collapse All</button>
               </div>
             </div>
             <div id="summaryHistory" class="list"></div>
@@ -521,10 +636,17 @@
       </section>
 
       <section id="view-accounts" class="view">
-        <div class="finance-tab-bar" style="display:flex; gap:10px; margin-bottom:15px; background:var(--card); padding:8px; border-radius:var(--radius-sm); border:1px solid var(--card-border);">
-           <button class="tab-btn active" data-target="finance-accounts" style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">🏦 Balances</button>
-           <button class="tab-btn" data-target="finance-statement" style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">📄 Statement</button>
-           <button class="tab-btn" data-target="finance-petrol" style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">⛽ Petrol Log</button>
+        <div class="finance-tab-bar"
+          style="display:flex; gap:10px; margin-bottom:15px; background:var(--card); padding:8px; border-radius:var(--radius-sm); border:1px solid var(--card-border);">
+          <button class="tab-btn active" data-target="finance-accounts"
+            style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">🏦
+            Balances</button>
+          <button class="tab-btn" data-target="finance-statement"
+            style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">📄
+            Statement</button>
+          <button class="tab-btn" data-target="finance-petrol"
+            style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">⛽
+            Petrol Log</button>
         </div>
 
         <section id="finance-accounts" class="tab-content active">
@@ -536,7 +658,9 @@
               <div><label>Initial</label><input id="accountsInitialAmount" type="number" step="0.01" /></div>
               <div style="align-self:flex-end;"><button id="saveInitialBtn" class="btn-primary">Set</button></div>
             </div>
-            <div style="margin-top:12px;"><div id="bankBalancesList" class="list"></div></div>
+            <div style="margin-top:12px;">
+              <div id="bankBalancesList" class="list"></div>
+            </div>
           </section>
         </section>
 
@@ -545,15 +669,42 @@
             <div class="section-title">Transaction History</div>
             <div class="row" style="gap:10px; align-items:center; flex-wrap:wrap;">
               <div><label>Month</label><input id="stmtMonthFilter" type="month" /></div>
-              <div><label>Type</label><select id="stmtTypeFilter"><option value="All">All</option><option>Expense</option><option>Income</option><option>Transfer</option></select></div>
+              <div><label>Type</label><select id="stmtTypeFilter">
+                  <option value="All">All</option>
+                  <option>Expense</option>
+                  <option>Income</option>
+                  <option>Transfer</option>
+                </select></div>
+              <div><label>Sort By</label><select id="stmtSortBy" style="font-size:12px; width:100px;">
+                  <option value="date">Date</option>
+                  <option value="amount">Amount</option>
+                  <option value="category">Category</option>
+                </select></div>
+              <div id="stmtSortOrderWrap" style="display:flex; flex-direction:column;">
+                <label>Order</label>
+                <select id="stmtSortOrder" style="font-size:12px; width:80px;">
+                  <option value="desc">Desc</option>
+                  <option value="asc">Asc</option>
+                </select>
+              </div>
               <div style="margin-left:auto; display:flex; gap:5px;">
                 <button id="stmtExportBtn" class="btn-secondary" style="font-size:11px;">Excel</button>
-                <button id="stmtPdfBtn" class="btn-secondary" style="font-size:11px; background:rgba(244,63,94,0.1); color:#fb7185;">PDF</button>
+                <button id="stmtPdfBtn" class="btn-secondary"
+                  style="font-size:11px; background:rgba(244,63,94,0.1); color:#fb7185;">PDF</button>
               </div>
             </div>
             <div class="table-scroll-container" style="margin-top: 15px; overflow-x: auto;">
               <table class="data-table" style="width: 100%; font-size:13px;">
-                <thead><tr style="border-bottom: 2px solid var(--card-border);"><th>Date</th><th>Type</th><th>Cat</th><th>Details</th><th>Method</th><th style="text-align:right;">Amt</th></tr></thead>
+                <thead>
+                  <tr style="border-bottom: 2px solid var(--card-border);">
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Cat</th>
+                    <th>Details</th>
+                    <th>Method</th>
+                    <th style="text-align:right;">Amt</th>
+                  </tr>
+                </thead>
                 <tbody id="statementTableBody"></tbody>
               </table>
             </div>
@@ -577,12 +728,15 @@
                 </select>
               </div>
               <div style="align-self:flex-end;">
-                <button id="petrolClearFilter" class="btn-secondary" style="font-size:12px; padding:8px 14px;">Clear</button>
+                <button id="petrolClearFilter" class="btn-secondary"
+                  style="font-size:12px; padding:8px 14px;">Clear</button>
               </div>
             </div>
 
             <!-- Summary stats bar -->
-            <div id="petrolStatsBar" style="display:flex; gap:0; border-radius:10px; overflow:hidden; margin-bottom:16px; border:1px solid var(--card-border);"></div>
+            <div id="petrolStatsBar"
+              style="display:flex; gap:0; border-radius:10px; overflow:hidden; margin-bottom:16px; border:1px solid var(--card-border);">
+            </div>
 
             <!-- Title row -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -608,8 +762,10 @@
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:8px; margin: -10px 15px 15px 0;">
-          <button id="btnSettingsExpandAll" class="btn-small" style="font-size:11px; background:rgba(255,255,255,0.05);">↔️ Expand All</button>
-          <button id="btnSettingsCollapseAll" class="btn-small" style="font-size:11px; background:rgba(255,255,255,0.05);">↕️ Collapse All</button>
+          <button id="btnSettingsExpandAll" class="btn-small"
+            style="font-size:11px; background:rgba(255,255,255,0.05);">↔️ Expand All</button>
+          <button id="btnSettingsCollapseAll" class="btn-small"
+            style="font-size:11px; background:rgba(255,255,255,0.05);">↕️ Collapse All</button>
         </div>
 
         <!-- ======= TAB: GENERAL ======= -->
@@ -645,8 +801,9 @@
               <span class="chevron">▼</span>
             </button>
             <div id="presetsPanel" class="settings-panel open">
-               <div id="settingsPresetsList" class="list" style="margin-bottom:12px;"></div>
-               <button id="addPresetBtn" class="btn-secondary" style="width:100%; border:1px dashed var(--accent);">+ Add New Preset</button>
+              <div id="settingsPresetsList" class="list" style="margin-bottom:12px;"></div>
+              <button id="addPresetBtn" class="btn-secondary" style="width:100%; border:1px dashed var(--accent);">+ Add
+                New Preset</button>
             </div>
           </section>
 
@@ -698,48 +855,59 @@
 
                 <!-- Bottom Nav -->
                 <div>
-                  <div style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                  <div
+                    style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                     📱 Bottom Navigation
                   </div>
-                  <div class="info" style="margin-bottom:8px; font-size:11px;">The ➕ Add button always stays in the center.</div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">The ➕ Add button always stays in the
+                    center.</div>
                   <div id="navOrderList"></div>
-                  <button id="resetNavOrderBtn" class="btn-secondary" style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                  <button id="resetNavOrderBtn" class="btn-secondary"
+                    style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
                 </div>
 
                 <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
 
                 <!-- Finance Tabs -->
                 <div>
-                  <div style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                  <div
+                    style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                     🏦 Finance Page Tabs
                   </div>
                   <div class="info" style="margin-bottom:8px; font-size:11px;">Balances · Statement · Petrol Log</div>
                   <div id="financeTabOrderList"></div>
-                  <button id="resetFinanceTabOrderBtn" class="btn-secondary" style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                  <button id="resetFinanceTabOrderBtn" class="btn-secondary"
+                    style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
                 </div>
 
                 <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
 
                 <!-- Settings Tabs -->
                 <div>
-                  <div style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                  <div
+                    style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                     ⚙️ Settings Tabs
                   </div>
-                  <div class="info" style="margin-bottom:8px; font-size:11px;">General · Payments · Data &amp; Sync · User Profile</div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">General · Payments · Data &amp; Sync ·
+                    User Profile</div>
                   <div id="settingsTabOrderList"></div>
-                  <button id="resetSettingsTabOrderBtn" class="btn-secondary" style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                  <button id="resetSettingsTabOrderBtn" class="btn-secondary"
+                    style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
                 </div>
 
                 <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
 
                 <!-- General Tab Sections -->
                 <div>
-                  <div style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                  <div
+                    style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                     📋 General Tab Sections
                   </div>
-                  <div class="info" style="margin-bottom:8px; font-size:11px;">Reorder the accordion sections inside the General settings tab.</div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">Reorder the accordion sections inside the
+                    General settings tab.</div>
                   <div id="generalSectionsOrderList"></div>
-                  <button id="resetGeneralSectionsOrderBtn" class="btn-secondary" style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                  <button id="resetGeneralSectionsOrderBtn" class="btn-secondary"
+                    style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
                 </div>
 
               </div>
@@ -828,7 +996,8 @@
 
                 <!-- EXPORT SETTINGS -->
                 <div>
-                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">⚙️ EXPORT SETTINGS</div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">⚙️ EXPORT
+                    SETTINGS</div>
                   <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     <button id="expSettingsJson" class="btn-secondary" style="flex:1;">JSON</button>
                     <button id="expSettingsCsv" class="btn-secondary" style="flex:1;">CSV</button>
@@ -838,7 +1007,8 @@
 
                 <!-- EXPORT TRANSACTIONS -->
                 <div>
-                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">💳 EXPORT TRANSACTIONS</div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">💳 EXPORT
+                    TRANSACTIONS</div>
                   <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     <button id="expTxJson" class="btn-secondary" style="flex:1;">JSON</button>
                     <button id="expTxCsv" class="btn-secondary" style="flex:1;">CSV</button>
@@ -848,7 +1018,8 @@
 
                 <!-- EXPORT ALL -->
                 <div>
-                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">📦 EXPORT ALL (Full Backup)</div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">📦 EXPORT
+                    ALL (Full Backup)</div>
                   <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     <button id="expAllJson" class="btn-primary" style="flex:1;">JSON</button>
                     <button id="expAllCsv" class="btn-secondary" style="flex:1;">CSV</button>
@@ -860,14 +1031,18 @@
 
                 <!-- IMPORT -->
                 <div>
-                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:4px;">📥 IMPORT (Auto-detects type)</div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:4px;">📥 IMPORT
+                    (Auto-detects type)</div>
                   <div class="info" style="font-size:0.78rem; margin-bottom:8px;">
                     Accepts .json, .csv, .xlsx — auto-detects whether it's a Full Backup, Transactions or Settings file.
                   </div>
-                  <label for="settingsImportFile" class="btn-primary" style="display:block; text-align:center; cursor:pointer; padding:10px 0;">
+                  <label for="settingsImportFile" class="btn-primary"
+                    style="display:block; text-align:center; cursor:pointer; padding:10px 0;">
                     📂 Choose File to Import
                   </label>
-                  <input id="settingsImportFile" type="file" accept=".json,.csv,.xlsx,.xls,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none;" />
+                  <input id="settingsImportFile" type="file"
+                    accept=".json,.csv,.xlsx,.xls,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    style="display:none;" />
                 </div>
 
               </div>
@@ -901,8 +1076,8 @@
                 <label>Google Apps Script Web App URL</label>
                 <input type="url" id="gsheetUrl" placeholder="https://script.google.com/macros/s/.../exec" />
                 <div style="margin-top:8px; display:flex; gap:8px;">
-                   <button id="saveGsheetBtn" class="btn-primary" style="flex:1;">Save Sync URL</button>
-                   <button id="gsheetSetupBtn" class="btn-secondary" style="flex:1;">Help</button>
+                  <button id="saveGsheetBtn" class="btn-primary" style="flex:1;">Save Sync URL</button>
+                  <button id="gsheetSetupBtn" class="btn-secondary" style="flex:1;">Help</button>
                 </div>
               </div>
             </div>
@@ -916,10 +1091,12 @@
             </button>
             <div id="clearDataPanel" class="settings-panel">
               <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
-                 <div class="info" style="color:var(--danger); border-color:var(--danger-dim);">
-                   Warning: This will permanently delete all your data. A backup will be auto-downloaded first.
-                 </div>
-                 <button id="btnSettingsClearData" class="btn-primary" style="background:var(--danger); border:none; color:white; font-weight:700;">Export Backup &amp; Clear All Data</button>
+                <div class="info" style="color:var(--danger); border-color:var(--danger-dim);">
+                  Warning: This will permanently delete all your data. A backup will be auto-downloaded first.
+                </div>
+                <button id="btnSettingsClearData" class="btn-primary"
+                  style="background:var(--danger); border:none; color:white; font-weight:700;">Export Backup &amp; Clear
+                  All Data</button>
               </div>
             </div>
           </section>
@@ -928,41 +1105,40 @@
 
 
 
-          <!-- ======= TAB: USER PROFILE ======= -->
-          <div id="stab-user" class="settings-tab-panel">
-            <section class="card settings-section">
-              <div class="section-title">Personal Information</div>
-              <div class="row">
-                 <div><label>Your Name</label><input id="userNameField" placeholder="Admin" /></div>
-                 <div><label>Security hint (optional)</label><input id="securityHint" placeholder="e.g. Mother's name" /></div>
+        <!-- ======= TAB: USER PROFILE ======= -->
+        <div id="stab-user" class="settings-tab-panel">
+          <section class="card settings-section">
+            <div class="section-title">Personal Information</div>
+            <div class="row">
+              <div><label>Your Name</label><input id="userNameField" placeholder="Admin" /></div>
+              <div><label>Security hint (optional)</label><input id="securityHint" placeholder="e.g. pet's name" />
               </div>
-              <div class="row" style="margin-top:10px;">
-                 <div style="flex:1;"><label>Bio/Note</label><input id="userBio" placeholder="Hosteler" /></div>
-              </div>
-              <button id="saveUserBtn" class="btn-primary" style="margin-top:12px;">Save Profile</button>
-            </section>
+            </div>
+            <div class="row" style="margin-top:10px;">
+              <div style="flex:1;"><label>Bio/Note</label><input id="userBio" placeholder="Your note" /></div>
+            </div>
+            <button id="saveUserBtn" class="btn-primary" style="margin-top:12px;">Save Profile</button>
+          </section>
 
-            <section class="card settings-section">
-              <div class="section-title">🔒 Security & Authentication</div>
-              <div style="margin-top:0.6rem;">
-                <button id="enableBiometricBtn" class="btn-secondary" style="width:100%;">
-                  Enable fingerprint unlock
-                </button>
-                <div id="biometricStatus" class="modal-status"></div>
-              </div>
+          <section class="card settings-section">
+            <div class="section-title">🔒 Security & Authentication</div>
+            <div style="margin-top:0.6rem;">
+              <button id="enableBiometricBtn" class="btn-secondary" style="width:100%;">
+                Enable fingerprint unlock
+              </button>
+              <div id="biometricStatus" class="modal-status"></div>
+            </div>
 
-              <div style="margin-top:1.5rem;">
-                <div class="section-title" style="font-size:0.9rem;">Change Password</div>
-                <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
-                  <input id="oldPassword" type="password" placeholder="Current password" />
-                  <input id="newPassword" type="password" placeholder="New password" />
-                  <button id="changePasswordBtn" class="btn-primary">Update password</button>
-                </div>
-                <div id="passwordStatus" class="modal-status"></div>
+            <div style="margin-top:1.5rem;">
+              <div class="section-title" style="font-size:0.9rem;">Change Password</div>
+              <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+                <input id="oldPassword" type="password" placeholder="Current password" />
+                <input id="newPassword" type="password" placeholder="New password" />
+                <button id="changePasswordBtn" class="btn-primary">Update password</button>
               </div>
-            </section>
-          </div>
-
+              <div id="passwordStatus" class="modal-status"></div>
+            </div>
+          </section>
         </div>
 
       </section> <!-- Close view-settings -->
@@ -982,135 +1158,161 @@
       <!-- ABOUT VIEW -->
       <section id="view-about" class="view">
         <section class="card">
-          <div class="section-title">About LUDARP Money Tracker</div>
-          <p class="info">
-            This app keeps all data locally in your browser. It is a premium offline tracker designed for maximum
-            privacy and security.
+          <div class="section-title">✨ LUDARP Money Tracker Premium</div>
+          <p class="info" style="font-size:14px; line-height:1.6; margin-bottom:18px;">
+            A professional-grade, privacy-first financial companion. Every byte of your data stays on your device—no cloud prying, no ads, just pure management.
           </p>
 
-          <div class="about-features-grid"
-            style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px;">
-            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
-              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">📥 Entry Page</div>
-              <div style="font-size:0.8rem; color:var(--muted); color:white;">Add Income/Expenses, set Categories, use
-                Voice Input,
-                and Split bills with group members instantly.</div>
+          <div class="features-list-rich" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:10px;">
+            <div class="card mini-card" style="background:rgba(56,189,248,0.05); margin:0;">
+              <div style="font-weight:800; color:#38bdf8; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+                <span>📊</span> Smart Dashboard
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Real-time expense trends, category pie charts, and filtered history logs with instant search.</div>
             </div>
-            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
-              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">📊 Summary Page</div>
-              <div style="font-size:0.8rem; color:var(--muted); color:white;">Visual charts, Pie statistics by category,
-                and detailed
-                Daily/Monthly/Yearly history logs.</div>
+
+            <div class="card mini-card" style="background:rgba(99,102,241,0.05); margin:0;">
+              <div style="font-weight:800; color:#818cf8; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+                <span>📥</span> Quick Entry
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Voice input, auto-filling presets (Prefills), and split-bill support for groups and friends.</div>
             </div>
-            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
-              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">🏦 Accounts</div>
-              <div style="font-size:0.8rem; color:var(--muted); color:white;">Track bank balances, UPI apps, and cards
-                in one place
-                with automatic calculation of total net worth.</div>
+
+            <div class="card mini-card" style="background:rgba(167,139,250,0.05); margin:0;">
+              <div style="font-weight:800; color:#a78bfa; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+                <span>🤝</span> Dues Tracker
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Advanced 'I Owe' & 'They Owe me' management with settlement account mapping and history.</div>
             </div>
-            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
-              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">🤝 Dues Tracker</div>
-              <div style="font-size:0.8rem; color:var(--muted); color:white;">Manage 'I Owe' and 'They Owe Me'.
-                Settlement tracking
-                with account mapping and dates.</div>
+
+            <div class="card mini-card" style="background:rgba(234,179,8,0.05); margin:0;">
+              <div style="font-weight:800; color:#eab308; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+                <span>⛽</span> Petrol & Mileage
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Dedicated Petrol Log to track fuel economy (km/L), ODO readings, and total fuel costs.</div>
             </div>
-            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
-              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">📋 Statement</div>
-              <div style="font-size:0.8rem; color:var(--muted); color:white;">Bank-style tabular view for audit. Export
-                everything to
-                Excel or professional PDF reports.</div>
+
+            <div class="card mini-card" style="background:rgba(52,211,153,0.05); margin:0;">
+              <div style="font-weight:800; color:#34d399; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+                <span>🏦</span> Net Worth
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Multi-account support for Banks, Wallets, and Cards. Track your total balance automatically.</div>
             </div>
-            <div class="card mini-card" style="background:rgba(255,255,255,0.02);">
-              <div style="font-weight:700; color:var(--accent); margin-bottom:4px;">☁️ Sync & Backup</div>
-              <div style="font-size:0.8rem; color:var(--muted); color:white;">Connect to Google Sheets for cloud sync.
-                All data
-                encrypted and private to you.</div>
+
+            <div class="card mini-card" style="background:rgba(244,63,94,0.05); margin:0;">
+              <div style="font-weight:800; color:#fb7185; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+                <span>📋</span> Master Reports
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Bank-style tabular statements. Export filtered data to Excel (XLSX) or professional PDF.</div>
             </div>
+
+            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0;">
+              <div style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+                <span>🗂️</span> Infinite Ordering
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Drag-and-drop to reorder bottom nav, finance tabs, settings sub-tabs, and general sections.</div>
+            </div>
+
+            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0;">
+              <div style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+                <span>🔒</span> Biometrics
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Unlock your data with Fingerprint (WebAuthn). AES-encrypted JSON backups for maximum safety.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:24px; padding:16px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+             <div style="font-weight:700; font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+               <span>☁️</span> Cloud Sync (Optional)
+             </div>
+             <p style="font-size:12px; color:var(--text-secondary); line-height:1.5;">
+               Connect your private Google Sheets to keep your data synced across devices while maintaining 100% ownership.
+             </p>
           </div>
 
           <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--card-border); text-align:center;">
-            <div style="font-weight:700; margin-bottom:8px;">Need Custom Updates or Support?</div>
+            <div style="font-weight:700; margin-bottom:10px;">Need Custom Updates?</div>
             <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker.%20I%20have%20some%20custom%20update%20requests."
               class="btn-primary"
-              style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:#25d366; border:none; padding:10px 20px;">
-              💬 Contact Developer on WhatsApp
+              style="display:inline-flex; align-items:center; gap:10px; text-decoration:none; background:#25d366; border:none; padding:12px 24px; border-radius:10px; font-weight:700;">
+              💬 Chat on WhatsApp
             </a>
           </div>
 
-          <p class="info small" style="margin-top:20px; text-align:center;">Version: 1.0 • Premium Edition • Private &
-            Secure</p>
+          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 2.0 • Premium Edition • Built for Stability</p>
         </section>
       </section>
     </main>
+  </div>
 
-    <!-- Floating bottom nav -->
-    <div class="floating-nav-wrap">
-      <nav class="floating-nav" id="floatingNav">
+  <!-- Floating bottom nav -->
+  <div class="floating-nav-wrap">
+    <nav class="floating-nav" id="floatingNav">
 
-        <!-- SUMMARY / INSIGHTS -->
-        <button class="fn-item" data-view="summary" title="Insights">
-          <span class="fn-icon">📊</span>
-          <span class="fn-label">Summary</span>
+      <!-- SUMMARY / INSIGHTS -->
+      <button class="fn-item" data-view="summary" title="Insights">
+        <span class="fn-icon">📊</span>
+        <span class="fn-label">Summary</span>
+      </button>
+
+      <!-- DUES -->
+      <button class="fn-item" data-view="dues" title="Dues" style="position:relative;">
+        <span class="fn-icon">🤝</span>
+        <span class="fn-label">Dues</span>
+        <span id="duesBadgeFn" class="dues-nav-badge" style="display:none;"></span>
+      </button>
+
+      <!-- ADD TRANSACTION (PRIMARY ACTION) -->
+      <div class="fab-outer">
+        <button id="fabAdd" class="fab" title="Add transaction">
+          +
         </button>
+      </div>
 
-        <!-- DUES -->
-        <button class="fn-item" data-view="dues" title="Dues" style="position:relative;">
-          <span class="fn-icon">🤝</span>
-          <span class="fn-label">Dues</span>
-          <span id="duesBadgeFn" class="dues-nav-badge" style="display:none;"></span>
-        </button>
+      <!-- ACCOUNTS -->
+      <button class="fn-item" data-view="accounts" title="Finance">
+        <span class="fn-icon">🏦</span>
+        <span class="fn-label">Finance</span>
+      </button>
 
-        <!-- ADD TRANSACTION (PRIMARY ACTION) -->
-        <div class="fab-outer">
-          <button id="fabAdd" class="fab" title="Add transaction">
-            +
-          </button>
-        </div>
+      <!-- SETTINGS -->
+      <button class="fn-item" data-view="settings" title="Settings">
+        <span class="fn-icon">⚙️</span>
+        <span class="fn-label">Settings</span>
+      </button>
 
-        <!-- ACCOUNTS -->
-        <button class="fn-item" data-view="accounts" title="Finance">
-          <span class="fn-icon">🏦</span>
-          <span class="fn-label">Finance</span>
-        </button>
+    </nav>
+  </div>
 
-        <!-- SETTINGS -->
-        <button class="fn-item" data-view="settings" title="Settings">
-          <span class="fn-icon">⚙️</span>
-          <span class="fn-label">Settings</span>
-        </button>
-
-      </nav>
-    </div>
-
-    <!-- ---------------------------
+  <!-- ---------------------------
        Script modules (deferred)
        Order matters: db -> security -> theme -> nav -> ui -> entry -> summary -> accounts -> optional features
        --------------------------- -->
-    <script src="js/exporter.js" defer></script>
+  <script src="js/exporter.js" defer></script>
 
-    <script src="js/db.js" defer></script>
-    <script src="js/security.js" defer></script>
-    <script src="js/ui.js" defer></script>
-    <script src="js/colors.js" defer></script>
-    <script src="js/nav.js" defer></script>
+  <script src="js/db.js" defer></script>
+  <script src="js/security.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/colors.js" defer></script>
+  <script src="js/nav.js" defer></script>
 
-    <script src="js/entry.js" defer></script>
-    <script src="js/summary.js" defer></script>
-    <script src="js/accounts.js" defer></script>
-    <script src="js/settings.js" defer></script>
-    <!-- optional helpers / stubs (keep even if empty) -->
-    <script src="js/pwa.js" defer></script>
-    <script src="js/automation.js" defer></script>
-    <script src="js/budget.js" defer></script>
-    <script src="js/recurring.js" defer></script>
-    <script src="js/dues.js" defer></script>
-    <script src="js/notifications.js" defer></script>
-    <script src="js/voice.js" defer></script>
-    <script src="js/statement.js" defer></script>
-    <script src="js/gsheets.js" defer></script>
+  <script src="js/entry.js" defer></script>
+  <script src="js/summary.js" defer></script>
+  <script src="js/accounts.js" defer></script>
+  <script src="js/settings.js" defer></script>
+  <!-- optional helpers / stubs (keep even if empty) -->
+  <script src="js/pwa.js" defer></script>
+  <script src="js/automation.js" defer></script>
+  <script src="js/budget.js" defer></script>
+  <script src="js/recurring.js" defer></script>
+  <script src="js/dues.js" defer></script>
+  <script src="js/notifications.js" defer></script>
+  <script src="js/voice.js" defer></script>
+  <script src="js/statement.js" defer></script>
+  <script src="js/gsheets.js" defer></script>
 
-    <!-- custom select (if you moved it out of inline HTML) -->
-    <script src="js/customselect.js" defer></script>
+  <!-- custom select (if you moved it out of inline HTML) -->
+  <script src="js/customselect.js" defer></script>
 </body>
 
 </html>
