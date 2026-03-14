@@ -602,6 +602,12 @@ select {
   padding-right: 36px;
 }
 
+select.compact {
+  padding: 6px 24px 6px 10px;
+  background-position: calc(100% - 8px) 50%;
+  background-size: 12px;
+}
+
 .date-input-wrap input[type="date"] {
   min-width: 170px;
 }

@@ -439,13 +439,13 @@
         <section class="card">
           <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
               <span>Daily History</span>
-              <div style="display:flex; gap:6px;">
-                <select id="entrySortBy" style="font-size:11px; height:28px; width:80px;" onchange="window.MT.entry.renderEntries()">
+              <div style="display:flex; gap:4px; align-items:center;">
+                <select id="entrySortBy" class="compact" style="font-size:10px; height:28px; width:70px;" onchange="window.MT.entry.renderEntries()">
                   <option value="time">Time</option>
                   <option value="amount">Amount</option>
                   <option value="category">Category</option>
                 </select>
-                <select id="entrySortOrder" style="font-size:11px; height:28px; width:70px;" onchange="window.MT.entry.renderEntries()">
+                <select id="entrySortOrder" class="compact" style="font-size:10px; height:28px; width:60px;" onchange="window.MT.entry.renderEntries()">
                   <option value="desc">Desc</option>
                   <option value="asc">Asc</option>
                 </select>
@@ -507,7 +507,7 @@
           <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
             <div style="flex:1; min-width:120px;">
               <label style="font-size:10px; color:var(--muted); margin-bottom:4px; display:block;">Sort By</label>
-              <select id="summarySortBy" onchange="window.SummaryModule.renderSummary()">
+              <select id="summarySortBy" class="compact" onchange="window.SummaryModule.renderSummary()">
                 <option value="date">Date</option>
                 <option value="amount">Amount</option>
                 <option value="category">Category</option>
@@ -516,7 +516,7 @@
             </div>
             <div style="flex:1; min-width:120px;">
               <label style="font-size:10px; color:var(--muted); margin-bottom:4px; display:block;">Order</label>
-              <select id="summarySortOrder" onchange="window.SummaryModule.renderSummary()">
+              <select id="summarySortOrder" class="compact" onchange="window.SummaryModule.renderSummary()">
                 <option value="desc">Newest / Highest</option>
                 <option value="asc">Oldest / Lowest</option>
               </select>
@@ -565,19 +565,12 @@
             <!-- CHART CAROUSEL CONTROLS -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                <button onclick="window.SummaryModule.prevChart()" class="btn-small" style="padding:4px 10px;">◀</button>
-               <div id="chartTitle" style="font-size:13px; font-weight:700; color:var(--accent);">Monthly Trend</div>
+               <div id="chartTitle" style="font-size:13px; font-weight:700; color:var(--accent);">Expense Categories</div>
                <button onclick="window.SummaryModule.nextChart()" class="btn-small" style="padding:4px 10px;">▶</button>
             </div>
 
             <div class="summary-charts-container overflow-hidden" style="height:260px; position:relative;">
               <div id="chartSlot1" class="chart-slide active">
-                <!-- TREND CHART -->
-                <div style="height:220px; position:relative; width:100%;">
-                  <canvas id="trendChart"></canvas>
-                </div>
-              </div>
-
-              <div id="chartSlot2" class="chart-slide">
                 <!-- PIE CHART -->
                 <div class="summary-chart-grid" style="align-items:flex-start;">
                   <div class="chart-col">
@@ -586,6 +579,13 @@
                   <div class="legend-col" style="max-height:160px; overflow-y:auto;">
                     <div id="categoryLegend" class="legend"></div>
                   </div>
+                </div>
+              </div>
+
+              <div id="chartSlot2" class="chart-slide">
+                <!-- TREND CHART -->
+                <div style="height:220px; position:relative; width:100%;">
+                  <canvas id="trendChart"></canvas>
                 </div>
               </div>
             </div>
@@ -621,13 +621,15 @@
             <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
               <span>History (filtered)</span>
               <div style="display:flex; gap:8px; align-items:center;">
-                <select id="summaryGroupMode" style="font-size:11px; height:32px; padding:0 8px;" onchange="window.SummaryModule.renderSummary()">
+                <select id="summaryGroupMode" class="compact" style="font-size:11px; height:32px; width: auto;" onchange="window.SummaryModule.renderSummary()">
                   <option value="date">By Date</option>
                   <option value="month">By Month</option>
                   <option value="none">No Grouping</option>
                 </select>
-                <button id="btnExpandAll" class="btn-small" style="font-size:10px; opacity:0.8;">Expand All</button>
-                <button id="btnCollapseAll" class="btn-small" style="font-size:10px; opacity:0.8;">Collapse All</button>
+                <div style="display:flex; gap:4px;">
+                  <button id="btnExpandAll" class="btn-small" title="Expand All" style="font-size:14px; padding:2px 8px; opacity:0.8;">⏬</button>
+                  <button id="btnCollapseAll" class="btn-small" title="Collapse All" style="font-size:14px; padding:2px 8px; opacity:0.8;">⏫</button>
+                </div>
               </div>
             </div>
             <div id="summaryHistory" class="list"></div>

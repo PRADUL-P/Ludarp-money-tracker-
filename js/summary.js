@@ -399,7 +399,7 @@
 
   // Carousel logic
   let currentChartIdx = 0;
-  const chartTitles = ["Monthly Trend", "Expense Categories"];
+  const chartTitles = ["Expense Categories", "Monthly Trend"];
   
   function showChart(idx) {
     currentChartIdx = idx;
