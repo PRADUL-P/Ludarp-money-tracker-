@@ -14,8 +14,8 @@
 LUDARP Money Tracker is a powerful, privacy-first personal finance web application designed to help users manage income, track expenses, and analyze financial data efficiently.
 
 Built as a Progressive Web App (PWA), it works like a native app while running in the browser — fast, lightweight, and fully functional even offline.
-<img width="609" height="890" alt="image" src="https://github.com/user-attachments/assets/83530547-699e-48e6-aebd-ee1a3291eb75" />
-<img width="806" height="881" alt="image" src="https://github.com/user-attachments/assets/cba08d71-713c-449f-af22-37c4b0bd59ed" />
+
+
 
 ---
 
@@ -30,7 +30,14 @@ Built as a Progressive Web App (PWA), it works like a native app while running i
 - Encrypted manual backup support  
 
 ---
+ Preview
+ 
+<img width="609" height="890" alt="image" src="https://github.com/user-attachments/assets/83530547-699e-48e6-aebd-ee1a3291eb75" />
 
+
+<img width="806" height="881" alt="image" src="https://github.com/user-attachments/assets/cba08d71-713c-449f-af22-37c4b0bd59ed" />
+
+ 
 ## 🧭 App Structure
 
 - ➕ Entry – Add and manage transactions  
