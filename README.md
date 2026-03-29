@@ -183,7 +183,7 @@ Customize the app based on your needs.
 ## 👨‍💻 Author
 
 Pradul P  
-Civil Engineer | Developer | Founder of LUDARP  
+Civil Engineer | Developer 
 
 ---
 
