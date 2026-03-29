@@ -223,12 +223,11 @@ body {
   height: 48px;
   flex: 0 0 48px;
   border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.9));
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .brand-text {
@@ -598,8 +597,13 @@ select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235a7394' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: calc(100% - 12px) 50%;
-  background-size: 14px;
   padding-right: 36px;
+}
+
+select option, select optgroup {
+  background-color: var(--card); /* Fixes white dropdown bg in dark mode browsers */
+  color: var(--text);
+  font-family: inherit;
 }
 
 select.compact {
@@ -751,6 +755,36 @@ input[type="checkbox"]:focus {
   background: rgba(99, 102, 241, 0.15);
   border-color: rgba(99, 102, 241, 0.3);
   color: var(--text);
+}
+
+/* ============================================================
+   BADGES & LABELS
+   ============================================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 6px;
+  white-space: nowrap;
+  vertical-align: middle;
+  line-height: normal;
+  margin-left: 4px;
+}
+
+.badge-success {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-outline {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
 }
 
 /* ============================================================
@@ -1261,9 +1295,9 @@ input[type="checkbox"]:focus {
 .settings-tab-bar::-webkit-scrollbar { display: none; }
 
 .settings-tab {
-  flex: 1;
+  flex: 0 0 auto;
   min-width: 72px;
-  padding: 8px 6px;
+  padding: 8px 12px;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -2636,5 +2670,26 @@ textarea:focus-visible {
   letter-spacing: 1px;
   display: flex;
   justify-content: space-between;
+}
+
+.card.mini-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card.mini-card.expanded {
+  background: rgba(255, 255, 255, 0.08) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+.card.mini-card.expanded .feature-detail {
+  display: block !important;
+  animation: mtFadeIn 0.3s ease;
+}
+.card.mini-card.expanded .chevron {
+  transform: rotate(180deg);
+}
+
+@keyframes mtFadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 

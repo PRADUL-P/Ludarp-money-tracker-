@@ -4,40 +4,44 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  
+
   <!-- SEO & Primary Meta Tags -->
   <title>LUDARP Money Tracker Premium | Secure Private Expense Manager</title>
   <meta name="title" content="LUDARP Money Tracker Premium | Secure Private Expense Manager" />
-  <meta name="description" content="Manage your finances with LUDARP Money Tracker. A secure, offline-first PWA for tracking expenses, income, splits, and petrol logs without cloud privacy risks." />
-  <meta name="keywords" content="money tracker, expense manager, petrol log, split bill, finance app, offline tracker, private finance, PWA tracker" />
+  <meta name="description"
+    content="Manage your finances with LUDARP Money Tracker. A secure, offline-first PWA for tracking expenses, income, splits, and petrol logs without cloud privacy risks." />
+  <meta name="keywords"
+    content="money tracker, expense manager, petrol log, split bill, finance app, offline tracker, private finance, PWA tracker" />
   <meta name="author" content="LUDARP" />
   <meta name="robots" content="index, follow" />
-  
+
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://pradul-p.github.io/Money-Tracker/" />
   <meta property="og:title" content="LUDARP Money Tracker Premium | Secure & Private" />
-  <meta property="og:description" content="Track every rupee securely on your device. Zero cloud sync, 100% privacy. Features include Petrol Logs, Split Bills, and Real-time Analytics." />
+  <meta property="og:description"
+    content="Track every rupee securely on your device. Zero cloud sync, 100% privacy. Features include Petrol Logs, Split Bills, and Real-time Analytics." />
   <meta property="og:image" content="https://pradul-p.github.io/Money-Tracker/icons/og-preview.png" />
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:url" content="https://pradul-p.github.io/Money-Tracker/" />
   <meta property="twitter:title" content="LUDARP Money Tracker Premium" />
-  <meta property="twitter:description" content="Modern tracking for modern living. Get the ultimate offline-first finance manager for free." />
+  <meta property="twitter:description"
+    content="Modern tracking for modern living. Get the ultimate offline-first finance manager for free." />
   <meta property="twitter:image" content="https://pradul-p.github.io/Money-Tracker/icons/og-preview.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <meta name="theme-color" content="#2563eb" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2" />
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-7W6WR450XN"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     gtag('config', 'G-7W6WR450XN');
@@ -120,11 +124,7 @@
 
           <!-- BRAND ICON -->
           <div class="brand-icon" role="img" aria-label="LUDARP logo">
-            <svg width="44" height="44" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <circle cx="24" cy="24" r="22" fill="var(--accent)"></circle>
-              <text x="24" y="30" text-anchor="middle" font-size="16" font-family="system-ui, sans-serif" fill="#fff"
-                font-weight="700">L</text>
-            </svg>
+            <img src="logo.png" style="width:100%; height:100%; border-radius:14px; object-fit:cover;" alt="L">
           </div>
 
           <!-- BRAND TEXT -->
@@ -225,7 +225,12 @@
 
             <div>
               <label for="category">Category</label>
-              <input id="category" type="text" placeholder="Food, Travel..." />
+              <div style="display:flex; gap:8px;">
+                <input id="category" type="text" placeholder="Food, Travel..." style="flex:1;" />
+                <button type="button" id="btnAddQuickCategory" class="btn-secondary"
+                  style="width:46px; display:flex; align-items:center; justify-content:center; font-size:18px;"
+                  title="Add New Category">+</button>
+              </div>
               <div id="category-pills" class="pill-row"></div>
             </div>
 
@@ -317,6 +322,10 @@
                   <label style="font-size:12px;">Liters Refilled</label>
                   <input id="fuelLiters" type="number" step="0.01" placeholder="0.00" />
                 </div>
+                <div>
+                  <label style="font-size:12px;">Price (Opt)</label>
+                  <input id="fuelPrice" type="number" step="0.01" placeholder="₹0.00" />
+                </div>
               </div>
               <div id="fuelStats"
                 style="margin-top:10px; font-size:12px; display:flex; gap:15px; color:var(--text); font-weight:600;">
@@ -330,24 +339,70 @@
               <input id="tripDate" type="date" />
             </div>
 
-            <div class="full" id="quickDueBtnRow" style="display:flex; gap:8px; margin-top:10px;">
-              <button type="button" id="btnQuickIOwe" class="btn-secondary"
-                style="flex:1; background:var(--card-hover); color:#fff; border:1px solid var(--danger);">⬇️ I
-                Owe</button>
-              <button type="button" id="btnQuickTheyOwe" class="btn-secondary"
-                style="flex:1; background:var(--card-hover); color:#fff; border:1px solid var(--success);">⬆️ They
-                Owe</button>
-            </div>
+            <!-- Unified Sharing & Dues Section -->
+            <div class="full split-block"
+              style="background:rgba(255,255,255,0.02); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--card-border); margin-top:10px;">
+              <div
+                style="font-size:12px; color:var(--muted); font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                <span>🤝</span> SHARING & DUES
+              </div>
 
-            <div id="quickDueWrap" class="full"
-              style="display:none; background:var(--card); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--accent-1); margin-top:10px;">
-              <label id="quickDueLabel" style="color:var(--accent-1); margin-bottom:4px;">Person</label>
-              <div style="display:flex; gap:8px;">
-                <input id="quickDuePerson" type="text" placeholder="Name (Required)"
-                  style="flex:1; background:var(--bg2);" list="quickDuePersonList" />
-                <datalist id="quickDuePersonList"></datalist>
-                <button type="button" id="btnCancelQuickDue" class="btn-secondary"
-                  style="padding:6px 12px; border:1px solid var(--danger); color:var(--danger);">Cancel</button>
+              <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button type="button" id="btnQuickTheyOwe" class="btn-secondary"
+                  style="flex:1; border-color:var(--success); color:var(--success); background:rgba(52,211,153,0.05);">
+                  They Owe
+                </button>
+                <button type="button" id="btnQuickIOwe" class="btn-secondary"
+                  style="flex:1; border-color:var(--danger); color:var(--danger); background:rgba(248,113,113,0.05);">
+                  I Owe
+                </button>
+              </div>
+
+              <div id="quickDueWrap"
+                style="display:none; margin-bottom:15px; padding:12px; background:var(--bg2); border:1px solid var(--card-border); border-radius:10px;">
+                <label id="quickDueLabel" style="margin-bottom:6px; display:block;">Person</label>
+                <div style="display:flex; gap:8px;">
+                  <input id="quickDuePerson" type="text" placeholder="Who?" style="flex:1;" list="quickDuePersonList" />
+                  <datalist id="quickDuePersonList"></datalist>
+                  <button type="button" id="btnCancelQuickDue" class="btn-small" style="color:var(--danger);">✕</button>
+                </div>
+              </div>
+
+              <label style="display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;">
+                <input id="isGroup" type="checkbox" />
+                <span style="font-size:13px; font-weight:600;">Custom Split / Group Expense</span>
+              </label>
+
+              <div id="splitOptions"
+                style="display:none; margin-top:15px; padding-top:15px; border-top:1px dashed var(--card-border);">
+                <label>Participants (comma separated)</label>
+                <input id="splitNames" placeholder="Alice, Bob..." />
+
+                <div class="row" style="margin-top:12px;">
+                  <div style="flex:1.5;">
+                    <label>Split Mode</label>
+                    <select id="splitMode">
+                      <option value="equal">Equal Split</option>
+                      <option value="custom">Custom (Others)</option>
+                    </select>
+                  </div>
+                  <div id="myShareWrap" style="flex:1;">
+                    <label>Your Share</label>
+                    <input id="myShare" type="number" step="0.01" placeholder="₹0.00" />
+                  </div>
+                </div>
+
+                <div id="customSplits" style="display:none; margin-top:12px;">
+                  <label>Friend's Amounts (comma)</label>
+                  <input id="splitAmounts" placeholder="100, 50..." />
+                </div>
+
+                <div style="margin-top:12px;">
+                  <label style="display:flex; align-items:center; gap:8px; font-size:12px; text-transform:none;">
+                    <input id="linkToDues" type="checkbox" checked />
+                    <span>Sync with Dues Tracker</span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -389,42 +444,6 @@
 
 
 
-            <div class="full split-block">
-              <label><input id="isGroup" type="checkbox" /> Group / Split expense</label>
-              <div id="splitOptions" style="display:none;">
-                <label>Participants (comma separated names)</label>
-                <input id="splitNames" placeholder="Alice,Bob,Charlie" />
-                <div class="row">
-                  <div>
-                    <label>Split mode</label>
-                    <select id="splitMode">
-                      <option value="equal">Equal split</option>
-                      <option value="custom">Custom amounts (others)</option>
-                    </select>
-                  </div>
-                  <div id="myShareWrap">
-                    <label>Your share</label>
-                    <input id="myShare" type="number" min="0" step="0.01" placeholder="Your contribution" />
-                  </div>
-                </div>
-
-                <div id="customSplits" style="display:none;">
-                  <label>Custom amounts for participants (comma) in same order</label>
-                  <input id="splitAmounts" placeholder="20,30,10" />
-                </div>
-                <div style="margin-top:8px;">
-                  <label style="display:flex; align-items:center; gap:8px;">
-                    <input id="linkToDues" type="checkbox" checked />
-                    <span>Automatically add to Dues tracker</span>
-                  </label>
-                </div>
-
-                <div class="info" style="margin-top:0.5rem;">
-                  When you save: your share becomes an Expense. Other participants become 'to receive' items and appear
-                  in Summary.
-                </div>
-              </div>
-            </div>
 
             <div class="full form-actions">
               <button id="submitBtn" class="btn-primary" type="submit">Save entry</button>
@@ -438,19 +457,21 @@
 
         <section class="card">
           <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-              <span>Daily History</span>
-              <div style="display:flex; gap:4px; align-items:center;">
-                <select id="entrySortBy" class="compact" style="font-size:10px; height:28px; width:70px;" onchange="window.MT.entry.renderEntries()">
-                  <option value="time">Time</option>
-                  <option value="amount">Amount</option>
-                  <option value="category">Category</option>
-                </select>
-                <select id="entrySortOrder" class="compact" style="font-size:10px; height:28px; width:60px;" onchange="window.MT.entry.renderEntries()">
-                  <option value="desc">Desc</option>
-                  <option value="asc">Asc</option>
-                </select>
-              </div>
+            <span>Daily History</span>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <select id="entrySortBy" class="compact" style="font-size:10px; height:28px; width:70px;"
+                onchange="window.MT.entry.renderEntries()">
+                <option value="time">Time</option>
+                <option value="amount">Amount</option>
+                <option value="category">Category</option>
+              </select>
+              <select id="entrySortOrder" class="compact" style="font-size:10px; height:28px; width:60px;"
+                onchange="window.MT.entry.renderEntries()">
+                <option value="desc">Desc</option>
+                <option value="asc">Asc</option>
+              </select>
             </div>
+          </div>
           <div id="entriesList" class="list"></div>
         </section>
       </section>
@@ -552,11 +573,17 @@
               </select>
             </div>
 
-            <div class="filter-item export-wrap">
-              <button id="summaryExportBtn" class="btn-primary">
-                <svg width="14" height="14" aria-hidden="true"><use href="#icon-export"></use></svg> Export
+            <div class="filter-item export-wrap" style="align-items: flex-end;">
+              <button id="summaryExportBtn" class="btn-primary" style="margin-bottom:8px;">
+                <svg width="14" height="14" aria-hidden="true">
+                  <use href="#icon-export"></use>
+                </svg> Export
               </button>
             </div>
+          </div>
+          <div style="display:flex; gap:15px; margin-bottom:15px; font-size:12px; color:var(--muted); justify-content: flex-end;">
+             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="hideTransfers" checked onchange="window.SummaryModule.renderSummary()"> Hide transfers</label>
+             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="hideSettlements" checked onchange="window.SummaryModule.renderSummary()"> Hide due settlements</label>
           </div>
 
           <!-- GRID: left pie, right legend, bottom history -->
@@ -564,9 +591,10 @@
           <section class="card" style="padding: 10px; position:relative;">
             <!-- CHART CAROUSEL CONTROLS -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-               <button onclick="window.SummaryModule.prevChart()" class="btn-small" style="padding:4px 10px;">◀</button>
-               <div id="chartTitle" style="font-size:13px; font-weight:700; color:var(--accent);">Expense Categories</div>
-               <button onclick="window.SummaryModule.nextChart()" class="btn-small" style="padding:4px 10px;">▶</button>
+              <button onclick="window.SummaryModule.prevChart()" class="btn-small" style="padding:4px 10px;">◀</button>
+              <div id="chartTitle" style="font-size:13px; font-weight:700; color:var(--accent);">Expense Categories
+              </div>
+              <button onclick="window.SummaryModule.nextChart()" class="btn-small" style="padding:4px 10px;">▶</button>
             </div>
 
             <div class="summary-charts-container overflow-hidden" style="height:260px; position:relative;">
@@ -589,30 +617,44 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Dots -->
             <div style="display:flex; justify-content:center; gap:6px; margin-top:8px;">
-               <div class="chart-dot active" onclick="window.SummaryModule.showChart(0)"></div>
-               <div class="chart-dot" onclick="window.SummaryModule.showChart(1)"></div>
+              <div class="chart-dot active" onclick="window.SummaryModule.showChart(0)"></div>
+              <div class="chart-dot" onclick="window.SummaryModule.showChart(1)"></div>
             </div>
           </section>
           <section class="card">
-            <div class="summary-stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; text-align:center;">
-              <div class="card mini-card" style="margin:0; padding:12px; background:rgba(244,63,94,0.03); border-color:rgba(244,63,94,0.1);">
-                <div style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Expense</div>
+            <div class="summary-stats-grid"
+              style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; text-align:center;">
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(244,63,94,0.03); border-color:rgba(244,63,94,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Expense</div>
                 <div id="monthSumExpense" style="font-size:18px; font-weight:800; color:var(--danger);">₹0.00</div>
               </div>
-              <div class="card mini-card" style="margin:0; padding:12px; background:rgba(52,211,153,0.03); border-color:rgba(52,211,153,0.1);">
-                <div style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Income</div>
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(52,211,153,0.03); border-color:rgba(52,211,153,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Income</div>
                 <div id="monthSumIncome" style="font-size:18px; font-weight:800; color:var(--success);">₹0.00</div>
               </div>
-              <div class="card mini-card" style="margin:0; padding:12px; background:rgba(99,102,241,0.03); border-color:rgba(99,102,241,0.1);">
-                <div style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Owed To You</div>
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(99,102,241,0.03); border-color:rgba(99,102,241,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Owed To You</div>
                 <div id="splitOutstanding" style="font-size:18px; font-weight:800; color:var(--accent);">₹0.00</div>
               </div>
-              <div id="avgDailyWrap" class="card mini-card" style="margin:0; padding:12px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; justify-content:center;">
-                <div style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Avg / Day</div>
-                <div id="avgDailySpend" style="font-size:18px; font-weight:800; color:var(--text-secondary);">₹0.00</div>
+              <div id="avgDailyWrap" class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; justify-content:center;">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Avg / Day</div>
+                <div id="avgDailySpend" style="font-size:18px; font-weight:800; color:var(--text-secondary);">₹0.00
+                </div>
                 <div id="vsLastMonth" style="font-size:11px; margin-top:4px; display:none;"></div>
               </div>
             </div>
@@ -621,14 +663,17 @@
             <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
               <span>History (filtered)</span>
               <div style="display:flex; gap:8px; align-items:center;">
-                <select id="summaryGroupMode" class="compact" style="font-size:11px; height:32px; width: auto;" onchange="window.SummaryModule.renderSummary()">
+                <select id="summaryGroupMode" class="compact" style="font-size:11px; height:32px; width: auto;"
+                  onchange="window.SummaryModule.renderSummary()">
                   <option value="date">By Date</option>
                   <option value="month">By Month</option>
                   <option value="none">No Grouping</option>
                 </select>
                 <div style="display:flex; gap:4px;">
-                  <button id="btnExpandAll" class="btn-small" title="Expand All" style="font-size:14px; padding:2px 8px; opacity:0.8;">⏬</button>
-                  <button id="btnCollapseAll" class="btn-small" title="Collapse All" style="font-size:14px; padding:2px 8px; opacity:0.8;">⏫</button>
+                  <button id="btnExpandAll" class="btn-small" title="Expand All"
+                    style="font-size:14px; padding:2px 8px; opacity:0.8;">⏬</button>
+                  <button id="btnCollapseAll" class="btn-small" title="Collapse All"
+                    style="font-size:14px; padding:2px 8px; opacity:0.8;">⏫</button>
                 </div>
               </div>
             </div>
@@ -1124,7 +1169,12 @@
 
           <section class="card settings-section">
             <div class="section-title">🔒 Security & Authentication</div>
-            <div style="margin-top:0.6rem;">
+            <div style="margin-top:0.6rem; margin-bottom: 1.2rem; display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="requireAppLockToggle" checked />
+              <label for="requireAppLockToggle" style="font-weight:600; cursor:pointer;">Require App Lock</label>
+            </div>
+
+            <div>
               <button id="enableBiometricBtn" class="btn-secondary" style="width:100%;">
                 Enable fingerprint unlock
               </button>
@@ -1162,74 +1212,134 @@
         <section class="card">
           <div class="section-title">✨ LUDARP Money Tracker Premium</div>
           <p class="info" style="font-size:14px; line-height:1.6; margin-bottom:18px;">
-            A professional-grade, privacy-first financial companion. Every byte of your data stays on your device—no cloud prying, no ads, just pure management.
+            A professional-grade, privacy-first financial companion. Every byte of your data stays on your device—no
+            cloud prying, no ads, just pure management.
           </p>
 
-          <div class="features-list-rich" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:10px;">
-            <div class="card mini-card" style="background:rgba(56,189,248,0.05); margin:0;">
-              <div style="font-weight:800; color:#38bdf8; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
-                <span>📊</span> Smart Dashboard
+          <div class="features-list-rich"
+            style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;">
+            
+            <!-- SMART DASHBOARD -->
+            <div class="card mini-card" style="background:rgba(56,189,248,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
+              <div style="font-weight:800; color:#38bdf8; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>📊</span> Smart Dashboard</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Real-time expense trends, category pie charts, and filtered history logs with instant search.</div>
+              <div style="font-size:12px; color:var(--text-secondary);">Real-time expense trends, category pie charts, and filtered history logs.</div>
+              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(56,189,248,0.2); padding-top:10px;">
+                💡 **Deep-Dive:** Use the <strong>Summary</strong> tab to visualize your financial health. Toggle the 'Month/Day' view to compare spending periods. The system automatically highlights budget-exceeding categories in red. Tap on the Charts themselves to see exact amounts per segment.
+              </div>
             </div>
 
-            <div class="card mini-card" style="background:rgba(99,102,241,0.05); margin:0;">
-              <div style="font-weight:800; color:#818cf8; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
-                <span>📥</span> Quick Entry
+            <!-- QUICK ENTRY -->
+            <div class="card mini-card" style="background:rgba(99,102,241,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
+              <div style="font-weight:800; color:#818cf8; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>📥</span> Quick Entry</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Voice input, auto-filling presets (Prefills), and split-bill support for groups and friends.</div>
+              <div style="font-size:12px; color:var(--text-secondary);">Voice input, auto-filling presets (Prefills), and split-bill support.</div>
+              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(99,102,241,0.2); padding-top:10px;">
+                💡 **Efficiency:** Use the <strong>Prefills</strong> button in the Entry tab to save items you repeat daily. When using Voice, speak clearly: 'Fifty rupees for coffee' for auto-recognition. Trip Dates are available for the <strong>Travel</strong> category if you're booking in advance.
+              </div>
             </div>
 
-            <div class="card mini-card" style="background:rgba(167,139,250,0.05); margin:0;">
-              <div style="font-weight:800; color:#a78bfa; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
-                <span>🤝</span> Dues Tracker
+            <!-- ADVANCED DUES -->
+            <div class="card mini-card" style="background:rgba(167,139,250,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
+              <div style="font-weight:800; color:#a78bfa; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>🤝</span> Advanced Dues</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Advanced 'I Owe' & 'They Owe me' management with settlement account mapping and history.</div>
+              <div style="font-size:12px; color:var(--text-secondary);">Powerful 'I Owe' & 'They Owe' engine with Search and Bank Mapping.</div>
+              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(167,139,250,0.2); padding-top:10px;">
+                💡 **Debt Management:** Track exactly who owes you what. When marking as 'Received', the app asks for the <strong>Bank account</strong> and date to create a matching settlement entry. Use the 🔍 <strong>Filter</strong> to find old records or search by name.
+              </div>
             </div>
 
-            <div class="card mini-card" style="background:rgba(234,179,8,0.05); margin:0;">
-              <div style="font-weight:800; color:#eab308; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
-                <span>⛽</span> Petrol & Mileage
+            <!-- PETROL -->
+            <div class="card mini-card" style="background:rgba(234,179,8,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
+              <div style="font-weight:800; color:#eab308; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>⛽</span> Fuel & Petrol Price</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Dedicated Petrol Log to track fuel economy (km/L), ODO readings, and total fuel costs.</div>
+              <div style="font-size:12px; color:var(--text-secondary);">Track fuel economy (km/L) and log daily petrol prices (₹/L).</div>
+              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(234,179,8,0.2); padding-top:10px;">
+                💡 **Cost Analysis:** By entering ODO readings and Liters refilled, the app calculates vehicle performance. Logging the <strong>Price per Litre</strong> allows you to see how fuel rate changes impact your monthly budget over time.
+              </div>
             </div>
 
-            <div class="card mini-card" style="background:rgba(52,211,153,0.05); margin:0;">
-              <div style="font-weight:800; color:#34d399; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
-                <span>🏦</span> Net Worth
+            <!-- NET WORTH -->
+            <div class="card mini-card" style="background:rgba(52,211,153,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
+              <div style="font-weight:800; color:#34d399; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>🏦</span> Net Worth</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Multi-account support for Banks, Wallets, and Cards. Track your total balance automatically.</div>
+              <div style="font-size:12px; color:var(--text-secondary);">Multi-account support for Banks, Wallets, and Cards.</div>
+              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(52,211,153,0.2); padding-top:10px;">
+                💡 **Balance Tracking:** Add your accounts in the <strong>Accounts</strong> tab. As you spend or receive income, choose the source account. The system maintains a ledger for each, ensuring your bank balance always matches the app's record.
+              </div>
             </div>
 
-            <div class="card mini-card" style="background:rgba(244,63,94,0.05); margin:0;">
-              <div style="font-weight:800; color:#fb7185; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
-                <span>📋</span> Master Reports
+            <!-- MASTER REPORTS -->
+            <div class="card mini-card" style="background:rgba(244,63,94,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
+              <div style="font-weight:800; color:#fb7185; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>📋</span> Master Reports</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Bank-style tabular statements. Export filtered data to Excel (XLSX) or professional PDF.</div>
+              <div style="font-size:12px; color:var(--text-secondary);">Export filtered data to Excel (XLSX) or professional PDF.</div>
+              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(244,63,94,0.2); padding-top:10px;">
+                💡 **Accounting:** Use the <strong>Statement</strong> view to audit your logs. You can filter by any specific category (e.g. only 'Rent') across years. Export high-quality PDFs for proof or XLSX for advanced data analysis.
+              </div>
             </div>
 
-            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0;">
-              <div style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px;">
-                <span>🗂️</span> Infinite Ordering
+            <!-- ORDERING -->
+            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
+              <div style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>🗂️</span> Infinite Ordering</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Drag-and-drop to reorder bottom nav, finance tabs, settings sub-tabs, and general sections.</div>
+              <div style="font-size:12px; color:var(--text-secondary);">Drag-and-drop to reorder navigation and tabs.</div>
+              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px solid var(--card-border); padding-top:10px;">
+                💡 **Customization:** Head to <strong>Settings -> Order</strong>. Use the ☰ handles to prioritize the features you use most. Want 'Dues' as your first tab? Just drag it to the top to redefine your app flow.
+              </div>
             </div>
 
-            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0;">
-              <div style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px;">
-                <span>🔒</span> Biometrics
+            <!-- PRIVACY -->
+            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
+              <div style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>🔒</span> Privacy & Lock</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Unlock your data with Fingerprint (WebAuthn). AES-encrypted JSON backups for maximum safety.</div>
+              <div style="font-size:12px; color:var(--text-secondary);">Optional Biometric or PIN lock with AES encryption.</div>
+              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px solid var(--card-border); padding-top:10px;">
+                💡 **Security:** Your data is strictly offline. Use the optional PIN or Fingerprint lock for an extra layer of privacy. Backups are exported as <strong>AES-Encrypted</strong> JSON files, keeping them safe even on external storage.
+              </div>
             </div>
           </div>
 
-          <div style="margin-top:24px; padding:16px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
-             <div style="font-weight:700; font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-               <span>☁️</span> Cloud Sync (Optional)
-             </div>
-             <p style="font-size:12px; color:var(--text-secondary); line-height:1.5;">
-               Connect your private Google Sheets to keep your data synced across devices while maintaining 100% ownership.
-             </p>
+          <div
+            style="margin-top:24px; padding:16px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+            <div
+              style="font-weight:700; font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+              <span>☁️</span> Cloud Sync (Optional)
+            </div>
+            <p style="font-size:12px; color:var(--text-secondary); line-height:1.5;">
+              Connect your private Google Sheets to keep your data synced across devices while maintaining 100%
+              ownership.
+            </p>
+          </div>
+
+          <!-- WHAT'S NEW IN V3.0 -->
+          <div style="margin-top:24px; padding:16px; border-radius:12px; background:rgba(56,189,248,0.03); border:1px solid rgba(56,189,248,0.2);">
+            <div style="font-weight:700; font-size:15px; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:#38bdf8;">
+              <span>🚀</span> What's New in v3.0
+            </div>
+            <ul style="font-size:12px; color:var(--text-secondary); line-height:1.7; padding-left:18px; margin:0; display:grid; gap:6px;">
+              <li><strong>Petrol Price Logging:</strong> Record the petrol rate (₹/L) for every refill to track cost efficiency.</li>
+              <li><strong>Optional Security:</strong> You can now toggle Biometric/PIN lock on or off from Settings as per your comfort.</li>
+              <li><strong>Header Statistics:</strong> Summary history headers now show daily and monthly total spends instantly.</li>
+              <li><strong>Advanced Dues Filter:</strong> Full search, date range, amount range, and multi-sort on the Dues page.</li>
+              <li><strong>Settle Mapping:</strong> Enhanced "Mark Paid" flow with direct Bank mapping and Category inheritance.</li>
+            </ul>
           </div>
 
           <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--card-border); text-align:center;">
@@ -1241,7 +1351,8 @@
             </a>
           </div>
 
-          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 2.0 • Premium Edition • Built for Stability</p>
+          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 3.0 • Premium Edition •
+            Built for Stability</p>
         </section>
       </section>
     </main>

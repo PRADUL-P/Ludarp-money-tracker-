@@ -159,7 +159,15 @@
 
   // split UI
   isGroupCheckbox && isGroupCheckbox.addEventListener('change', () => {
-    if (splitOptions) splitOptions.style.display = isGroupCheckbox.checked ? 'block' : 'none';
+    const isChecked = isGroupCheckbox.checked;
+    if (splitOptions) splitOptions.style.display = isChecked ? 'block' : 'none';
+    
+    // Fallback: If unchecked and we are in a Quick Due state, show the simple name input
+    if (window.pendingQuickDueType && !isChecked) {
+        if (quickDueWrap) quickDueWrap.style.display = 'block';
+    } else {
+        if (quickDueWrap) quickDueWrap.style.display = 'none';
+    }
   });
   splitModeSelect && splitModeSelect.addEventListener('change', () => {
     const isCustom = splitModeSelect.value === 'custom';
@@ -184,6 +192,7 @@
     const currentKm = parseFloat(document.getElementById('fuelCurrentKm')?.value) || 0;
     const liters = parseFloat(document.getElementById('fuelLiters')?.value) || 0;
     const prevKm = parseFloat(document.getElementById('fuelPrevKm')?.value) || 0;
+    const fuelPrice = parseFloat(document.getElementById('fuelPrice')?.value) || 0;
 
     // Trip data
     const tripDate = document.getElementById('tripDate')?.value || null;
@@ -218,7 +227,13 @@
       note,
       createdAt: new Date().toISOString(),
       split: null,
-      fuel: (category === 'Petrol' && currentKm > 0) ? { currentKm, liters, prevKm, mileage: (liters > 0 ? (currentKm - prevKm) / liters : 0) } : null,
+      fuel: (category === 'Petrol' && currentKm > 0) ? { 
+        currentKm, 
+        liters, 
+        prevKm, 
+        price: fuelPrice > 0 ? fuelPrice : null,
+        mileage: (liters > 0 ? (currentKm - prevKm) / liters : 0) 
+      } : null,
       tripDate: (category === 'Travel' && tripDate) ? tripDate : null
     };
 
@@ -262,53 +277,62 @@
           if (myShare < 0) { alert('Custom amounts exceed total. Fix amounts.'); return; }
         }
 
-        entry.amount = myShare;
+        entry.amount = amountValue;
         entry.split = { enabled: true, participants: participantsSplit, myShare: myShare, mode: splitModeSelect.value, status: 'pending' };
 
-        // Link to Dues Tracker
-        const linkToDues = document.getElementById('linkToDues');
-        if (linkToDues && linkToDues.checked && window.MT.dues) {
-          const duesList = window.MT.dues.loadDues();
-          participantsSplit.forEach(p => {
-            duesList.push({
-              id: `due_split_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-              type: 'they_owe',
-              person: p.name,
-              amount: p.amount,
-              description: `Split: ${description}`,
-              date: dateStr,
-              occasion: 'Split Payment',
-              note: `From transaction: ${description}`,
-              paid: false,
-              paidDate: null,
-              createdAt: new Date().toISOString()
+        // Link to Dues Tracker — ONLY on new entries, never on edit (prevents duplication)
+        if (!currentEdit) {
+          const linkToDues = document.getElementById('linkToDues');
+          if (linkToDues && linkToDues.checked && window.MT.dues) {
+            const duesList = window.MT.dues.loadDues();
+            participantsSplit.forEach(p => {
+              duesList.push({
+                id: `due_split_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                type: 'they_owe',
+                person: p.name,
+                amount: p.amount,
+                description: `Split: ${description}`,
+                date: dateStr,
+                occasion: 'Split Payment',
+                note: `From transaction: ${description}`,
+                paid: false,
+                paidDate: null,
+                createdAt: new Date().toISOString()
+              });
             });
-          });
-          window.MT.dues.saveDues(duesList);
-          window.MT.dues.updateDuesBadge();
+            window.MT.dues.saveDues(duesList);
+            window.MT.dues.updateDuesBadge();
+          }
         }
       } else {
         // Fallback for Quick Due if they didn't use split
         if (forceDuePerson && window.MT.dues) {
-          // Minimise the value: user wants the entry itself to be 0 since it's a 100% due
-          entry.amount = 0; 
+          // Show the true outflow, but flag it so analytics can exclude it from personal budget
+          entry.amount = amountValue; 
+          entry.duePerson = forceDuePerson;
+          entry.isQuickDue = true;
+          entry.quickDueType = forceDueType; // 'i_owe' or 'they_owe'
+          entry.isSettled = false;
           
-          const duesList = window.MT.dues.loadDues();
-          duesList.push({
-            id: `due_quick_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-            type: forceDueType, // use the captured type
-            person: forceDuePerson,
-            amount: amountValue,
-            description: description,
-            date: dateStr,
-            occasion: 'Direct Entry',
-            note: note,
-            paid: false,
-            paidDate: null,
-            createdAt: new Date().toISOString()
-          });
-          window.MT.dues.saveDues(duesList);
-          window.MT.dues.updateDuesBadge();
+          // Only create new due on NEW entries, not on edit (prevents duplication)
+          if (!currentEdit) {
+            const duesList = window.MT.dues.loadDues();
+            duesList.push({
+              id: `due_quick_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+              type: forceDueType, // use the captured type
+              person: forceDuePerson,
+              amount: amountValue,
+              description: description,
+              date: dateStr,
+              occasion: 'Direct Entry',
+              note: note,
+              paid: false,
+              paidDate: null,
+              createdAt: new Date().toISOString()
+            });
+            window.MT.dues.saveDues(duesList);
+            window.MT.dues.updateDuesBadge();
+          }
         } else {
           entry.amount = amountValue;
         }
@@ -355,6 +379,31 @@
     if (typeof window.cancelQuickDue === 'function') window.cancelQuickDue();
   });
 
+  const btnAddQuickCategory = document.getElementById('btnAddQuickCategory');
+  if (btnAddQuickCategory) {
+    btnAddQuickCategory.addEventListener('click', () => {
+      const newCat = prompt('Enter new category name:');
+      if (!newCat) return;
+      const cleanCat = newCat.trim();
+      if (!cleanCat) return;
+
+      const s = db.loadStore();
+      s.settings = s.settings || {};
+      s.settings.categories = s.settings.categories || db.DEFAULTS.settings.categories;
+
+      if (!s.settings.categories.includes(cleanCat)) {
+        s.settings.categories.push(cleanCat);
+        db.saveStore(s);
+        renderCategoryPills();
+        if (ui && ui.showToast) ui.showToast(`Category "${cleanCat}" added`, 'success');
+      }
+      if (categoryEl) {
+          categoryEl.value = cleanCat;
+          categoryEl.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  }
+
   // Render entries for the active day
   function renderEntries() {
     if (!entriesListEl) return;
@@ -388,11 +437,20 @@
       main.appendChild(title); main.appendChild(meta);
       if (entry.note) { const n = document.createElement('div'); n.className = 'entry-note'; n.textContent = entry.note; main.appendChild(n); }
       if (entry.split && entry.split.enabled) {
-        const sdiv = document.createElement('div'); sdiv.className = 'entry-note'; sdiv.textContent = `Split: your share ${db.currencyFmt(entry.split.myShare)}, to receive ${db.currencyFmt(entry.split.participants.reduce((a, p) => a + p.amount, 0))}`;
+        const sdiv = document.createElement('div'); sdiv.className = 'entry-note'; 
+        const totalReceived = entry.split.participants.reduce((a, p) => a + p.amount, 0);
+        const allReceived = entry.split.participants.every(p => p.received);
+        
+        sdiv.innerHTML = `Split: your share ${db.currencyFmt(entry.split.myShare)}, to receive ${db.currencyFmt(totalReceived)} ${allReceived ? '<span class="badge badge-success">✓ ALL SETTLED</span>' : ''}`;
         main.appendChild(sdiv);
+
         const pList = document.createElement('div'); pList.className = 'entry-note';
-        pList.textContent = entry.split.participants.map(p => `${p.name}${p.received ? ' ✓' : ''} (${db.currencyFmt(p.amount)})`).join(' · ');
+        pList.innerHTML = entry.split.participants.map(p => `<span style="${p.received ? 'color: var(--success);' : ''}">${p.name}${p.received ? ' ✓' : ''}</span> (${db.currencyFmt(p.amount)})`).join(' · ');
         main.appendChild(pList);
+      } else if (entry.isSettled) {
+        const sdiv = document.createElement('div'); sdiv.className = 'entry-note';
+        sdiv.innerHTML = `<span class="badge badge-success">✓ SETTLED</span> <small>Received from ${entry.settledBy || 'Person'}</small>`;
+        main.appendChild(sdiv);
       }
       if (entry.type === 'Transfer' && entry.transfer) {
         const tr = document.createElement('div'); tr.className = 'entry-note'; tr.textContent = `Transfer: ${entry.transfer.from || '-'} → ${entry.transfer.to || '-'}`;
@@ -460,8 +518,32 @@
     }
     descriptionEl.value = entry.description || '';
     categoryEl.value = entry.category || '';
-    // Trigger category input so petrol/travel panels show if needed
     categoryEl.dispatchEvent(new Event('input', { bubbles: true }));
+    
+    // Fill fuel data if present
+    const fuelCurrentKm = document.getElementById('fuelCurrentKm');
+    const fuelLiters = document.getElementById('fuelLiters');
+    const fuelPrice = document.getElementById('fuelPrice');
+    const fuelPrevKm = document.getElementById('fuelPrevKm');
+
+    if (entry.fuel && entry.category === 'Petrol') {
+        if (fuelCurrentKm) fuelCurrentKm.value = entry.fuel.currentKm || '';
+        if (fuelLiters) fuelLiters.value = entry.fuel.liters || '';
+        if (fuelPrice) fuelPrice.value = entry.fuel.price || '';
+        if (fuelPrevKm) fuelPrevKm.value = entry.fuel.prevKm || '';
+    } else {
+        if (fuelCurrentKm) fuelCurrentKm.value = '';
+        if (fuelLiters) fuelLiters.value = '';
+        if (fuelPrice) fuelPrice.value = '';
+    }
+    
+    // Fill trip data
+    const tripDateEl = document.getElementById('tripDate');
+    if (entry.tripDate && entry.category === 'Travel') {
+        if (tripDateEl) tripDateEl.value = entry.tripDate;
+    } else {
+        if (tripDateEl) tripDateEl.value = '';
+    }
 
     // --- Set pay method pill ---
     const pm = entry.payMethod || 'Cash';
@@ -532,31 +614,65 @@
   const quickDuePersonList = document.getElementById('quickDuePersonList');
 
   function triggerQuickDue(typeVal) {
-      if (document.getElementById('type')) document.getElementById('type').value = typeVal === 'i_owe' ? 'Income' : 'Expense';
       window.pendingQuickDueType = typeVal;
+      const isTheyOwe = typeVal === 'they_owe';
+
+      if (isTheyOwe) {
+          if (typeEl) typeEl.value = 'Expense';
+          // Trigger the pills UI
+          document.querySelectorAll('#type-pills button').forEach(b => {
+              b.classList.toggle('active', b.dataset.value === 'Expense');
+          });
+
+          // Unify with Split system by default
+          if (isGroupCheckbox) {
+              isGroupCheckbox.checked = true;
+              isGroupCheckbox.dispatchEvent(new Event('change')); // Shows splitOptions
+          }
+          if (splitModeSelect) {
+              splitModeSelect.value = 'custom';
+              splitModeSelect.dispatchEvent(new Event('change'));
+          }
+          if (myShareInput) myShareInput.value = 0;
+          if (splitNamesInput) splitNamesInput.focus();
+
+          ui.showToast('Selected: They Owe (Linked to Split)', 'success');
+      } else {
+          // "I Owe" logic
+          if (document.getElementById('type')) document.getElementById('type').value = 'Income';
+          document.querySelectorAll('#type-pills button').forEach(b => {
+              b.classList.toggle('active', b.dataset.value === 'Income');
+          });
+
+          if (isGroupCheckbox) {
+              isGroupCheckbox.checked = false;
+              isGroupCheckbox.dispatchEvent(new Event('change')); // Shows quickDueWrap via the fallback
+          }
+          
+          ui.showToast('Selected: I Owe (Direct Due)', 'info');
+      }
       
-      if (quickDueWrap && quickDueBtnRow) {
-         quickDueBtnRow.style.display = 'none';
+      // Update quick due UI details
+      if (quickDueWrap && window.pendingQuickDueType && !isGroupCheckbox.checked) {
          quickDueWrap.style.display = 'block';
-         quickDueLabel.textContent = typeVal === 'i_owe' ? 'Person I owe' : 'Person who owes me';
-         quickDueLabel.style.color = typeVal === 'i_owe' ? 'var(--danger)' : 'var(--success)';
-         quickDueWrap.style.borderColor = typeVal === 'i_owe' ? 'var(--danger)' : 'var(--success)';
+         quickDueLabel.textContent = isTheyOwe ? 'Person who owes me' : 'Person I owe';
+         quickDueLabel.style.color = isTheyOwe ? 'var(--success)' : 'var(--danger)';
+         quickDueWrap.style.borderColor = isTheyOwe ? 'var(--success)' : 'var(--danger)';
          
          if (window.MT && window.MT.dues && quickDuePersonList) {
              const known = [...new Set(window.MT.dues.loadDues().map(d => d.person).filter(Boolean))].sort();
              quickDuePersonList.innerHTML = known.map(p => `<option value="${p}">`).join('');
          }
-         
          if (quickDuePerson) quickDuePerson.focus();
       }
-      ui.showToast(typeVal === 'i_owe' ? 'Selected: I Owe (Income)' : 'Selected: They Owe Me (Expense)', 'info');
   }
   
   window.cancelQuickDue = function() {
       window.pendingQuickDueType = null;
       if (quickDuePerson) quickDuePerson.value = '';
       if (quickDueWrap) quickDueWrap.style.display = 'none';
-      if (quickDueBtnRow) quickDueBtnRow.style.display = 'flex';
+      // If we were in a "They Owe" split state, optionally reset it
+      // But typically user just resets the form or manually unchecks.
   };
 
   if (btnIOwe) btnIOwe.addEventListener('click', () => triggerQuickDue('i_owe'));

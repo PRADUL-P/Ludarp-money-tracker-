@@ -38,6 +38,13 @@
   /* ---- STATE ---- */
   let activeFilter = 'pending'; // 'pending' | 'i_owe' | 'they_owe' | 'paid'
   let activeTab = 'i_owe';  // 'i_owe' | 'they_owe'  (on the add form)
+  let duesSearch = '';
+  let duesDateFrom = '';
+  let duesDateTo = '';
+  let duesAmtMin = '';
+  let duesAmtMax = '';
+  let duesSortBy = 'date_desc'; // 'date_desc'|'date_asc'|'amount_desc'|'amount_asc'
+  let duesFilterOpen = false;
 
   /* ================================================================
      RENDER MAIN VIEW
@@ -54,18 +61,39 @@
     const pendingTheyOwe = all.filter(d => !d.paid && d.type === 'they_owe').reduce((s, d) => s + d.amount, 0);
     const net = pendingTheyOwe - pendingIOwe;
 
-    // Filter list
+    // Filter list — type
     let filtered = all;
     if (activeFilter === 'pending') filtered = all.filter(d => !d.paid);
     if (activeFilter === 'i_owe') filtered = all.filter(d => !d.paid && d.type === 'i_owe');
     if (activeFilter === 'they_owe') filtered = all.filter(d => !d.paid && d.type === 'they_owe');
     if (activeFilter === 'paid') filtered = all.filter(d => d.paid);
 
-    // Sort: unpaid first by date, paid last
+    // Advanced filters
+    if (duesSearch) {
+      const q = duesSearch.toLowerCase();
+      filtered = filtered.filter(d =>
+        (d.person || '').toLowerCase().includes(q) ||
+        (d.description || '').toLowerCase().includes(q) ||
+        (d.note || '').toLowerCase().includes(q)
+      );
+    }
+    if (duesDateFrom) filtered = filtered.filter(d => (d.date || '') >= duesDateFrom);
+    if (duesDateTo)   filtered = filtered.filter(d => (d.date || '') <= duesDateTo);
+    if (duesAmtMin !== '') filtered = filtered.filter(d => d.amount >= parseFloat(duesAmtMin));
+    if (duesAmtMax !== '') filtered = filtered.filter(d => d.amount <= parseFloat(duesAmtMax));
+
+    // Sort
     filtered = [...filtered].sort((a, b) => {
-      if (a.paid !== b.paid) return a.paid ? 1 : -1;
-      return (b.date || '').localeCompare(a.date || '');
+      if (duesSortBy === 'date_desc') return (b.date || '').localeCompare(a.date || '');
+      if (duesSortBy === 'date_asc')  return (a.date || '').localeCompare(b.date || '');
+      if (duesSortBy === 'amount_desc') return b.amount - a.amount;
+      if (duesSortBy === 'amount_asc')  return a.amount - b.amount;
+      return 0;
     });
+    // Always push paid to bottom
+    if (activeFilter === 'pending' || activeFilter === 'all') {
+      filtered.sort((a, b) => (a.paid === b.paid) ? 0 : a.paid ? 1 : -1);
+    }
 
     // Group by person
     const groups = {};
@@ -106,14 +134,57 @@
       </section>
 
       <!-- FILTER TABS -->
-      <div class="dues-filter-row" style="margin-bottom:14px;">
+      <div class="dues-filter-row" style="margin-bottom:10px; flex-wrap:wrap; gap:6px;">
         ${['pending', 'i_owe', 'they_owe', 'paid'].map(f => `
           <button class="dues-filter-btn ${activeFilter === f ? 'active' : ''}"
             onclick="window.MT.dues.setFilter('${f}')">
-            ${{ pending: 'All Pending', i_owe: 'I Owe', they_owe: 'They Owe Me', paid: '✓ Settled' }[f]}
+            ${{ pending: 'All Pending', i_owe: 'I Owe', they_owe: 'They Owe Me', paid: '\u2713 Settled' }[f]}
           </button>
         `).join('')}
+        <button class="dues-filter-btn" style="margin-left:auto; ${duesFilterOpen ? 'background:var(--accent);color:#000;border-color:var(--accent);' : ''}" onclick="window.MT.dues.toggleFilter()">
+          \uD83D\uDD0D ${duesFilterOpen ? 'Hide' : 'More Filters'}
+        </button>
       </div>
+
+      ${duesFilterOpen ? `
+      <div style="background:var(--bg2); border:1px solid var(--card-border); border-radius:12px; padding:14px; margin-bottom:14px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <div style="flex:2; min-width:160px;">
+            <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">\uD83D\uDD0D Search person / description</label>
+            <input id="duesSearchInput" type="text" value="${duesSearch}" placeholder="e.g. Rahul..." style="width:100%;" oninput="window.MT.dues.applyFilter()" />
+          </div>
+          <div style="flex:1; min-width:120px;">
+            <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">From Date</label>
+            <input id="duesFromDate" type="date" value="${duesDateFrom}" style="width:100%;" onchange="window.MT.dues.applyFilter()" />
+          </div>
+          <div style="flex:1; min-width:120px;">
+            <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">To Date</label>
+            <input id="duesToDate" type="date" value="${duesDateTo}" style="width:100%;" onchange="window.MT.dues.applyFilter()" />
+          </div>
+          <div style="flex:1; min-width:100px;">
+            <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">Min \u20b9</label>
+            <input id="duesAmtMinInput" type="number" value="${duesAmtMin}" placeholder="0" step="1" style="width:100%;" oninput="window.MT.dues.applyFilter()" />
+          </div>
+          <div style="flex:1; min-width:100px;">
+            <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">Max \u20b9</label>
+            <input id="duesAmtMaxInput" type="number" value="${duesAmtMax}" placeholder="\u221E" step="1" style="width:100%;" oninput="window.MT.dues.applyFilter()" />
+          </div>
+          <div style="flex:1; min-width:140px;">
+            <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">Sort By</label>
+            <select id="duesSortBySelect" style="width:100%;" onchange="window.MT.dues.applyFilter()">
+              <option value="date_desc" ${duesSortBy==='date_desc'?'selected':''}>Newest First</option>
+              <option value="date_asc"  ${duesSortBy==='date_asc'?'selected':''}>Oldest First</option>
+              <option value="amount_desc" ${duesSortBy==='amount_desc'?'selected':''}>Highest Amount</option>
+              <option value="amount_asc"  ${duesSortBy==='amount_asc'?'selected':''}>Lowest Amount</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:12px; color:var(--muted); font-weight:600;">${filtered.length} result${filtered.length !== 1 ? 's' : ''}</span>
+          <button class="btn-small" onclick="window.MT.dues.clearFilters()" style="font-size:11px; color:var(--danger); border-color:var(--danger);">\u2715 Clear All Filters</button>
+        </div>
+      </div>
+      ` : ''}
 
       <!-- DUE ENTRIES grouped by person -->
       <section class="card no-hover" style="padding:8px 12px;">
@@ -172,6 +243,8 @@
                       </div>
                     ` : `
                       <div class="due-item-actions">
+                        <button class="due-pay-btn" style="background:var(--card-hover); color:var(--text);" title="Undo Settlement"
+                          onclick="window.MT.dues.undoPaid('${due.id}')">↩ Undo</button>
                         <button class="due-del-btn" title="Delete"
                           onclick="window.MT.dues.deleteDue('${due.id}')">✕</button>
                       </div>
@@ -330,13 +403,95 @@
     if (statusEl) statusEl.textContent = '';
   }
 
-  function markPaid(id) {
+  function markPaid(id, headlessDate = null, headlessBank = 'Cash') {
     const list = loadDues();
     const due = list.find(d => d.id === id);
     if (!due) return;
 
     const isIncome = due.type === 'they_owe';
     const actionLabel = isIncome ? 'Received' : 'Paid';
+
+    const executePayment = (chosenBank, customDate) => {
+      const allDues = loadDues();
+      const idx = allDues.findIndex(d => d.id === id);
+      if (idx < 0) return;
+      if (allDues[idx].paid) return; // Guard: already paid
+      allDues[idx].paid = true;
+      allDues[idx].paidDate = customDate;
+      saveDues(allDues);
+
+      const db = window.MT.db;
+      if (db) {
+        const store = db.loadStore();
+        const settlementDesc = `Settled: ${due.description} (${due.person})`;
+
+        // Find original entry category to inherit it
+        const descMatch0 = due.description?.startsWith('Split: ') ? due.description.substring(7) : due.description;
+        let originalCategory = 'Due settlement'; // fallback
+        for (const dateK in store.days) {
+          for (const entry of (store.days[dateK] || [])) {
+            const isMatch = (entry.description === descMatch0 && entry.dateStr === due.date) ||
+                            (entry.description?.startsWith(descMatch0) && entry.dateStr === due.date);
+            if (isMatch && entry.category) { originalCategory = entry.category; break; }
+          }
+          if (originalCategory !== 'Due settlement') break;
+        }
+
+        // 1. Only create settlement transaction if one doesn't already exist
+        const alreadyExists = (store.days[customDate] || []).some(e =>
+          e.isDueSettlement && e.description === settlementDesc && Math.abs(e.amount - due.amount) < 0.01
+        );
+        if (!alreadyExists) {
+          if (!store.days[customDate]) store.days[customDate] = [];
+          store.days[customDate].push({
+            id: Date.now() + Math.random(),
+            dateStr: customDate,
+            type: actionLabel === 'Received' ? 'Income' : 'Expense',
+            description: settlementDesc,
+            category: originalCategory,
+            payMethod: 'Bank',
+            paySubType: chosenBank,
+            amount: due.amount,
+            note: `Settled due with ${due.person} via ${chosenBank}`,
+            createdAt: new Date().toISOString(),
+            split: null,
+            isDueSettlement: true,
+            dueId: id
+          });
+        }
+
+        // 2. Locate and Update the Original Source Transaction
+        const descMatch = due.description?.startsWith('Split: ') ? due.description.substring(7) : due.description;
+        for (const dateK in store.days) {
+          store.days[dateK].forEach(e => {
+            const isMatch = (e.description === descMatch && e.dateStr === due.date) ||
+                          (e.description?.startsWith(descMatch) && e.dateStr === due.date);
+            if (isMatch) {
+              if (e.split?.enabled) {
+                e.split.participants.forEach(p => {
+                  if ((p.name || '').trim() === (due.person || '').trim()) p.received = true;
+                });
+                e.isSettled = e.split.participants.every(p => p.received);
+              } else {
+                e.isSettled = true;
+                e.settledBy = due.person;
+              }
+            }
+          });
+        }
+
+        db.saveStore(store);
+        window.dispatchEvent(new Event('mt:entries-changed'));
+      }
+
+      window.MT.ui?.showToast(`\u2713 ${actionLabel}! \u20b9${due.amount.toFixed(0)} logged`, 'success');
+      renderDuesView();
+    };
+
+    if (headlessDate) {
+      executePayment(headlessBank, headlessDate);
+      return;
+    }
 
     // Show inline settlement panel instead of prompt()
     const itemEl = document.querySelector(`.due-item[data-id="${id}"]`);
@@ -383,56 +538,68 @@
     document.getElementById(`settleConfirm_${id}`)?.addEventListener('click', () => {
       const chosenBank = document.getElementById(`settleBank_${id}`)?.value || 'Cash';
       const customDate = document.getElementById(`settleDate_${id}`)?.value || todayISO();
+      executePayment(chosenBank, customDate);
+    });
+  }
 
-      const allDues = loadDues();
-      const idx = allDues.findIndex(d => d.id === id);
-      if (idx < 0) return;
-      allDues[idx].paid = true;
-      allDues[idx].paidDate = customDate;
-      saveDues(allDues);
+  function undoPaid(id, headless = false) {
+    if (!headless && !confirm('Undo this settlement? This will also remove the transaction from your history.')) return false;
 
-      const db = window.MT.db;
-      if (db) {
-        const store = db.loadStore();
-        const isLinkedDue = (due.description?.startsWith('Split: ')) || (due.occasion === 'Direct Entry');
+    const allDues = loadDues();
+    const idx = allDues.findIndex(d => d.id === id);
+    if (idx < 0) return;
 
-        if (isLinkedDue && due.description?.startsWith('Split: ')) {
-          const descMatch = due.description.substring(7);
-          (store.days[due.date] || []).forEach(e => {
-            if (e.split?.enabled && e.description === descMatch) {
-              e.split.participants.forEach(p => {
-                if ((p.name || '').trim() === (due.person || '').trim() && Math.abs(p.amount - due.amount) < 0.01) {
-                  p.received = true;
-                }
-              });
-            }
-          });
-        } else {
-          // Create settlement transaction
-          if (!store.days[customDate]) store.days[customDate] = [];
-          store.days[customDate].push({
-            id: Date.now() + Math.random(),
-            dateStr: customDate,
-            type: isIncome ? 'Income' : 'Expense',
-            description: `${due.description} (${due.person})`,
-            category: 'Due settlement',
-            payMethod: 'Bank',
-            paySubType: chosenBank,
-            amount: due.amount,
-            note: `Settled due with ${due.person} via ${chosenBank}`,
-            createdAt: new Date().toISOString(),
-            split: null,
-            isDueSettlement: true
-          });
-        }
+    const due = allDues[idx];
+    const paidDate = due.paidDate; // Date when it was marked paid 
+    
+    // 1. Unmark the due itself
+    due.paid = false;
+    due.paidDate = null;
+    saveDues(allDues);
 
-        db.saveStore(store);
-        window.dispatchEvent(new Event('mt:entries-changed'));
+    const db = window.MT.db;
+    if (db) {
+      const store = db.loadStore();
+      
+      // 2. Remove the Settlement Transaction (Bank Record)
+      if (paidDate && store.days[paidDate]) {
+        const descMatchStr = `Settled: ${due.description} (${due.person})`;
+        store.days[paidDate] = store.days[paidDate].filter(e => {
+            return !(e.isDueSettlement && e.description.startsWith(descMatchStr) && Math.abs(e.amount - due.amount) < 0.01);
+        });
+        if (store.days[paidDate].length === 0) delete store.days[paidDate];
       }
 
-      window.MT.ui?.showToast(`✓ ${actionLabel}! ₹${due.amount.toFixed(0)} logged`, 'success');
-      renderDuesView();
-    });
+      // 3. Locate and Un-update the Original Source Transaction
+      const originalDescMatch = due.description?.startsWith('Split: ') ? due.description.substring(7) : due.description;
+      
+      // Look through all days to find original (similar to settle logic)
+      for (const dateK in store.days) {
+        store.days[dateK].forEach(e => {
+          const isMatch = (e.description === originalDescMatch && e.dateStr === due.date) || 
+                        (e.description?.startsWith(originalDescMatch) && e.dateStr === due.date);
+          if (isMatch) {
+            if (e.split?.enabled) {
+              e.split.participants.forEach(p => {
+                if ((p.name || '').trim() === (due.person || '').trim()) {
+                  p.received = false;
+                }
+              });
+              e.isSettled = e.split.participants.every(p => p.received);
+            } else {
+              e.isSettled = false;
+              e.settledBy = null;
+            }
+          }
+        });
+      }
+
+      db.saveStore(store);
+      window.dispatchEvent(new Event('mt:entries-changed'));
+    }
+
+    window.MT.ui?.showToast('Settlement undone.', 'info');
+    renderDuesView();
   }
 
 
@@ -489,6 +656,28 @@
     }
   }
 
+  /* ---- ADVANCED FILTER ACTIONS ---- */
+  function toggleFilter() {
+    duesFilterOpen = !duesFilterOpen;
+    renderDuesView();
+  }
+
+  function applyFilter() {
+    duesSearch    = (document.getElementById('duesSearchInput')?.value || '').trim();
+    duesDateFrom  = document.getElementById('duesFromDate')?.value || '';
+    duesDateTo    = document.getElementById('duesToDate')?.value || '';
+    duesAmtMin    = document.getElementById('duesAmtMinInput')?.value || '';
+    duesAmtMax    = document.getElementById('duesAmtMaxInput')?.value || '';
+    duesSortBy    = document.getElementById('duesSortBySelect')?.value || 'date_desc';
+    renderDuesView();
+  }
+
+  function clearFilters() {
+    duesSearch = ''; duesDateFrom = ''; duesDateTo = '';
+    duesAmtMin = ''; duesAmtMax = ''; duesSortBy = 'date_desc';
+    renderDuesView();
+  }
+
   /* ================================================================
      EXPOSE & INIT
   ================================================================ */
@@ -496,8 +685,9 @@
   window.MT.dues = {
     loadDues, saveDues,
     renderDuesView, setFilter, setAddTab,
-    addDue, clearForm, markPaid, deleteDue,
-    updateDuesBadge
+    addDue, clearForm, markPaid, undoPaid, deleteDue,
+    updateDuesBadge,
+    toggleFilter, applyFilter, clearFilters
   };
 
   function initDues() {

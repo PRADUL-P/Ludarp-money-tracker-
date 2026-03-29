@@ -96,17 +96,42 @@
   /* ================= HELPERS ================= */
 
   function $id(id) { return document.getElementById(id); }
-
   /* ================= EXPORT ================= */
-
   window.MT = window.MT || {};
   window.MT.ui = {
     showToast,
     ensureSelectColors,
     applyTheme,
     loadTheme,
-    $id
+    $id,
+    showModal
   };
+
+  /* ================= MODAL SYSTEM ================= */
+  function showModal(title, contentHtml) {
+    const backdrop = document.createElement('div');
+    backdrop.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100000; animation: mtFadeIn 0.3s ease;
+    `;
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      background: var(--card); border: 1px solid var(--card-border);
+      width: 90%; max-width: 450px; border-radius: 20px;
+      padding: 24px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    `;
+    modal.innerHTML = `
+      <div style="font-size: 18px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">${title}</div>
+      <div style="font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 20px; max-height: 60vh; overflow-y: auto;">${contentHtml}</div>
+      <button class="btn-primary" style="width: 100%;" onclick="this.closest('.mt-modal-backdrop').remove()">Got it!</button>
+    `;
+    backdrop.className = 'mt-modal-backdrop';
+    backdrop.appendChild(modal);
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+    document.body.appendChild(backdrop);
+  }
 
 })();
 

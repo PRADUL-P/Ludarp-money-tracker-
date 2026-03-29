@@ -44,6 +44,40 @@
   }
   function getRowsPerPage() { return parseInt(localStorage.getItem('rows_per_page') || (DOM.rowsPerPageSelect ? DOM.rowsPerPageSelect.value : '10'), 10); }
 
+  // ---- Shared inline settle panel (used from Summary rows) ----
+  function showSummarySettlePanel(dueId, anchorEl, onConfirm) {
+    // Remove any existing panel on same anchor
+    const existing = anchorEl.querySelector('.summary-settle-panel');
+    if (existing) { existing.remove(); return; }
+    
+    const banks = window.MT?.db?.loadStore()?.settings?.banks || ['Cash'];
+    const todayVal = (window.MT?.db?.todayISO ? window.MT.db.todayISO() : new Date().toISOString().slice(0, 10));
+    
+    const panel = document.createElement('div');
+    panel.className = 'summary-settle-panel';
+    panel.style.cssText = 'margin-top:8px; padding:10px 12px; background:var(--card-hover); border:1px solid var(--accent); border-radius:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;';
+    panel.innerHTML = `
+      <div style="flex:1; min-width:110px;">
+        <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:3px;">Account</label>
+        <select class="sp-bank" style="width:100%;">${banks.map(b => `<option value="${b}">${b}</option>`).join('')}</select>
+      </div>
+      <div style="flex:1; min-width:120px;">
+        <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:3px;">Date</label>
+        <input class="sp-date" type="date" value="${todayVal}" style="width:100%;" />
+      </div>
+      <button class="sp-confirm btn-primary" style="height:36px; padding:0 14px; font-size:12px;">✓ Confirm</button>
+      <button class="sp-cancel btn-secondary" style="height:36px; padding:0 10px;">✕</button>
+    `;
+    anchorEl.appendChild(panel);
+    panel.querySelector('.sp-cancel').addEventListener('click', () => panel.remove());
+    panel.querySelector('.sp-confirm').addEventListener('click', () => {
+      const bank = panel.querySelector('.sp-bank').value || 'Cash';
+      const date = panel.querySelector('.sp-date').value || todayVal;
+      panel.remove();
+      if (typeof onConfirm === 'function') onConfirm(bank, date);
+    });
+  }
+
   // init controls
   function initSummaryControls() {
     const modeSel = DOM.dateModeSelect;
@@ -136,6 +170,14 @@
     const catNow = DOM.filterCategorySelect ? DOM.filterCategorySelect.value : 'All';
     if (catNow && catNow !== 'All') filtered = filtered.filter(e => (e.category || 'Uncategorized') === catNow);
 
+    // -- SUPPLEMENTARY FILTERS --
+    if (document.getElementById('hideTransfers') && document.getElementById('hideTransfers').checked) {
+      filtered = filtered.filter(e => e.type !== 'Transfer');
+    }
+    if (document.getElementById('hideSettlements') && document.getElementById('hideSettlements').checked) {
+      filtered = filtered.filter(e => !e.isDueSettlement);
+    }
+    
     // -- SEARCH FILTER --
     const searchQuery = (DOM.summarySearchInput?.value || '').toLowerCase().trim();
     if (searchQuery) {
@@ -151,20 +193,34 @@
     let totalExp = 0, totalInc = 0, splitOutstanding = 0;
     const categoryTotals = {};
     const dailyTotals = {};
+    const monthlyTotals = {};
 
     filtered.forEach(e => {
-      if (e.type === 'Income') totalInc += Number(e.amount || 0);
+      let isSettlement = !!e.isDueSettlement;
+      
+      if (e.type === 'Income') {
+           if (!isSettlement) totalInc += Number(e.amount || 0); // Exclude settlement flow from real Income metric
+      }
       else if (e.type === 'Transfer') { }
-      else totalExp += Number(e.amount || 0);
+      else {
+       // Use true budget deficit (myShare) instead of gross outflow for accurate metric charts
+           let effectiveAmount = Number(e.amount || 0);
+           if (e.split && e.split.enabled) effectiveAmount = Number(e.split.myShare || 0);
+           else if (e.isQuickDue && e.quickDueType !== 'i_owe') effectiveAmount = 0; // they_owe = don't count as expense (pending income)
+           // i_owe entries: count full amount as expense (you paid this out)
+           totalExp += effectiveAmount;
+           
+           const cat = e.category || 'Uncategorized';
+           categoryTotals[cat] = (categoryTotals[cat] || 0) + effectiveAmount;
+           dailyTotals[e.dateStr] = (dailyTotals[e.dateStr] || 0) + effectiveAmount;
+
+           const monthKey = (e.dateStr || '').substring(0, 7);
+           monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + effectiveAmount;
+      }
 
       if (e.split && e.split.enabled) {
         const notReceived = e.split.participants.filter(p => !p.received).reduce((a, p) => a + (p.amount || 0), 0);
         splitOutstanding += notReceived;
-      }
-      const cat = e.category || 'Uncategorized';
-      if (e.type !== 'Income' && e.type !== 'Transfer') {
-        categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(e.amount || 0);
-        dailyTotals[e.dateStr] = (dailyTotals[e.dateStr] || 0) + Number(e.amount || 0);
       }
     });
 
@@ -193,7 +249,7 @@
 
     drawTrendChart(dailyTotals, mode, monthVal, yearVal);
     drawCategoryPie(categoryTotals);
-    renderHistoryList(filtered);
+    renderHistoryList(filtered, dailyTotals, monthlyTotals);
 
     // Advanced Insight: Vs Last Month (Only shows in Month mode)
     if (DOM.vsLastMonthEl) {
@@ -422,7 +478,7 @@
   }
 
   // history list rendering
-  function renderHistoryList(entries) {
+  function renderHistoryList(entries, dailyTotals, monthlyTotals) {
     const el = DOM.summaryHistoryEl;
     if (!el) return;
     el.innerHTML = '';
@@ -467,7 +523,12 @@
           lastGroup = currentGroup;
           const header = document.createElement('div');
           header.className = 'history-group-header';
-          header.innerHTML = `<span>${currentGroup}</span>`;
+          
+          let groupSum = 0;
+          if (groupMode === 'date') groupSum = dailyTotals[e.dateStr] || 0;
+          else if (groupMode === 'month') groupSum = monthlyTotals[e.dateStr.substring(0, 7)] || 0;
+          
+          header.innerHTML = `<span>${currentGroup}</span> <span style="color:var(--text-secondary); font-weight:800;">${currencyFmt(groupSum)}</span>`;
           el.appendChild(header);
         }
 
@@ -489,10 +550,12 @@
         left.appendChild(title); left.appendChild(meta);
         if (e.note) { const n = document.createElement('div'); n.className = 'entry-note'; n.textContent = e.note; left.appendChild(n); }
 
-        if (e.fuel && e.fuel.mileage > 0) {
+        if (e.fuel && e.fuel.currentKm > 0) {
           const fn = document.createElement('div'); fn.className = 'entry-note';
           fn.style.color = 'var(--warning)';
-          fn.innerHTML = `⛽ <strong>Mileage: ${e.fuel.mileage.toFixed(1)} km/l</strong> · ODO: ${e.fuel.currentKm} km${e.fuel.liters ? ` · ${e.fuel.liters}L` : ''}`;
+          let fuelText = `⛽ <strong>Mileage: ${e.fuel.mileage.toFixed(1)} km/l</strong> · ODO: ${e.fuel.currentKm} km${e.fuel.liters ? ` · ${e.fuel.liters}L` : ''}`;
+          if (e.fuel.price) fuelText += ` · <span style="color:var(--text); opacity:0.8;">₹${e.fuel.price.toFixed(2)}/L</span>`;
+          fn.innerHTML = fuelText;
           left.appendChild(fn);
         }
         if (e.tripDate) {
@@ -504,42 +567,66 @@
 
         if (e.split && e.split.enabled) {
           const sp = document.createElement('div'); sp.className = 'entry-note';
-          sp.textContent = `Split: your ${currencyFmt(e.split.myShare)} · to receive ${currencyFmt((e.split.participants || []).reduce((a, p) => a + (p.amount || 0), 0))}`;
+          const allPaid = (e.split.participants || []).every(p => p.received);
+          sp.innerHTML = `Split: your ${currencyFmt(e.split.myShare)} · to receive ${currencyFmt((e.split.participants || []).reduce((a, p) => a + (p.amount || 0), 0))} ${allPaid ? '<span class="badge badge-success">✓ ALL SETTLED</span>' : ''}`;
           left.appendChild(sp);
 
           if (Array.isArray(e.split.participants)) {
             e.split.participants.forEach((p, pidx) => {
               const prow = document.createElement('div'); prow.style.display = 'flex'; prow.style.justifyContent = 'space-between'; prow.style.alignItems = 'center'; prow.style.marginTop = '6px';
-              const pleft = document.createElement('div'); pleft.textContent = `${p.name} — ${currencyFmt(p.amount)}`; pleft.style.color = 'var(--muted)';
+              // Try to look up paidDate from matching due
+              let paidDateStr = '';
+              if (p.received && window.MT && window.MT.dues && window.MT.dues.loadDues) {
+                const dList = window.MT.dues.loadDues();
+                const dMatch = dList.find(d => d.date === e.dateStr && (d.person||'').trim() === (p.name||'').trim() && Math.abs(d.amount - p.amount) < 0.01);
+                if (dMatch && dMatch.paidDate) paidDateStr = ` · Settled ${formatDateLabel(dMatch.paidDate)}`;
+              }
+              const pleft = document.createElement('div'); 
+              pleft.innerHTML = `${p.name} — ${currencyFmt(p.amount)}${p.received ? `<span style="font-size:10px; color:var(--muted); margin-left:6px;">${paidDateStr}</span>` : ''}`;
+              pleft.style.color = p.received ? 'var(--success)' : 'var(--muted)';
+              pleft.style.fontSize = '12px';
               const pright = document.createElement('div'); const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!p.received;
               cb.addEventListener('change', () => {
-                if (typeof toggleSplitReceived === 'function') { toggleSplitReceived(e.id, e.dateStr, pidx, cb.checked); }
-                else {
-                  const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id); 
-                  if (idxItem >= 0 && day[idxItem].split) { 
-                    day[idxItem].split.participants[pidx].received = cb.checked; 
-                    
+                  if (cb.checked) {
+                    // Ask for bank/date before settling
+                    let matchFound = false;
                     if (window.MT && window.MT.dues && window.MT.dues.loadDues) {
-                       const duesList = window.MT.dues.loadDues();
-                       const descMatch = 'Split: ' + e.description;
-                       let updated = false;
-                       duesList.forEach(d => {
-                         if (d.date === e.dateStr && (d.person||'').trim() === (p.name||'').trim() && Math.abs(d.amount - p.amount) < 0.01 && d.description === descMatch) {
-                            d.paid = cb.checked;
-                            d.paidDate = cb.checked ? (window.MT.db && window.MT.db.todayISO ? window.MT.db.todayISO() : new Date().toISOString().slice(0,10)) : null;
-                            updated = true;
-                         }
-                       });
-                       if (updated) { window.MT.dues.saveDues(duesList); window.MT.dues.updateDuesBadge(); window.dispatchEvent(new Event('mt:entries-changed')); }
+                      const dList = window.MT.dues.loadDues();
+                      const dMatch = dList.find(d => d.date === e.dateStr && (d.person||'').trim() === (p.name||'').trim() && Math.abs(d.amount - p.amount) < 0.01);
+                      if (dMatch && !dMatch.paid) {
+                        matchFound = true;
+                        const prow2 = cb.closest('div') || left;
+                        showSummarySettlePanel(dMatch.id, prow2.parentElement || left, (bank, date) => {
+                          window.MT.dues.markPaid(dMatch.id, date, bank);
+                          if (typeof renderSummary === 'function') renderSummary();
+                          if (window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
+                        });
+                        // Revert checkbox visually; it will reflect reality after panel confirm
+                        cb.checked = false;
+                      }
                     }
-
-                    if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
-                    else if (typeof saveStore === 'function') saveStore(s); 
-                    renderSummary(); 
-                    if (window.MT && window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
-                    else if (typeof renderEntries === 'function') renderEntries(); 
+                    if (!matchFound) {
+                      const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id);
+                      if (idxItem >= 0 && day[idxItem].split) {
+                        day[idxItem].split.participants[pidx].received = true;
+                        if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
+                        if (typeof renderSummary === 'function') renderSummary();
+                      }
+                    }
+                  } else {
+                    // Uncheck = undo
+                    if (window.MT && window.MT.dues && window.MT.dues.loadDues) {
+                      const dList = window.MT.dues.loadDues();
+                      const dMatch = dList.find(d => d.date === e.dateStr && (d.person||'').trim() === (p.name||'').trim() && Math.abs(d.amount - p.amount) < 0.01);
+                      if (dMatch && dMatch.paid) { window.MT.dues.undoPaid(dMatch.id, true); if (typeof renderSummary === 'function') renderSummary(); return; }
+                    }
+                    const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id);
+                    if (idxItem >= 0 && day[idxItem].split) {
+                      day[idxItem].split.participants[pidx].received = false;
+                      if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
+                      if (typeof renderSummary === 'function') renderSummary();
+                    }
                   }
-                }
               });
               pright.appendChild(cb); prow.appendChild(pleft); prow.appendChild(pright); left.appendChild(prow);
             });
@@ -550,40 +637,112 @@
           const allReceived = (e.split.participants || []).every(p => p.received);
           allChk.checked = allReceived;
           allChk.addEventListener('change', () => {
-            if (typeof toggleAllSplit === 'function') { toggleAllSplit(e.id, e.dateStr, allChk.checked); }
-            else {
-              const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id); 
-              if (idxItem >= 0 && day[idxItem].split) { 
-                day[idxItem].split.participants.forEach(p => p.received = allChk.checked); 
-                
-                if (window.MT && window.MT.dues && window.MT.dues.loadDues) {
-                   const duesList = window.MT.dues.loadDues();
-                   const descMatch = 'Split: ' + e.description;
-                   let updated = false;
-                   day[idxItem].split.participants.forEach(p => {
-                       duesList.forEach(d => {
-                         if (d.date === e.dateStr && (d.person||'').trim() === (p.name||'').trim() && Math.abs(d.amount - p.amount) < 0.01 && d.description === descMatch) {
-                            d.paid = allChk.checked;
-                            d.paidDate = allChk.checked ? (window.MT.db && window.MT.db.todayISO ? window.MT.db.todayISO() : new Date().toISOString().slice(0,10)) : null;
-                            updated = true;
-                         }
-                       });
+               if (allChk.checked) {
+                 // Build list of unpaid matching dues
+                 const unpaidMatches = [];
+                 if (window.MT && window.MT.dues && window.MT.dues.loadDues) {
+                   const dList = window.MT.dues.loadDues();
+                   e.split.participants.forEach(p => {
+                     const dMatch = dList.find(d => d.date === e.dateStr && (d.person||'').trim() === (p.name||'').trim() && Math.abs(d.amount - p.amount) < 0.01 && !d.paid);
+                     if (dMatch) unpaidMatches.push(dMatch.id);
                    });
-                   if (updated) { window.MT.dues.saveDues(duesList); window.MT.dues.updateDuesBadge(); window.dispatchEvent(new Event('mt:entries-changed')); }
-                }
-
-                if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
-                else if (typeof saveStore === 'function') saveStore(s); 
-                renderSummary(); 
-                if (window.MT && window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
-                else if (typeof renderEntries === 'function') renderEntries(); 
-              }
-            }
+                 }
+                 if (unpaidMatches.length > 0) {
+                   allChk.checked = false; // revert until confirmed
+                   showSummarySettlePanel('all', allRow, (bank, date) => {
+                     unpaidMatches.forEach(dId => window.MT.dues.markPaid(dId, date, bank));
+                     if (typeof renderSummary === 'function') renderSummary();
+                     if (window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
+                   });
+                 } else {
+                   // Fallback: mark locally
+                   const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id);
+                   if (idxItem >= 0 && day[idxItem].split) {
+                     day[idxItem].split.participants.forEach(p => p.received = true);
+                     if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
+                     if (typeof renderSummary === 'function') renderSummary();
+                   }
+                 }
+               } else {
+                 // Uncheck all = undo all
+                 if (window.MT && window.MT.dues && window.MT.dues.loadDues) {
+                   const dList = window.MT.dues.loadDues();
+                   e.split.participants.forEach(p => {
+                     const dMatch = dList.find(d => d.date === e.dateStr && (d.person||'').trim() === (p.name||'').trim() && Math.abs(d.amount - p.amount) < 0.01 && d.paid);
+                     if (dMatch) window.MT.dues.undoPaid(dMatch.id, true);
+                   });
+                   if (typeof renderSummary === 'function') renderSummary();
+                   if (window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
+                 }
+               }
           });
           allRow.appendChild(allChk);
           const allLbl = document.createElement('span'); allLbl.style.marginLeft = '8px'; allLbl.textContent = 'Mark all received';
           allRow.appendChild(allLbl);
           left.appendChild(allRow);
+        } else if (e.duePerson && !e.isSettled) {
+          const isIOwe = e.quickDueType === 'i_owe';
+          // Show due info banner
+          const infoNote = document.createElement('div');
+          const bannerColor = isIOwe ? 'rgba(248,113,113,0.15)' : 'rgba(251,191,36,0.1)';
+          const bannerBorder = isIOwe ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.3)';
+          const textColor = isIOwe ? '#f87171' : '#fbbf24';
+          infoNote.style.cssText = `margin-top:6px; padding:7px 10px; background:${bannerColor}; border:1px solid ${bannerBorder}; border-radius:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;`;
+          const infoText = document.createElement('div');
+          const dueLabel = isIOwe ? '💸 You owe' : '💰 They owe you';
+          infoText.innerHTML = `<span style="font-size:12px; font-weight:700; color:${textColor};">${dueLabel} <strong>${e.duePerson}</strong>:</span> <span style="font-size:14px; font-weight:800; color:${textColor};">${currencyFmt(e.amount)}</span>`;
+          const markBtn = document.createElement('button');
+          markBtn.textContent = isIOwe ? '✓ Mark as Paid' : '✓ Mark Received';
+          markBtn.className = 'btn-small';
+          const btnBg = isIOwe ? 'rgba(248,113,113,0.15)' : 'rgba(52,211,153,0.15)';
+          const btnColor = isIOwe ? 'var(--danger)' : 'var(--success)';
+          const btnBorder = isIOwe ? 'var(--danger)' : 'var(--success)';
+          markBtn.style.cssText = `background:${btnBg}; color:${btnColor}; border:1px solid ${btnBorder}; padding:3px 9px; font-size:11px;`;
+          markBtn.addEventListener('click', () => {
+               if (window.MT && window.MT.dues && window.MT.db) {
+                    const dList = window.MT.dues.loadDues();
+                    const matchIdx = dList.findIndex(d => d.date === e.dateStr && (d.person||'').trim() === (e.duePerson||'').trim() && Math.abs(d.amount - e.amount) < 0.01 && !d.paid);
+                    if (matchIdx >= 0) {
+                         const match = dList[matchIdx];
+                         showSummarySettlePanel(match.id, infoNote.parentElement || left, (bank, date) => {
+                           window.MT.dues.markPaid(match.id, date, bank);
+                           if (typeof renderSummary === 'function') renderSummary();
+                           if (window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
+                         });
+                         return;
+                    }
+               }
+               // Fallback
+               if (window.MT && window.MT.db) {
+                 const sStore = window.MT.db.loadStore();
+                 const dayData = sStore.days[e.dateStr];
+                 if (dayData) {
+                     const m = dayData.find(x => x.id === e.id);
+                     if (m) { m.isSettled = true; m.settledBy = e.duePerson; }
+                     window.MT.db.saveStore(sStore);
+                     if (typeof renderSummary === 'function') renderSummary();
+                 }
+               }
+          });
+          infoNote.appendChild(infoText); infoNote.appendChild(markBtn); left.appendChild(infoNote);
+        } else if (e.duePerson && e.isSettled) {
+          const isIOwe = e.quickDueType === 'i_owe';
+          const sdiv = document.createElement('div'); sdiv.className = 'entry-note';
+          const settledLabel = isIOwe ? `✓ PAID` : `✓ RECEIVED`;
+          const toFrom = isIOwe ? `Paid to ${e.settledBy || e.duePerson}` : `Received from ${e.settledBy || e.duePerson}`;
+          // Try to get settlement date from dues record
+          let settledOnStr = '';
+          if (window.MT && window.MT.dues && window.MT.dues.loadDues) {
+            const dList = window.MT.dues.loadDues();
+            const dMatch = dList.find(d => (d.person||'').trim() === (e.duePerson||'').trim() && Math.abs(d.amount - e.amount) < 0.01 && d.paid && d.paidDate);
+            if (dMatch) settledOnStr = ` · ${formatDateLabel(dMatch.paidDate)}`;
+          }
+          sdiv.innerHTML = `<span class="badge badge-success">${settledLabel}</span> <small>${toFrom} — ${currencyFmt(e.amount)}<span style="color:var(--muted);">${settledOnStr}</span></small>`;
+          left.appendChild(sdiv);
+        } else if (e.isSettled) {
+          const sdiv = document.createElement('div'); sdiv.className = 'entry-note';
+          sdiv.innerHTML = `<span class="badge badge-success">✓ SETTLED</span> <small>Received from ${e.settledBy || 'Person'}</small>`;
+          left.appendChild(sdiv);
         }
 
         if (e.type === 'Transfer' && e.transfer) {
@@ -601,8 +760,20 @@
         }
 
         const right = document.createElement('div'); right.className = 'entry-right';
-        const amt = document.createElement('div'); amt.className = 'entry-amount ' + (e.type === 'Income' ? 'income' : (e.type === 'Transfer' ? '' : 'expense'));
-        amt.textContent = (e.type === 'Income' ? '+' : '-') + currencyFmt(e.amount || 0);
+        const amt = document.createElement('div');
+        amt.className = 'entry-amount ' + (e.type === 'Income' ? 'income' : (e.type === 'Transfer' ? '' : 'expense'));
+        if (e.isQuickDue && !e.isSettled) {
+          const isIOwe = e.quickDueType === 'i_owe';
+          // i_owe = red (money going out), they_owe = amber (pending recovery)
+          amt.style.color = isIOwe ? 'var(--danger)' : '#fbbf24';
+          amt.textContent = (isIOwe ? '-' : '') + currencyFmt(e.amount || 0);
+        } else if (e.isQuickDue && e.isSettled) {
+          const isIOwe = e.quickDueType === 'i_owe';
+          amt.style.color = isIOwe ? 'var(--muted)' : 'var(--success)';
+          amt.textContent = (isIOwe ? '-' : '+') + currencyFmt(e.amount || 0);
+        } else {
+          amt.textContent = (e.type === 'Income' ? '+' : '-') + currencyFmt(e.amount || 0);
+        }
         const edit = document.createElement('button'); edit.className = 'btn-small'; edit.innerHTML = `Edit`;
         edit.addEventListener('click', () => {
           if (window.MT && window.MT.entry && window.MT.entry.startEdit) {

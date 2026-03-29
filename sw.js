@@ -1,8 +1,8 @@
-const CACHE_NAME = 'ludarp-moneytracker-v2';
+const CACHE_NAME = 'ludarp-moneytracker-v24';
 const ASSETS = [
   './',
   './index.html',
-  './style.css',
+  './style.css?v=2',
   './manifest.webmanifest',
   './js/db.js',
   './js/security.js',

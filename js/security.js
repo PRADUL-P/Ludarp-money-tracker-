@@ -105,8 +105,10 @@
       }
     }
 
-    // Auto biometric unlock on load
-    if (user && user.biometricEnabled) {
+    // Auto biometric unlock or bypass lock completely
+    if (user && user.lockEnabled === false) {
+      setTimeout(() => enterApp(), 50); // slight delay to allow smooth init
+    } else if (user && user.biometricEnabled) {
       setTimeout(() => tryBiometricUnlock(user), 500);
     }
 
@@ -127,7 +129,8 @@
           name: authNameInput.value.trim() || 'User',
           password: pw,
           securityHint: authSecurityHintInput?.value.trim() || '',
-          biometricEnabled: false
+          biometricEnabled: false,
+          lockEnabled: true
         });
         enterApp();
         return;
@@ -190,6 +193,8 @@
       if (oldPw) oldPw.value = '';
       if (newPw) newPw.value = '';
       if (status) status.textContent = '';
+      const appLockToggle = document.getElementById('requireAppLockToggle');
+      if (appLockToggle) appLockToggle.checked = u.lockEnabled !== false;
     }
 
     function saveProfile() {
@@ -198,6 +203,8 @@
       u.name = nameField?.value.trim() || u.name;
       u.securityHint = hintField?.value.trim();
       u.bio = document.getElementById('userBio')?.value.trim() || '';
+      const appLockToggle = document.getElementById('requireAppLockToggle');
+      if (appLockToggle) u.lockEnabled = appLockToggle.checked;
       db.saveUser(u);
     }
 
@@ -242,6 +249,10 @@
     enableBioBtn?.addEventListener('click', registerBiometric);
     nameField.addEventListener('blur', saveProfile);
     hintField.addEventListener('blur', saveProfile);
+    document.getElementById('requireAppLockToggle')?.addEventListener('change', () => {
+      saveProfile();
+      window.MT.ui?.showToast('App lock setting updated');
+    });
 
     window.addEventListener('mt:view-changed', (e) => {
       if (e.detail?.viewName === 'user' || e.detail?.viewName === 'settings') {
