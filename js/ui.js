@@ -96,6 +96,33 @@
   /* ================= HELPERS ================= */
 
   function $id(id) { return document.getElementById(id); }
+  function launchConfetti() {
+    const container = document.createElement('div');
+    container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999999;';
+    document.body.appendChild(container);
+    const colors = ['#38bdf8', '#6366f1', '#a78bfa', '#10b981', '#fbbf24', '#f43f5e'];
+    for (let i = 0; i < 60; i++) {
+        const p = document.createElement('div');
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const size = Math.random() * 8 + 4;
+        p.style.cssText = `position:absolute;left:50%;top:50%;width:${size}px;height:${size}px;background:${color};border-radius:${Math.random() > 0.5 ? '50%' : '2px'};`;
+        container.appendChild(p);
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = Math.random() * 15 + 10;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        let x = 0, y = 0, grav = 0.5, op = 1;
+        const anim = () => {
+            x += vx; y += vy + grav; grav += 0.2; op -= 0.015;
+            p.style.transform = `translate(${x}px, ${y}px) rotate(${x*2}deg)`;
+            p.style.opacity = op;
+            if (op > 0) requestAnimationFrame(anim); else p.remove();
+        };
+        requestAnimationFrame(anim);
+    }
+    setTimeout(() => container.remove(), 2000);
+  }
+
   /* ================= EXPORT ================= */
   window.MT = window.MT || {};
   window.MT.ui = {
@@ -104,7 +131,8 @@
     applyTheme,
     loadTheme,
     $id,
-    showModal
+    showModal,
+    launchConfetti
   };
 
   /* ================= MODAL SYSTEM ================= */

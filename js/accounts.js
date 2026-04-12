@@ -320,8 +320,14 @@
   }
 
   /* ---------- INIT ---------- */
+  function getTotalBalance(month) {
+    if (!month) return 0;
+    const balances = getBankBalancesForMonth(month);
+    return Object.values(balances).reduce((sum, v) => sum + (Number(v) || 0), 0);
+  }
+
   window.MT = window.MT || {};
-  window.MT.accounts = { populateAccountsBanks, renderBankBalances };
+  window.MT.accounts = { populateAccountsBanks, renderBankBalances, getTotalBalance };
 
   window.addEventListener('mt:auth-entered', () => {
     populateAccountsBanks();

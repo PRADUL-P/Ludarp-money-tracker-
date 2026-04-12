@@ -150,10 +150,16 @@
         const sym = (window.MT.db.currencyFmt(0)).replace('0.00', '');
         let totalSpent = 0, totalLiters = 0, totalKm = 0;
 
+        // Grouping logic for month-wise spend
+        let lastMonthKey = null;
+
         // Render newest first for display
         const displayList = [...filtered].reverse();
-        displayList.forEach(e => {
-            // Find previous fill (from full sorted `all` list, not filtered)
+        
+        displayList.forEach((e, idx) => {
+            const currentMonthKey = e.dateStr.slice(0, 7); // "YYYY-MM"
+            
+            // If month changes, we could show a header (handled below)
             const origIdx = all.findIndex(x => x.dateStr === e.dateStr && x.id === e.id);
             const prev = origIdx > 0 ? all[origIdx - 1] : null;
             const prevKm = e.fuel.prevKm || (prev ? prev.fuel.currentKm : 0);
@@ -167,6 +173,23 @@
             totalLiters += liters;
             if (dist > 0) totalKm += dist;
 
+            // Monthly Header Injection
+            if (currentMonthKey !== lastMonthKey) {
+                const monthName = new Date(currentMonthKey + '-01T00:00:00').toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+                // Calculate total for THIS specific month in the displayList
+                const mTotal = displayList.filter(x => x.dateStr.startsWith(currentMonthKey)).reduce((sum, x) => sum + (x.amount || 0), 0);
+                
+                const monthHeader = document.createElement('div');
+                monthHeader.className = 'month-divider';
+                monthHeader.style.cssText = 'margin: 16px 0 10px 0; padding: 8px 12px; background: rgba(234,179,8,0.1); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px dashed var(--warning);';
+                monthHeader.innerHTML = `
+                  <span style="font-weight:800; color:var(--warning); font-size:13px; text-transform:uppercase;">📅 ${monthName}</span>
+                  <span style="font-weight:700; color:var(--text); font-size:12px;">Monthly: ${sym}${mTotal.toFixed(0)}</span>
+                `;
+                list.appendChild(monthHeader);
+                lastMonthKey = currentMonthKey;
+            }
+
             const card = document.createElement('div');
             card.className = 'entry';
             card.style.cssText = 'margin-bottom:8px; padding:12px; border-left:3px solid var(--warning);';
@@ -177,6 +200,7 @@
                   <span>🛵 ODO: <b>${e.fuel.currentKm} km</b></span>
                   <span>📏 Run: <b>${dist > 0 ? dist + ' km' : '–'}</b></span>
                   ${liters > 0 ? `<span>💧 <b>${liters} L</b></span>` : ''}
+                  ${e.fuel.price ? `<span>💰 Rate: <b>${sym}${e.fuel.price}/L</b></span>` : ''}
                   <span style="color:var(--success);">📊 <b>${mileage} km/L</b></span>
                   ${costPKm !== '–' ? `<span>💸 <b>${sym}${costPKm}/km</b></span>` : ''}
                 </div>
@@ -216,7 +240,23 @@
         }
 
         if (summaryLine) {
-            summaryLine.innerHTML = `${sym}${totalSpent.toFixed(0)} total spent`;
+            let label = 'all time';
+            if (mVal) {
+                const d = new Date(mVal + '-01T00:00:00');
+                label = d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+            } else if (yVal) {
+                label = yVal;
+            }
+            summaryLine.innerHTML = `<span style="text-transform:capitalize;">${label}</span> total spent: <b>${sym}${totalSpent.toFixed(0)}</b>`;
+        }
+    }
+
+    /* ---- Set initial Petrol filter to current month ---- */
+    function setInitialPetrolFilter() {
+        const monthFilter = document.getElementById('petrolMonthFilter');
+        if (monthFilter && !monthFilter.value) {
+            const now = new Date();
+            monthFilter.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         }
     }
 
@@ -307,6 +347,7 @@
 
         const now = new Date();
         if (DOM.monthFilter) DOM.monthFilter.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        setInitialPetrolFilter(); // Default petrol log to current month
         initFinanceTabs();
         renderStatement();
     }

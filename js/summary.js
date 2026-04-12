@@ -22,9 +22,16 @@
     splitOutstandingEl: document.getElementById('splitOutstanding'),
     avgDailySpendEl: document.getElementById('avgDailySpend'),
     vsLastMonthEl: document.getElementById('vsLastMonth'),
+    totalIOweEl: document.getElementById('totalIOwe'),
+    trueBalanceValueEl: document.getElementById('trueBalanceValue'),
     rowsPerPageSelect: document.getElementById('rowsPerPage'),
     summarySearchInput: document.getElementById('summarySearch'),
     summaryExportBtn: document.getElementById('summaryExportBtn'),
+    insightsListEl: document.getElementById('insightsList'),
+    heatmapCardEl: document.getElementById('heatmapCard'),
+    heatmapGridEl: document.getElementById('heatmapGrid'),
+    searchScopeEl: document.getElementById('searchScope'),
+    badgeListEl: document.getElementById('badgeList'),
   };
 
   // Safe store loader (expects global loadStore)
@@ -141,7 +148,13 @@
     const yearVal = DOM.yearPicker ? DOM.yearPicker.value : '';
     const dayVal = document.getElementById('dayPicker') ? document.getElementById('dayPicker').value : null;
 
+    const searchQuery = (DOM.summarySearchInput?.value || '').toLowerCase().trim();
+    const searchScope = DOM.searchScopeEl ? DOM.searchScopeEl.value : 'month';
+
     let filtered = arr.filter(e => {
+      // If Global search is active and user has typed, bypass time filters
+      if (searchScope === 'global' && searchQuery.length >= 2) return true;
+      
       if (mode === 'month' && monthVal) return e.dateStr.startsWith(monthVal);
       if (mode === 'year' && yearVal) return e.dateStr.startsWith(String(yearVal) + '-');
       if (mode === 'day' && dayVal) return e.dateStr === dayVal;
@@ -179,7 +192,6 @@
     }
     
     // -- SEARCH FILTER --
-    const searchQuery = (DOM.summarySearchInput?.value || '').toLowerCase().trim();
     if (searchQuery) {
       filtered = filtered.filter(e => 
         (e.description || '').toLowerCase().includes(searchQuery) ||
@@ -190,7 +202,7 @@
     }
 
     // totals + category totals + daily totals for trend
-    let totalExp = 0, totalInc = 0, splitOutstanding = 0;
+    let totalExp = 0, totalInc = 0, totalOweMe = 0, totalIOwe = 0;
     const categoryTotals = {};
     const dailyTotals = {};
     const monthlyTotals = {};
@@ -199,15 +211,14 @@
       let isSettlement = !!e.isDueSettlement;
       
       if (e.type === 'Income') {
-           if (!isSettlement) totalInc += Number(e.amount || 0); // Exclude settlement flow from real Income metric
+           if (!isSettlement) totalInc += Number(e.amount || 0);
       }
       else if (e.type === 'Transfer') { }
       else {
-       // Use true budget deficit (myShare) instead of gross outflow for accurate metric charts
            let effectiveAmount = Number(e.amount || 0);
            if (e.split && e.split.enabled) effectiveAmount = Number(e.split.myShare || 0);
-           else if (e.isQuickDue && e.quickDueType !== 'i_owe') effectiveAmount = 0; // they_owe = don't count as expense (pending income)
-           // i_owe entries: count full amount as expense (you paid this out)
+           else if (e.isQuickDue && e.quickDueType !== 'i_owe') effectiveAmount = 0; 
+           
            totalExp += effectiveAmount;
            
            const cat = e.category || 'Uncategorized';
@@ -218,15 +229,28 @@
            monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + effectiveAmount;
       }
 
+      // --- Dues Logic ---
       if (e.split && e.split.enabled) {
         const notReceived = e.split.participants.filter(p => !p.received).reduce((a, p) => a + (p.amount || 0), 0);
-        splitOutstanding += notReceived;
+        totalOweMe += notReceived;
+      } else if (e.isQuickDue && !e.isSettled) {
+        if (e.quickDueType === 'they_owe') totalOweMe += Number(e.amount || 0);
+        else if (e.quickDueType === 'i_owe') totalIOwe += Number(e.amount || 0);
       }
     });
 
     if (DOM.monthSumExpenseEl) DOM.monthSumExpenseEl.textContent = currencyFmt(totalExp);
     if (DOM.monthSumIncomeEl) DOM.monthSumIncomeEl.textContent = currencyFmt(totalInc);
-    if (DOM.splitOutstandingEl) DOM.splitOutstandingEl.textContent = currencyFmt(splitOutstanding);
+    if (DOM.splitOutstandingEl) DOM.splitOutstandingEl.textContent = currencyFmt(totalOweMe);
+    if (DOM.totalIOweEl) DOM.totalIOweEl.textContent = currencyFmt(totalIOwe);
+
+    // --- TRUE BALANCE CALCULATOR ---
+    if (DOM.trueBalanceValueEl) {
+        const currentMonth = mode === 'month' ? monthVal : ((window.MT?.db?.todayISO ? window.MT.db.todayISO() : new Date().toISOString()).slice(0, 7));
+        const bankTotal = window.MT?.accounts?.getTotalBalance ? window.MT.accounts.getTotalBalance(currentMonth) : 0;
+        const netWorth = bankTotal + totalOweMe - totalIOwe;
+        DOM.trueBalanceValueEl.textContent = currencyFmt(netWorth);
+    }
 
     // Advanced Insight: Avg Daily Spend
     if (DOM.avgDailySpendEl) {
@@ -281,6 +305,150 @@
         DOM.vsLastMonthEl.parentElement.style.display = 'none';
       }
     }
+
+    renderHeatmap(dailyTotals, mode, monthVal);
+    renderInsights(filtered, totalExp, totalInc, mode === 'month' ? monthVal : '');
+    renderAchievements(arr);
+  }
+
+  function renderAchievements(arr) {
+    if (!DOM.badgeListEl) return;
+    DOM.badgeListEl.innerHTML = '';
+    const badges = [];
+    
+    // 1. Streak Badge
+    const uniqueDates = Array.from(new Set(arr.map(e => e.dateStr))).sort().reverse();
+    let streak = 0;
+    const todayISO = (window.MT?.db?.todayISO ? window.MT.db.todayISO() : new Date().toISOString().slice(0, 10));
+    if (uniqueDates[0] === todayISO) {
+        streak = 1;
+        for (let i = 1; i < uniqueDates.length; i++) {
+           const d = new Date(uniqueDates[i-1]);
+           d.setDate(d.getDate() - 1);
+           if (uniqueDates[i] === d.toISOString().slice(0, 10)) streak++;
+           else break;
+        }
+    }
+    if (streak >= 7) {
+        badges.push({ icon: '🔥', label: `${streak}d Streak`, color: '#f97316' });
+        // Bonus: First time streak confetti logic could go here or in store logic
+    }
+
+    // 2. High Saver Badge
+    const thisMonth = todayISO.slice(0, 7);
+    const mEntries = arr.filter(e => e.dateStr.startsWith(thisMonth));
+    let mExp = 0, mInc = 0;
+    mEntries.forEach(e => {
+        if (e.type === 'Income') mInc += Number(e.amount || 0);
+        else if (e.type === 'Expense') mExp += Number(e.amount || 0);
+    });
+    if (mInc > 0 && (mExp / mInc) < 0.4) {
+        badges.push({ icon: '💰', label: 'Super Saver', color: '#10b981' });
+    }
+
+    // 3. Veteran Tracker
+    if (arr.length > 100) badges.push({ icon: '🎓', label: 'Finance Pro', color: '#6366f1' });
+
+    if (badges.length === 0) {
+        DOM.badgeListEl.innerHTML = '<div class="info" style="font-size:11px;">Track more to earn badges!</div>';
+        return;
+    }
+
+    DOM.badgeListEl.innerHTML = badges.map(b => `
+        <div class="badge-item" style="flex:0 0 auto; display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:30px; background:rgba(255,255,255,0.05); border:1px solid ${b.color}44;">
+            <span style="font-size:14px;">${b.icon}</span>
+            <span style="font-size:11px; font-weight:700; color:${b.color}; white-space:nowrap;">${b.label}</span>
+        </div>
+    `).join('');
+  }
+
+  function renderHeatmap(dailyTotals, mode, monthVal) {
+    if (!DOM.heatmapCardEl || !DOM.heatmapGridEl) return;
+    
+    if (mode !== 'month' || !monthVal) {
+        DOM.heatmapCardEl.style.display = 'none';
+        return;
+    }
+    
+    DOM.heatmapCardEl.style.display = 'block';
+    DOM.heatmapGridEl.innerHTML = '';
+    
+    const [y, m] = monthVal.split('-').map(Number);
+    const lastDay = new Date(y, m, 0).getDate();
+    
+    // Find max spend in this month for scaling
+    let max = 1;
+    for (let d = 1; d <= lastDay; d++) {
+        const key = `${monthVal}-${String(d).padStart(2, '0')}`;
+        max = Math.max(max, dailyTotals[key] || 0);
+    }
+    
+    // Render cells
+    for (let d = 1; d <= lastDay; d++) {
+        const key = `${monthVal}-${String(d).padStart(2, '0')}`;
+        const spend = dailyTotals[key] || 0;
+        const opacity = spend === 0 ? 0.03 : Math.max(0.1, spend / max);
+        
+        const cell = document.createElement('div');
+        cell.style.cssText = `
+            height:32px; 
+            border-radius:4px; 
+            background:rgba(244, 63, 94, ${opacity}); 
+            display:flex; 
+            align-items:center; 
+            justify-content:center; 
+            font-size:10px; 
+            font-weight:700;
+            color:${spend/max > 0.5 ? '#fff' : 'var(--text-secondary)'};
+            cursor: help;
+        `;
+        cell.title = `${key}: ${currencyFmt(spend)}`;
+        cell.textContent = d;
+        DOM.heatmapGridEl.appendChild(cell);
+    }
+  }
+
+  function renderInsights(filtered, totalExp, totalInc, monthVal) {
+    if (!DOM.insightsListEl) return;
+    DOM.insightsListEl.innerHTML = '';
+    
+    if (filtered.length === 0) {
+        DOM.insightsListEl.innerHTML = '<div class="info" style="font-size:12px;">No data for insights yet.</div>';
+        return;
+    }
+
+    const insights = [];
+    
+    // 1. Top Category
+    const categoryTotals = {};
+    filtered.forEach(e => {
+        if (e.type !== 'Income' && e.type !== 'Transfer') {
+            const c = e.category || 'Uncategorized';
+            categoryTotals[c] = (categoryTotals[c] || 0) + (e.amount || 0);
+        }
+    });
+    const sortedCats = Object.entries(categoryTotals).sort((a,b) => b[1] - a[1]);
+    if (sortedCats.length > 0) {
+        insights.push(`👑 Your biggest expense is <strong>${sortedCats[0][0]}</strong> (${currencyFmt(sortedCats[0][1])}).`);
+    }
+
+    // 2. Income vs Expense ratio
+    if (totalInc > 0) {
+        const pct = (totalExp / totalInc) * 100;
+        if (pct < 50) insights.push(`📈 Excellent! You spent only <strong>${pct.toFixed(0)}%</strong> of your income.`);
+        else if (pct > 100) insights.push(`⚠️ Caution: You spent <strong>${(pct-100).toFixed(0)}% more</strong> than you earned.`);
+    }
+
+    // 3. Frequency insight
+    const count = filtered.filter(e => e.type !== 'Income').length;
+    if (count > 20) insights.push(`📱 You log transactions very frequently (<strong>${count}</strong> entries). Good tracking habit!`);
+
+    DOM.insightsListEl.innerHTML = insights.map(i => `
+        <div style="padding:8px 0; border-bottom:1px solid var(--card-border); font-size:12px; color:var(--text-secondary); display:flex; align-items:flex-start; gap:8px;">
+            <span>💡</span>
+            <div style="flex:1;">${i}</div>
+        </div>
+    `).join('') || '<div class="info">Keep logging to see smart patterns!</div>';
   }
 
 

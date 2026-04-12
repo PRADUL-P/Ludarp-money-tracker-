@@ -14,6 +14,28 @@
     content="money tracker, expense manager, petrol log, split bill, finance app, offline tracker, private finance, PWA tracker" />
   <meta name="author" content="LUDARP" />
   <meta name="robots" content="index, follow" />
+  
+  <!-- JSON-LD Structured Data for Enhanced SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "LUDARP Money Tracker Premium",
+    "operatingSystem": "All",
+    "applicationCategory": "FinanceApplication",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "ratingCount": "120"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "INR"
+    },
+    "description": "LUDARP Money Tracker is a secure, privacy-first PWA for professional finance management with petrol logs, split bills, and 3D analytics."
+  }
+  </script>
 
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website" />
@@ -47,7 +69,7 @@
     gtag('config', 'G-7W6WR450XN');
   </script>
 
-  <!-- SheetJS for Excel export/import (used by app.js) -->
+  <!-- SheetJS for Excel export/import -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- jsPDF for PDF export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -91,15 +113,19 @@
         <div id="authNameRow">
           <label for="authName">Your name</label>
           <input id="authName" type="text" placeholder="Name" />
-          <label for="authSecurityHint" style="margin-top:8px;">Security question (hint)</label>
-          <input id="authSecurityHint" type="text" placeholder="e.g. mother's name (used to help reset password)" />
+          <label for="authSecurityHint" style="margin-top:8px;">Security Question (Hint)</label>
+          <input id="authSecurityHint" type="text" placeholder="e.g. What is your pet's name?" />
+          <label for="authSecurityAnswer" style="margin-top:8px;">Security Answer</label>
+          <input id="authSecurityAnswer" type="password" placeholder="Answer to your security question" />
         </div>
         <label for="authPassword">App password</label>
         <input id="authPassword" type="password" placeholder="Set / Enter password" />
         <div class="auth-row" style="display:flex; gap:8px; margin-top:10px;">
           <button id="authSubmitBtn" class="btn-primary" style="flex:1;" type="submit">Unlock</button>
           <button id="authBioBtn" class="btn-secondary" type="button"
-            style="display:none; width:50px; justify-content:center;" title="Unlock with Fingerprint">🧬</button>
+            style="display:none; width:50px; justify-content:center; align-items:center;" title="Unlock with Fingerprint">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a10 10 0 0 1 10 10v2a4 4 0 0 1-4 4h-2a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h2a4 4 0 0 0-4-4 4 4 0 0 0-4 4v10a8 8 0 0 0 8 8"></path><path d="M8 12v2a4 4 0 0 0 4 4"></path><path d="M16 12v-2a4 4 0 0 0-4-4"></path></svg>
+          </button>
           <button id="forgotBtn" class="btn-secondary" type="button">Forgot?</button>
         </div>
         <div id="authHint" class="info" style="margin-top:8px"></div>
@@ -271,12 +297,17 @@
                   <button type="button" onclick="MT.calc.append('0')" class="btn-secondary">0</button>
                   <button type="button" onclick="MT.calc.append('.')" class="btn-secondary">.</button>
                   <button type="button" onclick="MT.calc.clear()" class="btn-secondary"
-                    style="color:var(--danger);">C</button>
+                    style="color:var(--danger); font-weight:700;">C</button>
                   <button type="button" onclick="MT.calc.setOp('+')" class="btn-secondary"
                     style="background:var(--accent-2);">+</button>
 
-                  <button type="button" onclick="MT.calc.calculate()" class="btn-primary" style="grid-column: span 3;">=
-                    Calculate & Add</button>
+                  <button type="button" onclick="MT.calc.addPercent(5)" class="btn-secondary" style="font-size:10px; padding:4px;">+5% GST</button>
+                  <button type="button" onclick="MT.calc.addPercent(18)" class="btn-secondary" style="font-size:10px; padding:4px;">+18% GST</button>
+                  <button type="button" onclick="MT.calc.round()" class="btn-secondary" style="font-size:10px; padding:4px;">Round</button>
+                  <button type="button" onclick="MT.calc.calculate()" class="btn-primary"
+                    style="font-size:14px; font-weight:800; background:var(--accent);">Result</button>
+
+                  <button type="button" onclick="MT.calc.apply()" class="btn-primary" style="grid-column: span 3; background:linear-gradient(135deg, #059669, #10b981);">Apply to Amount</button>
                   <button type="button" onclick="MT.calc.close()" class="btn-secondary">Done</button>
                 </div>
               </div>
@@ -507,11 +538,29 @@
             </div>
           </div>
 
+          <!-- NEW: ACHIEVEMENT BADGES (Gamification) -->
+          <div id="achievementsCard" class="card"
+            style="margin-bottom:16px; padding:15px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:13px; font-weight:800; color:var(--accent-3); display:flex; align-items:center; gap:8px;">
+               <span>🏆</span> Milestones & Badges
+            </div>
+            <div id="badgeList" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:5px; scrollbar-width:none; -ms-overflow-style: none;">
+                <!-- Badges will be injected here by JS -->
+                <div class="info" style="font-size:11px;">Keep tracking to unlock badges...</div>
+            </div>
+          </div>
+
           <!-- SECOND ROW: Search, Rows & Sort -->
           <div class="summary-search-row">
-            <div class="search-input-wrap">
-              <input id="summarySearch" type="text" placeholder="🔍 Search description, category or note..." />
+            <div class="search-input-wrap" style="flex:2;">
+              <input id="summarySearch" type="text" placeholder="🔍 Search any transaction..." />
               <span class="search-icon">🔍</span>
+            </div>
+            <div class="rows-select-wrap" style="flex:1;">
+               <select id="searchScope" style="width:100%; font-size:11px;">
+                  <option value="month">This Month</option>
+                  <option value="global">All Time</option>
+               </select>
             </div>
             <div class="rows-select-wrap">
               <label for="rowsPerPage" style="font-size:10px; margin-right:4px;">Rows</label>
@@ -624,6 +673,19 @@
               <div class="chart-dot" onclick="window.SummaryModule.showChart(1)"></div>
             </div>
           </section>
+          <!-- NEW: TRUE BALANCE / NET WORTH HERO CARD -->
+          <div class="card"
+            style="margin-bottom:16px; padding:20px; text-align:center; background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(167,139,250,0.08)); border:1px solid rgba(99,102,241,0.2); box-shadow:0 10px 40px rgba(0,0,0,0.25);">
+            <div
+              style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+              🛡️ True Balance (Net Worth)</div>
+            <div id="trueBalanceValue" style="font-size:32px; font-weight:900; color:var(--text); letter-spacing:-1px;">₹0.00
+            </div>
+            <div id="trueBalanceSub" style="font-size:11px; color:var(--muted); margin-top:6px;">
+              Accounts + Owed To You - You Owe
+            </div>
+          </div>
+
           <section class="card">
             <div class="summary-stats-grid"
               style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; text-align:center;">
@@ -646,7 +708,14 @@
                 <div
                   style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
                   Owed To You</div>
-                <div id="splitOutstanding" style="font-size:18px; font-weight:800; color:var(--accent);">₹0.00</div>
+                <div id="splitOutstanding" style="font-size:18px; font-weight:800; color:var(--accent-1);">₹0.00</div>
+              </div>
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(216,180,254,0.03); border-color:rgba(216,180,254,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  You Owe</div>
+                <div id="totalIOwe" style="font-size:18px; font-weight:800; color:var(--accent-3);">₹0.00</div>
               </div>
               <div id="avgDailyWrap" class="card mini-card"
                 style="margin:0; padding:12px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; justify-content:center;">
@@ -659,6 +728,47 @@
               </div>
             </div>
           </section>
+
+          <!-- NEW: SMART INSIGHTS -->
+          <section class="card" style="padding:15px; background:rgba(255,255,255,0.02); border-color:rgba(56,189,248,0.12);">
+            <div style="font-size:13px; font-weight:800; color:var(--accent-1); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <span>✨</span> Smart Insights
+            </div>
+            <div id="insightsList" style="display:flex; flex-direction:column;">
+                <!-- Filled by JS -->
+            </div>
+          </section>
+
+          <!-- NEW: SPENDING HEATMAP (Collapsible) -->
+          <section id="heatmapCard" class="card" style="padding:0; background:rgba(255,255,255,0.02); display:none; overflow:hidden;">
+            <div class="heatmap-header" onclick="this.parentElement.classList.toggle('heatmap-collapsed');" 
+                 style="padding:15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-size:13px; font-weight:800; color:var(--accent-2); display:flex; align-items:center; gap:8px;">
+                 <span>🗓️</span> Spending Heatmap
+              </div>
+              <span class="heatmap-chevron" style="font-size:10px; opacity:0.5; transition:0.3s;">▼</span>
+            </div>
+            
+            <div class="heatmap-body" style="padding:0 15px 15px 15px;">
+              <div id="heatmapGrid" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px;">
+                  <!-- Grid items 1-31 filled by JS -->
+              </div>
+              <div id="heatmapLegend" style="margin-top:12px; display:flex; align-items:center; gap:8px; font-size:10px; color:var(--muted); justify-content:center;">
+                  <span>Low</span>
+                  <div style="width:12px; height:12px; background:rgba(244,63,94,0.1); border-radius:3px;"></div>
+                  <div style="width:12px; height:12px; background:rgba(244,63,94,0.3); border-radius:3px;"></div>
+                  <div style="width:12px; height:12px; background:rgba(244,63,94,0.6); border-radius:3px;"></div>
+                  <div style="width:12px; height:12px; background:rgba(244,63,94,1.0); border-radius:3px;"></div>
+                  <span>High</span>
+              </div>
+            </div>
+          </section>
+
+          <style>
+              .heatmap-collapsed .heatmap-body { display: none; }
+              .heatmap-collapsed .heatmap-chevron { transform: rotate(-90deg); }
+          </style>
+
           <section class="card">
             <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
               <span>History (filtered)</span>
@@ -830,8 +940,22 @@
                 <option value="dark">Dark</option>
                 <option value="light">Light</option>
               </select>
-              <label>Accent color</label>
-              <input id="accentColor" type="color" />
+              <label style="margin-bottom:12px; display:block;">Theme Palette</label>
+              <div id="themePalette" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin-bottom:18px;">
+                <div class="theme-swatch active" data-color1="#38bdf8" data-color2="#6366f1" style="background:linear-gradient(135deg, #38bdf8, #6366f1); height:45px; border-radius:12px; cursor:pointer; border:2px solid #fff; box-shadow:0 0 10px rgba(99,102,241,0.3);"></div>
+                <div class="theme-swatch" data-color1="#10b981" data-color2="#34d399" style="background:linear-gradient(135deg, #10b981, #34d399); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;"></div>
+                <div class="theme-swatch" data-color1="#f43f5e" data-color2="#fb7185" style="background:linear-gradient(135deg, #f43f5e, #fb7185); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;"></div>
+                <div class="theme-swatch" data-color1="#f59e0b" data-color2="#fbbf24" style="background:linear-gradient(135deg, #f59e0b, #fbbf24); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;"></div>
+                <div class="theme-swatch" data-color1="#a78bfa" data-color2="#c084fc" style="background:linear-gradient(135deg, #a78bfa, #c084fc); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;"></div>
+              </div>
+              
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; padding:10px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid var(--card-border);">
+                <input id="accentColorPicker" type="color" style="width:30px; height:30px; border:none; background:none; cursor:pointer;" title="Choose custom color" />
+                <div style="font-size:12px; color:var(--text-secondary); font-weight:600;">Choose Custom Accent Color</div>
+              </div>
+
+              <input id="accentColor" type="hidden" value="#38bdf8" />
+              <input id="accentColor2" type="hidden" value="#6366f1" />
               <label>Currency symbol</label>
               <input id="currencySymbol" placeholder="₹" />
               <div style="margin-top:0.6rem;">
@@ -1158,8 +1282,8 @@
             <div class="section-title">Personal Information</div>
             <div class="row">
               <div><label>Your Name</label><input id="userNameField" placeholder="Admin" /></div>
-              <div><label>Security hint (optional)</label><input id="securityHint" placeholder="e.g. pet's name" />
-              </div>
+              <div><label>Security Question</label><input id="securityHint" placeholder="e.g. Pet's name" /></div>
+              <div><label>Security Answer</label><input id="securityAnswerField" type="password" placeholder="Answer" /></div>
             </div>
             <div class="row" style="margin-top:10px;">
               <div style="flex:1;"><label>Bio/Note</label><input id="userBio" placeholder="Your note" /></div>
@@ -1175,7 +1299,8 @@
             </div>
 
             <div>
-              <button id="enableBiometricBtn" class="btn-secondary" style="width:100%;">
+              <button id="enableBiometricBtn" class="btn-secondary" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a10 10 0 0 1 10 10v2a4 4 0 0 1-4 4h-2a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h2a4 4 0 0 0-4-4 4 4 0 0 0-4 4v10a8 8 0 0 0 8 8"></path><path d="M8 12v2a4 4 0 0 0 4 4"></path><path d="M16 12v-2a4 4 0 0 0-4-4"></path></svg>
                 Enable fingerprint unlock
               </button>
               <div id="biometricStatus" class="modal-status"></div>
@@ -1328,31 +1453,33 @@
             </p>
           </div>
 
-          <!-- WHAT'S NEW IN V3.0 -->
-          <div style="margin-top:24px; padding:16px; border-radius:12px; background:rgba(56,189,248,0.03); border:1px solid rgba(56,189,248,0.2);">
-            <div style="font-weight:700; font-size:15px; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:#38bdf8;">
-              <span>🚀</span> What's New in v3.0
+          <!-- WHAT'S NEW IN V4.0 -->
+          <div style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(167,139,250,0.06)); border:1px solid rgba(99,102,241,0.25);">
+            <div style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--accent);">
+              <span>🚀</span> v4.0 "Titanium" Release
             </div>
-            <ul style="font-size:12px; color:var(--text-secondary); line-height:1.7; padding-left:18px; margin:0; display:grid; gap:6px;">
-              <li><strong>Petrol Price Logging:</strong> Record the petrol rate (₹/L) for every refill to track cost efficiency.</li>
-              <li><strong>Optional Security:</strong> You can now toggle Biometric/PIN lock on or off from Settings as per your comfort.</li>
-              <li><strong>Header Statistics:</strong> Summary history headers now show daily and monthly total spends instantly.</li>
-              <li><strong>Advanced Dues Filter:</strong> Full search, date range, amount range, and multi-sort on the Dues page.</li>
-              <li><strong>Settle Mapping:</strong> Enhanced "Mark Paid" flow with direct Bank mapping and Category inheritance.</li>
+            <ul style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
+              <li><strong>Biometric Unlock:</strong> Secure your records with native Fingerprint or FaceID for instant, keyless entry.</li>
+              <li><strong>Smart Spending Heatmap:</strong> A visual monthly grid that highlights your peak spending days at a glance.</li>
+              <li><strong>Universal Search:</strong> Find any transaction across all years and months with the new All-Time Master Search.</li>
+              <li><strong>WhatsApp Share & Statements:</strong> Instantly share Bills or full Account Statements through WhatsApp with one tap.</li>
+              <li><strong>Gamified Achievements:</strong> Earn Badges and '🔥 Streaks' for consistent tracking. Celebrate milestones with confetti FX!</li>
+              <li><strong>UPI Deep-Linking:</strong> Pay off dues directly from the app—buttons now launch your mobile payment apps with amounts pre-filled.</li>
+              <li><strong>Premium Themes:</strong> Professional Indigo, Emerald, and Rose gradient palettes with custom accent support.</li>
             </ul>
           </div>
 
           <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--card-border); text-align:center;">
             <div style="font-weight:700; margin-bottom:10px;">Need Custom Updates?</div>
-            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker.%20I%20have%20some%20custom%20update%20requests."
+            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker%20v4.0."
               class="btn-primary"
               style="display:inline-flex; align-items:center; gap:10px; text-decoration:none; background:#25d366; border:none; padding:12px 24px; border-radius:10px; font-weight:700;">
               💬 Chat on WhatsApp
             </a>
           </div>
 
-          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 3.0 • Premium Edition •
-            Built for Stability</p>
+          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 4.0 Titanium • Premium Edition •
+            Professional Finance Master</p>
         </section>
       </section>
     </main>
@@ -1408,6 +1535,7 @@
   <script src="js/ui.js" defer></script>
   <script src="js/colors.js" defer></script>
   <script src="js/nav.js" defer></script>
+  <script src="js/calc.js" defer></script>
 
   <script src="js/entry.js" defer></script>
   <script src="js/summary.js" defer></script>

@@ -41,7 +41,8 @@ function saveCustom(c){ localStorage.setItem(CUSTOM_KEY, JSON.stringify(c)); app
 
 function applyCustom() {
     const c = loadCustom();
-    if (c.accent) document.documentElement.style.setProperty('--accent', c.accent);
+    if (c.accent) document.documentElement.style.setProperty('--accent-1', c.accent);
+    if (c.accent2) document.documentElement.style.setProperty('--accent-2', c.accent2);
 }
 
 // small util formatters used broadly

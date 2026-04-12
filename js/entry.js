@@ -639,9 +639,9 @@
           ui.showToast('Selected: They Owe (Linked to Split)', 'success');
       } else {
           // "I Owe" logic
-          if (document.getElementById('type')) document.getElementById('type').value = 'Income';
+          if (document.getElementById('type')) document.getElementById('type').value = 'Expense';
           document.querySelectorAll('#type-pills button').forEach(b => {
-              b.classList.toggle('active', b.dataset.value === 'Income');
+              b.classList.toggle('active', b.dataset.value === 'Expense');
           });
 
           if (isGroupCheckbox) {
@@ -769,60 +769,6 @@
 
   // Re-render whenever entries are changed globally
   window.addEventListener('mt:entries-changed', renderEntries);
-
-  // --- 🧮 Mini Calculator Logic ---
-  let calcInput = '0';
-  let calcOp = null;
-  let calcPrev = null;
-  const cDisp = document.getElementById('calcDisplay');
-  const mCalc = document.getElementById('miniCalc');
-  const btnCT = document.getElementById('btnCalcToggle');
-
-  function updateCalc() { if (cDisp) cDisp.textContent = calcInput; }
-
-  window.MT = window.MT || {};
-  window.MT.calc = {
-      append: (v) => {
-          if (calcInput === '0' && v !== '.') calcInput = v;
-          else calcInput += v;
-          updateCalc();
-      },
-      setOp: (op) => {
-          calcPrev = parseFloat(calcInput);
-          calcOp = op;
-          calcInput = '0';
-          updateCalc();
-      },
-      clear: () => { calcInput = '0'; calcOp = null; calcPrev = null; updateCalc(); },
-      calculate: () => {
-          const cur = parseFloat(calcInput);
-          if (calcPrev !== null && calcOp) {
-              let res = 0;
-              if (calcOp === '+') res = calcPrev + cur;
-              if (calcOp === '-') res = calcPrev - cur;
-              if (calcOp === '*') res = calcPrev * cur;
-              if (calcOp === '/') res = calcPrev / (cur || 1);
-              calcInput = res.toFixed(2).replace(/\.00$/, '');
-              updateCalc();
-              calcOp = null;
-              calcPrev = null;
-              // Auto fill the amount input
-              if (amountEl) amountEl.value = calcInput;
-          }
-      },
-      close: () => { if (mCalc) mCalc.style.display = 'none'; },
-      toggle: () => { 
-          if (!mCalc) return;
-          const isOff = mCalc.style.display === 'none';
-          mCalc.style.display = isOff ? 'block' : 'none';
-          if (isOff && amountEl && amountEl.value) {
-              calcInput = amountEl.value;
-              updateCalc();
-          }
-      }
-  };
-
-  btnCT?.addEventListener('click', () => window.MT.calc.toggle());
 
   // Init presets
   renderPresets();

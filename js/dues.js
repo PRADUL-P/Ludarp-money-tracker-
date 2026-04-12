@@ -205,8 +205,21 @@
             <div class="dues-person-header">
               <div class="dues-person-avatar">${person.charAt(0).toUpperCase()}</div>
               <div class="dues-person-name">${person}</div>
-              <div class="dues-person-net ${personTotal >= 0 ? 'net-pos' : 'net-neg'}">
-                ${personTotal >= 0 ? '+' : ''}${fmt(personTotal)}
+              <div style="flex:1; display:flex; justify-content:flex-end; align-items:center; gap:8px;">
+                ${personTotal !== 0 ? `
+                  <button class="btn-small" style="font-size:10px; color:var(--accent); border-color:var(--accent); padding:2px 8px;" 
+                    onclick="window.MT.dues.showSettleAll('${person.replace(/'/g, "\\'")}')">
+                    ✓ Settle All
+                  </button>
+                ` : ''}
+                <div class="dues-person-net ${personTotal >= 0 ? 'net-pos' : 'net-neg'}">
+                  ${personTotal >= 0 ? '+' : ''}${fmt(personTotal)}
+                </div>
+                <button class="btn-small" style="padding:6px; opacity:0.7; display:flex; align-items:center;" title="Share Summary"
+                    onclick="window.MT.dues.sharePersonSummary('${person.replace(/'/g, "\\'")}')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                </button>
+              </div>
               </div>
             </div>
 
@@ -234,9 +247,19 @@
                     </div>
                     ${!due.paid ? `
                       <div class="due-item-actions">
+                        ${!due.paid && due.type === 'i_owe' ? `
+                          <a href="upi://pay?pn=${due.person}&am=${due.amount}&cu=INR&tn=${due.description || 'Due'}" 
+                             class="due-pay-btn" style="text-decoration:none; padding-top:10px;" title="Open UPI app">
+                            ⚡ Pay
+                          </a>
+                        ` : ''}
                         <button class="due-pay-btn" title="Mark as ${due.type === 'i_owe' ? 'paid' : 'received'}"
                           onclick="window.MT.dues.markPaid('${due.id}')">
                           ${due.type === 'i_owe' ? '✓ Paid' : '✓ Received'}
+                        </button>
+                        <button class="due-del-btn" title="Share Bill" style="display:flex; align-items:center; justify-content:center;"
+                          onclick="window.MT.dues.shareDueItem('${due.id}')">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                         </button>
                         <button class="due-del-btn" title="Delete"
                           onclick="window.MT.dues.deleteDue('${due.id}')">✕</button>
@@ -368,7 +391,7 @@
        store.days[date].push({
           id: `due_history_${Date.now()}`,
           dateStr: date,
-          type: activeTab === 'i_owe' ? 'Income' : 'Expense',
+          type: 'Expense', // Always Expense as requested
           description: desc,
           category: activeTab === 'i_owe' ? 'Debt' : 'Loan',
           payMethod: 'Cash',
@@ -602,6 +625,82 @@
     renderDuesView();
   }
 
+  /* ---- BATCH SETTLE ---- */
+  function showSettleAll(person) {
+    // Find the header div for this person
+    const allHeaders = document.querySelectorAll('.dues-person-group');
+    let targetGroup = null;
+    allHeaders.forEach(h => {
+        if (h.querySelector('.dues-person-name')?.textContent === person) targetGroup = h;
+    });
+    if (!targetGroup) return;
+
+    // Avoid duplicates
+    if (targetGroup.querySelector('.settle-all-panel')) {
+      targetGroup.querySelector('.settle-all-panel').remove();
+      return;
+    }
+
+    const banks = window.MT.db?.loadStore()?.settings?.banks || ['Cash'];
+    const panel = document.createElement('div');
+    panel.className = 'settle-all-panel';
+    panel.style.cssText = `
+      background: var(--card-hover); border: 1px solid var(--accent);
+      border-radius: 10px; padding: 14px; margin: 10px 0; border-left: 4px solid var(--accent);
+    `;
+    panel.innerHTML = `
+      <div style="font-size:12px; font-weight:700; margin-bottom:10px; color:var(--accent); display:flex; justify-content:space-between;">
+        <span>🤝 Settle All Dues for ${person}</span>
+        <span style="opacity:0.6;">Batch Action</span>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+        <div style="flex:1; min-width:140px;">
+          <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">Account</label>
+          <select id="settleAllBank" style="width:100%;">
+            ${banks.map(b => `<option value="${b}">${b}</option>`).join('')}
+          </select>
+        </div>
+        <div style="flex:1; min-width:140px;">
+          <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">Date</label>
+          <input id="settleAllDate" type="date" value="${todayISO()}" style="width:100%;" />
+        </div>
+        <button id="settleAllConfirm" class="btn-primary" style="height:38px; padding:0 20px; font-size:13px; font-weight:700;">✓ Settle All</button>
+        <button id="settleAllCancel" class="btn-secondary" style="height:38px; padding:0 12px;">✕</button>
+      </div>
+      <div class="info" style="margin-top:10px; font-size:11px; border-color:var(--accent-dim);">
+        This will log each transaction individually in your history for this date.
+      </div>
+    `;
+
+    // Insert panel after the header
+    const header = targetGroup.querySelector('.dues-person-header');
+    header.after(panel);
+
+    document.getElementById('settleAllCancel')?.addEventListener('click', () => panel.remove());
+    document.getElementById('settleAllConfirm')?.addEventListener('click', () => {
+      const bank = document.getElementById('settleAllBank').value;
+      const date = document.getElementById('settleAllDate').value;
+      
+      const list = loadDues();
+      const pendings = list.filter(d => d.person === person && !d.paid);
+      
+      if (pendings.length === 0) {
+          panel.remove();
+          return;
+      }
+
+      // Execute each one headlessly
+      pendings.forEach(d => {
+          markPaid(d.id, date, bank);
+      });
+
+      window.MT.ui?.showToast(`All ${pendings.length} dues settled!`, 'success');
+      window.MT.ui?.launchConfetti?.();
+      panel.remove();
+      renderDuesView();
+    });
+  }
+
 
   function deleteDue(id) {
     const itemEl = document.querySelector(`.due-item[data-id="${id}"]`);
@@ -681,13 +780,42 @@
   /* ================================================================
      EXPOSE & INIT
   ================================================================ */
+  function shareDueItem(id) {
+    const list = loadDues();
+    const d = list.find(x => x.id === id);
+    if (!d) return;
+    const cur = (window.MT.db?.loadCustom()?.currency) || '₹';
+    const typeLabel = d.type === 'i_owe' ? "I'm paying YOU" : "Owed to ME";
+    const text = `*💰 LUDARP Money Tracker Bill*\n\n*Person:* ${d.person}\n*Item:* ${d.description || 'General Due'}\n*Amount:* ${cur}${d.amount}\n*Type:* ${typeLabel}\n*Date:* ${fmtDate(d.date)}\n\n_Shared from my Money Tracker_`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  }
+
+  function sharePersonSummary(person) {
+    const list = loadDues();
+    const pending = list.filter(d => d.person === person && !d.paid);
+    if (pending.length === 0) {
+        window.MT.ui?.showToast('No pending dues to share', 'info');
+        return;
+    }
+    const cur = (window.MT.db?.loadCustom()?.currency) || '₹';
+    const total = pending.reduce((s, d) => s + (d.type === 'they_owe' ? 1 : -1) * d.amount, 0);
+    const detail = pending.map(d => `• ${d.description || 'Due'}: ${cur}${d.amount} (${d.type==='i_owe'?'I owe':'U owe'})`).join('\n');
+    const text = `*📑 Statement for ${person}*\n\n*Current Balance:* ${cur}${Math.abs(total).toFixed(2)} ${total >= 0 ? '(You owe me)' : '(I owe you)'}\n\n*Pending Items:*\n${detail}\n\n_Generated by LUDARP Money Tracker_`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  }
+
+  /* ================================================================
+     EXPOSE & INIT
+  ================================================================ */
   window.MT = window.MT || {};
   window.MT.dues = {
     loadDues, saveDues,
     renderDuesView, setFilter, setAddTab,
     addDue, clearForm, markPaid, undoPaid, deleteDue,
+    showSettleAll,
     updateDuesBadge,
-    toggleFilter, applyFilter, clearFilters
+    toggleFilter, applyFilter, clearFilters,
+    shareDueItem, sharePersonSummary
   };
 
   function initDues() {

@@ -19,6 +19,13 @@
   const authHint = document.getElementById('authHint');
 
   /* ================= HELPERS ================= */
+  async function hash(str) {
+    if (!str) return '';
+    const msgUint8 = new TextEncoder().encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
 
   async function isBiometricSupported() {
     return (
@@ -115,8 +122,8 @@
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const pw = authPasswordInput.value.trim();
-      if (!pw) {
+      const pwInput = authPasswordInput.value.trim();
+      if (!pwInput) {
         alert('Password required');
         return;
       }
@@ -125,10 +132,12 @@
 
       // Create account
       if (!existing) {
+        const securityAnswer = document.getElementById('authSecurityAnswer')?.value.trim();
         db.saveUser({
           name: authNameInput.value.trim() || 'User',
-          password: pw,
+          password: await hash(pwInput),
           securityHint: authSecurityHintInput?.value.trim() || '',
+          securityAnswerHash: securityAnswer ? await hash(securityAnswer) : '',
           biometricEnabled: false,
           lockEnabled: true
         });
@@ -136,16 +145,25 @@
         return;
       }
 
-      // Password login
-      if (pw !== existing.password) {
+      // Password login + Migration
+      const hashedInput = await hash(pwInput);
+      const isMatch = (hashedInput === existing.password) || (pwInput === existing.password);
+      
+      if (!isMatch) {
         alert('Incorrect password');
         return;
+      }
+
+      // Migration: If logged in with plain text, re-save as hash
+      if (pwInput === existing.password && pwInput.length < 64) {
+         existing.password = hashedInput;
+         db.saveUser(existing);
       }
 
       enterApp();
     });
 
-    forgotBtn?.addEventListener('click', () => {
+    forgotBtn?.addEventListener('click', async () => {
       const u = db.loadUser();
       if (!u) return alert('No account exists');
 
@@ -153,14 +171,25 @@
       if (!name || name !== u.name) return alert('Name mismatch');
 
       if (u.securityHint) {
-        const confirmHint = prompt(`Security hint: ${u.securityHint}`);
-        if (!confirmHint) return;
+        const confirmAns = prompt(`Security Question: ${u.securityHint}\nYour Answer:`);
+        if (!confirmAns) return;
+        
+        const hashedAns = await hash(confirmAns);
+        // Fallback for legacy "hint as answer" if no answer hash exists
+        if (u.securityAnswerHash) {
+           if (hashedAns !== u.securityAnswerHash) return alert('Incorrect security answer');
+        } else if (u.securityHint && confirmAns !== u.securityHint) {
+           // If they put the answer in the hint field previously
+           // we can't be sure, but let's just let them through or reject
+           // better to be strict or use a backup
+           return alert('Security answer check failed. Please reset data if locked out.');
+        }
       }
 
       const newPw = prompt('Enter new password:');
       if (!newPw) return;
 
-      u.password = newPw;
+      u.password = await hash(newPw);
       db.saveUser(u);
       alert('Password reset successfully');
     });
@@ -168,7 +197,8 @@
 
   function enterApp() {
     authScreen.style.display = 'none';
-    document.getElementById('appRoot').style.display = 'block';
+    const appRoot = document.getElementById('appRoot');
+    if (appRoot) appRoot.style.display = 'block';
     window.dispatchEvent(new Event('mt:auth-entered'));
   }
 
@@ -178,6 +208,7 @@
 
     const nameField = document.getElementById('userNameField');
     const hintField = document.getElementById('securityHint');
+    const answerField = document.getElementById('securityAnswerField');
     const oldPw = document.getElementById('oldPassword');
     const newPw = document.getElementById('newPassword');
     const changeBtn = document.getElementById('changePasswordBtn');
@@ -190,6 +221,7 @@
       if (nameField) nameField.value = u.name || '';
       if (document.getElementById('userBio')) document.getElementById('userBio').value = u.bio || '';
       if (hintField) hintField.value = u.securityHint || '';
+      if (answerField) answerField.value = ''; // Always clear sensitive field
       if (oldPw) oldPw.value = '';
       if (newPw) newPw.value = '';
       if (status) status.textContent = '';
@@ -197,18 +229,25 @@
       if (appLockToggle) appLockToggle.checked = u.lockEnabled !== false;
     }
 
-    function saveProfile() {
+    async function saveProfile() {
       const u = db.loadUser();
       if (!u) return;
       u.name = nameField?.value.trim() || u.name;
-      u.securityHint = hintField?.value.trim();
+      u.securityHint = hintField?.value.trim() || '';
+      
+      const newAns = answerField?.value.trim();
+      if (newAns) {
+        u.securityAnswerHash = await hash(newAns);
+        answerField.value = '';
+      }
+      
       u.bio = document.getElementById('userBio')?.value.trim() || '';
       const appLockToggle = document.getElementById('requireAppLockToggle');
       if (appLockToggle) u.lockEnabled = appLockToggle.checked;
       db.saveUser(u);
     }
 
-    changeBtn.addEventListener('click', () => {
+    changeBtn.addEventListener('click', async () => {
       const u = db.loadUser();
       if (!u) return;
 
@@ -217,12 +256,13 @@
         return;
       }
 
-      if (oldPw.value !== u.password) {
+      const hashedOld = await hash(oldPw.value);
+      if (hashedOld !== u.password && oldPw.value !== u.password) {
         status.textContent = 'Current password incorrect';
         return;
       }
 
-      u.password = newPw.value;
+      u.password = await hash(newPw.value);
       db.saveUser(u);
       oldPw.value = '';
       newPw.value = '';
@@ -247,8 +287,10 @@
     }
 
     enableBioBtn?.addEventListener('click', registerBiometric);
-    nameField.addEventListener('blur', saveProfile);
-    hintField.addEventListener('blur', saveProfile);
+    nameField?.addEventListener('blur', saveProfile);
+    hintField?.addEventListener('blur', saveProfile);
+    answerField?.addEventListener('blur', saveProfile);
+    
     document.getElementById('requireAppLockToggle')?.addEventListener('change', () => {
       saveProfile();
       window.MT.ui?.showToast('App lock setting updated');
@@ -261,8 +303,8 @@
       }
     });
 
-    document.getElementById('saveUserBtn')?.addEventListener('click', () => {
-        saveProfile();
+    document.getElementById('saveUserBtn')?.addEventListener('click', async () => {
+        await saveProfile();
         window.MT.ui?.showToast('Profile updated');
     });
 

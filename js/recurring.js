@@ -88,7 +88,8 @@
           description: rule.description,
           category: rule.category || '',
           payMethod: rule.payMethod || 'Cash',
-          paySubType: '',
+          paySubType: rule.paySubType || '',
+          mappedBank: rule.paySubType || '',
           amount: rule.amount,
           note: `🔁 Auto-added recurring: ${rule.description}`,
           createdAt: new Date().toISOString(),
@@ -167,7 +168,7 @@
                 <span class="freq-tag">${freqLabel(rule.frequency)}</span>
                 <span>${rule.category || 'No category'}</span>
                 <span class="entry-meta-dot">•</span>
-                <span>${rule.payMethod || 'Cash'}</span>
+                <span>${rule.payMethod || 'Cash'}${rule.paySubType ? ` (${rule.paySubType})` : ''}</span>
                 <span class="entry-meta-dot">•</span>
                 <span ${!rule.active ? 'style="color:var(--danger)"' : ''}>${rule.active ? 'Active' : 'Paused'}</span>
               </div>
@@ -230,6 +231,13 @@
               <option>Bank</option>
             </select>
           </div>
+          <div>
+            <label>Bank / Account</label>
+            <select id="recurPaySubType">
+              <option value="">None / Cash</option>
+              ${(db.loadStore().settings?.banks || []).map(b => `<option value="${b}">${b}</option>`).join('')}
+            </select>
+          </div>
         </div>
         <div style="margin-top:12px;">
           <button class="btn-primary" onclick="window.MT.recurring.addRule()">
@@ -256,6 +264,7 @@
     const frequency = document.getElementById('recurFreq')?.value || 'monthly';
     const startDate = document.getElementById('recurStart')?.value;
     const payMethod = document.getElementById('recurPayMethod')?.value || 'Cash';
+    const paySubType = document.getElementById('recurPaySubType')?.value || '';
     const statusEl = document.getElementById('recurStatus');
 
     if (!desc) { if (statusEl) statusEl.textContent = '⚠️ Description required'; return; }
@@ -272,6 +281,7 @@
       frequency,
       startDate,
       payMethod,
+      paySubType,
       lastApplied: null,
       active: true,
       createdAt: new Date().toISOString()
@@ -312,6 +322,13 @@
                 <option value="yearly" ${rule.frequency === 'yearly' ? 'selected' : ''}>Yearly</option>
               </select>
             </div>
+            <div>
+              <label>Bank / Account</label>
+              <select id="editRecSubType">
+                <option value="">None / Cash</option>
+                ${(window.MT.db.loadStore().settings?.banks || []).map(b => `<option value="${b}" ${rule.paySubType === b ? 'selected' : ''}>${b}</option>`).join('')}
+              </select>
+            </div>
           </div>
           <div style="margin-top:20px; display:flex; gap:10px;">
             <button id="saveEditRec" class="btn-primary" style="flex:1;">Save Changes</button>
@@ -326,13 +343,14 @@
           const newDesc = document.getElementById('editRecDesc').value.trim();
           const newAmt = parseFloat(document.getElementById('editRecAmt').value) || 0;
           const newFreq = document.getElementById('editRecFreq').value;
+          const newSubType = document.getElementById('editRecSubType').value;
 
           if (!newDesc || newAmt <= 0) {
               alert('Please enter valid description and amount');
               return;
           }
 
-          list[idx] = { ...rule, description: newDesc, amount: newAmt, frequency: newFreq };
+          list[idx] = { ...rule, description: newDesc, amount: newAmt, frequency: newFreq, paySubType: newSubType };
           saveRecurring(list);
           modal.remove();
           renderRecurringUI();

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ludarp-moneytracker-v24';
+const CACHE_NAME = 'ludarp-moneytracker-v26';
 const ASSETS = [
   './',
   './index.html',

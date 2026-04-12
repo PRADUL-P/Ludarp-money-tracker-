@@ -229,15 +229,47 @@
 
   document.getElementById('saveCustomization').onclick = () => {
     const c = loadCustom();
-    c.accent = DOM.accent.value;
+    c.accent = document.getElementById('accentColor').value;
+    c.accent2 = document.getElementById('accentColor2').value;
     c.currency = DOM.currency.value;
     const autoInp = document.getElementById('autoDownloadStmt');
     if (autoInp) c.autoDownload = autoInp.checked;
     saveCustom(c);
-    document.documentElement.style.setProperty('--accent', c.accent);
+    
+    document.documentElement.style.setProperty('--accent-1', c.accent);
+    document.documentElement.style.setProperty('--accent-2', c.accent2);
+
     fireUpdate();
     window.MT.ui.showToast('Customization saved');
   };
+
+  // Palette Logic
+  document.querySelectorAll('.theme-swatch').forEach(sw => {
+      sw.addEventListener('click', () => {
+          document.querySelectorAll('.theme-swatch').forEach(s => {
+              s.classList.remove('active');
+              s.style.borderColor = 'transparent';
+              s.style.boxShadow = 'none';
+          });
+          sw.classList.add('active');
+          sw.style.borderColor = '#fff';
+          sw.style.boxShadow = `0 0 15px ${sw.dataset.color1}44`;
+          document.getElementById('accentColor').value = sw.dataset.color1;
+          document.getElementById('accentColor2').value = sw.dataset.color2;
+      });
+  });
+
+  document.getElementById('accentColorPicker').addEventListener('input', (e) => {
+      const col = e.target.value;
+      document.querySelectorAll('.theme-swatch').forEach(s => {
+          s.classList.remove('active');
+          s.style.borderColor = 'transparent';
+          s.style.boxShadow = 'none';
+      });
+      document.getElementById('accentColor').value = col;
+      // Auto-generate a darker version for gradient continuity
+      document.getElementById('accentColor2').value = col; 
+  });
 
   const checkAutoDownload = () => {
     const c = loadCustom();
