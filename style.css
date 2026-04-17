@@ -2161,6 +2161,14 @@ textarea:focus-visible {
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 0;
+  transition: opacity 0.2s;
+}
+
+.dues-person-header:hover {
+  opacity: 0.8;
 }
 
 .dues-person-avatar {
@@ -2183,6 +2191,17 @@ textarea:focus-visible {
   font-size: 15px;
   color: var(--text);
   flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.chevron-icon {
+  margin-left: 6px;
+  transition: transform 0.3s ease;
+}
+
+.dues-person-group.collapsed .chevron-icon {
+  transform: rotate(-90deg);
 }
 
 .dues-person-net {
@@ -2204,6 +2223,20 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow: hidden;
+  max-height: 2000px;
+  transition: max-height 0.4s ease, opacity 0.3s, margin-top 0.3s;
+}
+
+.dues-person-card.collapsed .dues-items {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+  padding-bottom: 0 !important;
+}
+
+.dues-person-card.collapsed {
+  margin-bottom: 10px;
 }
 
 .due-item {

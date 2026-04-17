@@ -215,6 +215,13 @@
        }
     }
 
+    // Retrieve old entry to preserve metadata and linked IDs
+    let oldEntry = null;
+    if (currentEdit) {
+       const sOld = db.loadStore();
+       oldEntry = sOld.days[currentEdit.dateStr]?.find(x => x.id === currentEdit.id);
+    }
+
     let entry = {
       id: currentEdit ? currentEdit.id : Date.now(),
       dateStr,
@@ -225,8 +232,14 @@
       paySubType,
       amount: 0,
       note,
-      createdAt: new Date().toISOString(),
+      createdAt: oldEntry ? oldEntry.createdAt : new Date().toISOString(),
+      updatedAt: currentEdit ? new Date().toISOString() : undefined,
       split: null,
+      dueId: oldEntry ? oldEntry.dueId : null,
+      isLinkedDue: oldEntry ? oldEntry.isLinkedDue : false,
+      isQuickDue: oldEntry ? oldEntry.isQuickDue : false,
+      duePerson: oldEntry ? oldEntry.duePerson : null,
+      quickDueType: oldEntry ? oldEntry.quickDueType : null,
       fuel: (category === 'Petrol' && currentKm > 0) ? { 
         currentKm, 
         liters, 
@@ -286,8 +299,10 @@
           if (linkToDues && linkToDues.checked && window.MT.dues) {
             const duesList = window.MT.dues.loadDues();
             participantsSplit.forEach(p => {
+              const dueId = `due_split_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+              p.dueId = dueId; // Link in the history entry's split data
               duesList.push({
-                id: `due_split_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                id: dueId,
                 type: 'they_owe',
                 person: p.name,
                 amount: p.amount,
@@ -317,8 +332,10 @@
           // Only create new due on NEW entries, not on edit (prevents duplication)
           if (!currentEdit) {
             const duesList = window.MT.dues.loadDues();
+            const dueId = `due_quick_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+            entry.dueId = dueId; // Link it
             duesList.push({
-              id: `due_quick_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+              id: dueId,
               type: forceDueType, // use the captured type
               person: forceDuePerson,
               amount: amountValue,
@@ -335,6 +352,26 @@
           }
         } else {
           entry.amount = amountValue;
+
+          // UPDATE LINKED DUE if editing
+          if (currentEdit && entry.dueId && window.MT.dues) {
+             const dues = window.MT.dues.loadDues();
+             const dIdx = dues.findIndex(d => d.id === entry.dueId);
+             if (dIdx >= 0) {
+                // Update based on the NEW entry data
+                dues[dIdx].person = entry.duePerson || forceDuePerson || dues[dIdx].person;
+                dues[dIdx].amount = entry.amount;
+                dues[dIdx].description = entry.description;
+                dues[dIdx].date = entry.dateStr;
+                dues[dIdx].note = entry.note;
+                // If they used the quick toggle to change 'forceDueType', update it
+                if (forceDueType) dues[dIdx].type = forceDueType;
+                
+                window.MT.dues.saveDues(dues);
+                entry.duePerson = dues[dIdx].person;
+                entry.quickDueType = dues[dIdx].type;
+             }
+          }
         }
       }
     }
@@ -447,9 +484,17 @@
         const pList = document.createElement('div'); pList.className = 'entry-note';
         pList.innerHTML = entry.split.participants.map(p => `<span style="${p.received ? 'color: var(--success);' : ''}">${p.name}${p.received ? ' ✓' : ''}</span> (${db.currencyFmt(p.amount)})`).join(' · ');
         main.appendChild(pList);
-      } else if (entry.isSettled) {
+      } else if (entry.isSettled || entry.isDueSettlement) {
         const sdiv = document.createElement('div'); sdiv.className = 'entry-note';
-        sdiv.innerHTML = `<span class="badge badge-success">✓ SETTLED</span> <small>Received from ${entry.settledBy || 'Person'}</small>`;
+        if (entry.isDueSettlement) {
+           sdiv.innerHTML = `<span class="badge" style="background:var(--accent); color:#fff;">✓ SETTLEMENT</span> <small>Payment record for due</small>`;
+        } else {
+           sdiv.innerHTML = `<span class="badge badge-success">✓ SETTLED</span> <small>${entry.type === 'Income' ? 'Received from' : 'Paid to'} ${entry.settledBy || 'Person'}</small>`;
+        }
+        main.appendChild(sdiv);
+      } else if (entry.isLinkedDue && entry.amount === 0) {
+        const sdiv = document.createElement('div'); sdiv.className = 'entry-note';
+        sdiv.innerHTML = `<span class="badge" style="background:var(--bg2); border:1px solid var(--card-border); color:var(--muted);">📋 DUES RECORD</span> <small>Linked to Dues Tracker</small>`;
         main.appendChild(sdiv);
       }
       if (entry.type === 'Transfer' && entry.transfer) {
@@ -479,8 +524,12 @@
   function updateDailySummary(entries) {
     let exp = 0, inc = 0;
     entries.forEach(e => {
+      // Exclude transfers, linked record dues, and 'they_owe' quick dues from totals
+      if (e.type === 'Transfer') return;
+      if (e.isLinkedDue) return;
+      if (e.isQuickDue && e.quickDueType === 'they_owe') return;
+
       if (e.type === 'Income') inc += e.amount;
-      else if (e.type === 'Transfer') { /* ignore in totals */ }
       else exp += e.amount;
     });
     if (sumExpenseEl) sumExpenseEl.textContent = db.currencyFmt(exp);
@@ -566,6 +615,15 @@
     submitBtn.textContent = 'Update entry';
     statusEl.textContent = 'Editing...';
 
+    // If it's a quick due, set the quick due person and UI
+    if (entry.isQuickDue && entry.duePerson) {
+        if (typeof window.showQuickDueUI === 'function') {
+            window.showQuickDueUI(entry.quickDueType || 'i_owe', entry.duePerson);
+        }
+    } else {
+        if (typeof window.cancelQuickDue === 'function') window.cancelQuickDue();
+    }
+
     // Scroll to form top
     const entryView = document.getElementById('view-entry');
     if (entryView) entryView.scrollTop = 0;
@@ -574,7 +632,58 @@
   function deleteEntry(dateStr, id) {
     const s = db.loadStore();
     if (!s.days[dateStr]) return;
-    s.days[dateStr] = s.days[dateStr].filter(e => e.id !== id);
+
+    // --- DUES SYNC ---
+    // Use loose equality (==) in case of string/number mismatch
+    const entry = s.days[dateStr].find(e => e.id == id);
+    if (entry && window.MT && window.MT.dues) {
+      if (entry.isLinkedDue || entry.isQuickDue) {
+        const dues = window.MT.dues.loadDues ? window.MT.dues.loadDues() : [];
+        const filtered = dues.filter(d => {
+            if (entry.dueId) return d.id !== entry.dueId;
+            
+            // Fallback match for older records: description + person + date
+            const noteMatch = entry.note && entry.note.includes(`Auto-linked due for ${d.person}`);
+            const personMatch = entry.duePerson ? (d.person === entry.duePerson) : noteMatch;
+            
+            return !(d.description === entry.description && personMatch && d.date === dateStr);
+        });
+        if (window.MT.dues.saveDues) window.MT.dues.saveDues(filtered);
+      } else if (entry.split && entry.split.enabled) {
+        // Handle split dues
+        const dues = window.MT.dues.loadDues ? window.MT.dues.loadDues() : [];
+        const pIds = (entry.split.participants || []).map(p => p.dueId).filter(Boolean);
+        if (pIds.length > 0) {
+           const filtered = dues.filter(d => !pIds.includes(d.id));
+           if (window.MT.dues.saveDues) window.MT.dues.saveDues(filtered);
+        } else {
+           // Fallback for old splits: Match by description and date
+           const filtered = dues.filter(d => {
+               const descMatch = d.description === `Split: ${entry.description}`;
+               const dateMatch = d.date === dateStr;
+               // And that person is in our split list
+               const personMatch = entry.split.participants.some(p => p.name === d.person);
+               return !(descMatch && dateMatch && personMatch);
+           });
+           if (window.MT.dues.saveDues) window.MT.dues.saveDues(filtered);
+        }
+      } else if (entry.isDueSettlement) {
+        const dues = window.MT.dues.loadDues ? window.MT.dues.loadDues() : [];
+        const findMatch = () => {
+            if (entry.dueId) return dues.findIndex(d => d.id === entry.dueId);
+            return dues.findIndex(d => entry.description.includes(`Settled: ${d.description}`) && d.paid);
+        };
+        const dIdx = findMatch();
+        if (dIdx >= 0) {
+          dues[dIdx].paid = false;
+          dues[dIdx].paidDate = null;
+          if (window.MT.dues.saveDues) window.MT.dues.saveDues(dues);
+        }
+      }
+    }
+    // --- END DUES SYNC ---
+
+    s.days[dateStr] = s.days[dateStr].filter(e => e.id != id);
     if (s.days[dateStr].length === 0) delete s.days[dateStr];
     db.saveStore(s);
     renderEntries(); window.dispatchEvent(new Event('mt:entries-changed'));
@@ -673,6 +782,13 @@
       if (quickDueWrap) quickDueWrap.style.display = 'none';
       // If we were in a "They Owe" split state, optionally reset it
       // But typically user just resets the form or manually unchecks.
+  };
+
+  window.showQuickDueUI = function(typeVal, personName = '') {
+      triggerQuickDue(typeVal);
+      if (personName && quickDuePerson) {
+          quickDuePerson.value = personName;
+      }
   };
 
   if (btnIOwe) btnIOwe.addEventListener('click', () => triggerQuickDue('i_owe'));

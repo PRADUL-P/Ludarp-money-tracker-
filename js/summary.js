@@ -188,7 +188,7 @@
       filtered = filtered.filter(e => e.type !== 'Transfer');
     }
     if (document.getElementById('hideSettlements') && document.getElementById('hideSettlements').checked) {
-      filtered = filtered.filter(e => !e.isDueSettlement);
+      filtered = filtered.filter(e => !e.isDueSettlement && !e.isLinkedDue);
     }
     
     // -- SEARCH FILTER --
@@ -215,7 +215,7 @@
       }
       else if (e.type === 'Transfer') { }
       else {
-           let effectiveAmount = Number(e.amount || 0);
+           let effectiveAmount = e.isLinkedDue ? 0 : Number(e.amount || 0);
            if (e.split && e.split.enabled) effectiveAmount = Number(e.split.myShare || 0);
            else if (e.isQuickDue && e.quickDueType !== 'i_owe') effectiveAmount = 0; 
            
@@ -271,7 +271,7 @@
       DOM.avgDailySpendEl.textContent = currencyFmt(avg);
     }
 
-    drawTrendChart(dailyTotals, mode, monthVal, yearVal);
+    drawTrendChart(dailyTotals, monthlyTotals, mode, monthVal, yearVal);
     drawCategoryPie(categoryTotals);
     renderHistoryList(filtered, dailyTotals, monthlyTotals);
 
@@ -453,7 +453,7 @@
 
 
 
-  function drawTrendChart(dailyTotals, mode, monthVal, yearVal) {
+  function drawTrendChart(dailyTotals, monthlyTotals, mode, monthVal, yearVal) {
     const canvas = DOM.trendChartCanvas;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -494,8 +494,16 @@
         labels.push(new Date(yearVal, i - 1).toLocaleString('default', { month: 'short' }));
         values.push(Object.keys(dailyTotals).reduce((sum, d) => d.startsWith(monthPrefix) ? sum + dailyTotals[d] : sum, 0));
       }
+    } else if (mode === 'all') {
+      // For 'all' history, show the trend by each month
+      const sortedMonths = Object.keys(monthlyTotals).sort();
+      labels = sortedMonths.map(m => {
+          const [y, mo] = m.split('-');
+          return new Date(y, parseInt(mo) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
+      });
+      values = sortedMonths.map(m => monthlyTotals[m]);
     } else {
-      // For 'all' or 'day', just show the last 30 days of data if present
+      // 'day' mode
       const sortedDates = Object.keys(dailyTotals).sort();
       labels = sortedDates.slice(-30).map(d => d.split('-').slice(1).join('/'));
       values = sortedDates.slice(-30).map(d => dailyTotals[d]);
@@ -717,6 +725,12 @@
         meta.textContent = metaText;
         left.appendChild(title); left.appendChild(meta);
         if (e.note) { const n = document.createElement('div'); n.className = 'entry-note'; n.textContent = e.note; left.appendChild(n); }
+        
+        if (e.isDueSettlement) {
+           const sdiv = document.createElement('div'); sdiv.className = 'entry-note';
+           sdiv.innerHTML = `<span class="badge" style="background:var(--accent); color:#fff; font-size:9px; padding:2px 6px;">✓ SETTLEMENT</span> <small style="opacity:0.6;">Payment record for due</small>`;
+           left.appendChild(sdiv);
+        }
 
         if (e.fuel && e.fuel.currentKm > 0) {
           const fn = document.createElement('div'); fn.className = 'entry-note';
@@ -942,17 +956,30 @@
         } else {
           amt.textContent = (e.type === 'Income' ? '+' : '-') + currencyFmt(e.amount || 0);
         }
+        const actions = document.createElement('div');
+        actions.style.display = 'flex'; actions.style.gap = '4px';
+
         const edit = document.createElement('button'); edit.className = 'btn-small'; edit.innerHTML = `Edit`;
         edit.addEventListener('click', () => {
           if (window.MT && window.MT.entry && window.MT.entry.startEdit) {
             window.MT.entry.startEdit(e.dateStr, e);
           } else if (typeof startEdit === 'function') {
             startEdit(e.dateStr, e);
-          } else if (window.startEdit) {
-            window.startEdit(e.dateStr, e);
           }
         });
-        right.appendChild(amt); right.appendChild(edit);
+
+        const del = document.createElement('button'); del.className = 'btn-small'; del.innerHTML = `Del`;
+        del.style.color = 'var(--danger)';
+        del.addEventListener('click', () => {
+          if (confirm('Delete this entry?')) {
+            if (window.MT && window.MT.entry && window.MT.entry.deleteEntry) {
+                window.MT.entry.deleteEntry(e.dateStr, e.id);
+            }
+          }
+        });
+        
+        actions.appendChild(edit); actions.appendChild(del);
+        right.appendChild(amt); right.appendChild(actions);
 
         row.appendChild(left); row.appendChild(right); el.appendChild(row);
       } catch (err) {

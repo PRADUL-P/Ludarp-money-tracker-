@@ -14,7 +14,7 @@
     content="money tracker, expense manager, petrol log, split bill, finance app, offline tracker, private finance, PWA tracker" />
   <meta name="author" content="LUDARP" />
   <meta name="robots" content="index, follow" />
-  
+
   <!-- JSON-LD Structured Data for Enhanced SEO -->
   <script type="application/ld+json">
   {
@@ -123,8 +123,15 @@
         <div class="auth-row" style="display:flex; gap:8px; margin-top:10px;">
           <button id="authSubmitBtn" class="btn-primary" style="flex:1;" type="submit">Unlock</button>
           <button id="authBioBtn" class="btn-secondary" type="button"
-            style="display:none; width:50px; justify-content:center; align-items:center;" title="Unlock with Fingerprint">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a10 10 0 0 1 10 10v2a4 4 0 0 1-4 4h-2a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h2a4 4 0 0 0-4-4 4 4 0 0 0-4 4v10a8 8 0 0 0 8 8"></path><path d="M8 12v2a4 4 0 0 0 4 4"></path><path d="M16 12v-2a4 4 0 0 0-4-4"></path></svg>
+            style="display:none; width:50px; justify-content:center; align-items:center;"
+            title="Unlock with Fingerprint">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path
+                d="M12 2a10 10 0 0 1 10 10v2a4 4 0 0 1-4 4h-2a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h2a4 4 0 0 0-4-4 4 4 0 0 0-4 4v10a8 8 0 0 0 8 8">
+              </path>
+              <path d="M8 12v2a4 4 0 0 0 4 4"></path>
+              <path d="M16 12v-2a4 4 0 0 0-4-4"></path>
+            </svg>
           </button>
           <button id="forgotBtn" class="btn-secondary" type="button">Forgot?</button>
         </div>
@@ -301,13 +308,18 @@
                   <button type="button" onclick="MT.calc.setOp('+')" class="btn-secondary"
                     style="background:var(--accent-2);">+</button>
 
-                  <button type="button" onclick="MT.calc.addPercent(5)" class="btn-secondary" style="font-size:10px; padding:4px;">+5% GST</button>
-                  <button type="button" onclick="MT.calc.addPercent(18)" class="btn-secondary" style="font-size:10px; padding:4px;">+18% GST</button>
-                  <button type="button" onclick="MT.calc.round()" class="btn-secondary" style="font-size:10px; padding:4px;">Round</button>
+                  <button type="button" onclick="MT.calc.addPercent(5)" class="btn-secondary"
+                    style="font-size:10px; padding:4px;">+5% GST</button>
+                  <button type="button" onclick="MT.calc.addPercent(18)" class="btn-secondary"
+                    style="font-size:10px; padding:4px;">+18% GST</button>
+                  <button type="button" onclick="MT.calc.round()" class="btn-secondary"
+                    style="font-size:10px; padding:4px;">Round</button>
                   <button type="button" onclick="MT.calc.calculate()" class="btn-primary"
                     style="font-size:14px; font-weight:800; background:var(--accent);">Result</button>
 
-                  <button type="button" onclick="MT.calc.apply()" class="btn-primary" style="grid-column: span 3; background:linear-gradient(135deg, #059669, #10b981);">Apply to Amount</button>
+                  <button type="button" onclick="MT.calc.apply()" class="btn-primary"
+                    style="grid-column: span 3; background:linear-gradient(135deg, #059669, #10b981);">Apply to
+                    Amount</button>
                   <button type="button" onclick="MT.calc.close()" class="btn-secondary">Done</button>
                 </div>
               </div>
@@ -509,8 +521,165 @@
 
       <!-- SUMMARY VIEW -->
       <section id="view-summary" class="view">
-        <section class="card">
-          <div class="section-title">Filters & totals</div>
+          <!-- NEW: TRUE BALANCE / NET WORTH HERO CARD -->
+          <div class="card"
+            style="margin-bottom:16px; padding:20px; text-align:center; background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(167,139,250,0.08)); border:1px solid rgba(99,102,241,0.2); box-shadow:0 10px 40px rgba(0,0,0,0.25);">
+            <div
+              style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+              🛡️ True Balance (Net Worth)</div>
+            <div id="trueBalanceValue" style="font-size:32px; font-weight:900; color:var(--text); letter-spacing:-1px;">
+              ₹0.00
+            </div>
+            <div id="trueBalanceSub" style="font-size:11px; color:var(--muted); margin-top:6px;">
+              Accounts + Owed To You - You Owe
+            </div>
+          </div>
+          <section class="card">
+            <div class="summary-stats-grid"
+              style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; text-align:center;">
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(244,63,94,0.03); border-color:rgba(244,63,94,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Expense</div>
+                <div id="monthSumExpense" style="font-size:18px; font-weight:800; color:var(--danger);">₹0.00</div>
+              </div>
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(52,211,153,0.03); border-color:rgba(52,211,153,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Income</div>
+                <div id="monthSumIncome" style="font-size:18px; font-weight:800; color:var(--success);">₹0.00</div>
+              </div>
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(99,102,241,0.03); border-color:rgba(99,102,241,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Owed To You</div>
+                <div id="splitOutstanding" style="font-size:18px; font-weight:800; color:var(--accent-1);">₹0.00</div>
+              </div>
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(216,180,254,0.03); border-color:rgba(216,180,254,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  You Owe</div>
+                <div id="totalIOwe" style="font-size:18px; font-weight:800; color:var(--accent-3);">₹0.00</div>
+              </div>
+              <div id="avgDailyWrap" class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; justify-content:center;">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Avg / Day</div>
+                <div id="avgDailySpend" style="font-size:18px; font-weight:800; color:var(--text-secondary);">₹0.00
+                </div>
+                <div id="vsLastMonth" style="font-size:11px; margin-top:4px; display:none;"></div>
+              </div>
+            </div>
+          </section>
+          <section class="card" style="padding: 10px; position:relative;">
+            <!-- CHART CAROUSEL CONTROLS -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <button onclick="window.SummaryModule.prevChart()" class="btn-small" style="padding:4px 10px;">◀</button>
+              <div id="chartTitle" style="font-size:13px; font-weight:700; color:var(--accent);">Expense Categories
+              </div>
+              <button onclick="window.SummaryModule.nextChart()" class="btn-small" style="padding:4px 10px;">▶</button>
+            </div>
+
+            <div class="summary-charts-container overflow-hidden" style="height:260px; position:relative;">
+              <div id="chartSlot1" class="chart-slide active">
+                <!-- PIE CHART -->
+                <div class="summary-chart-grid" style="align-items:flex-start;">
+                  <div class="chart-col">
+                    <canvas id="categoryPie" style="max-height:180px;"></canvas>
+                  </div>
+                  <div class="legend-col" style="max-height:160px; overflow-y:auto;">
+                    <div id="categoryLegend" class="legend"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="chartSlot2" class="chart-slide">
+                <!-- TREND CHART -->
+                <div style="height:220px; position:relative; width:100%;">
+                  <canvas id="trendChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dots -->
+            <div style="display:flex; justify-content:center; gap:6px; margin-top:8px;">
+              <div class="chart-dot active" onclick="window.SummaryModule.showChart(0)"></div>
+              <div class="chart-dot" onclick="window.SummaryModule.showChart(1)"></div>
+            </div>
+          </section>
+
+
+
+
+          <!-- NEW: SMART INSIGHTS -->
+          <section class="card"
+            style="padding:15px; background:rgba(255,255,255,0.02); border-color:rgba(56,189,248,0.12);">
+            <div
+              style="font-size:13px; font-weight:800; color:var(--accent-1); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <span>✨</span> Smart Insights
+            </div>
+            <div id="insightsList" style="display:flex; flex-direction:column;">
+              <!-- Filled by JS -->
+            </div>
+          </section>
+
+          <!-- NEW: SPENDING HEATMAP (Collapsible) -->
+          <section id="heatmapCard" class="card"
+            style="padding:0; background:rgba(255,255,255,0.02); display:none; overflow:hidden;">
+            <div class="heatmap-header" onclick="this.parentElement.classList.toggle('heatmap-collapsed');"
+              style="padding:15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+              <div
+                style="font-size:13px; font-weight:800; color:var(--accent-2); display:flex; align-items:center; gap:8px;">
+                <span>🗓️</span> Spending Heatmap
+              </div>
+              <span class="heatmap-chevron" style="font-size:10px; opacity:0.5; transition:0.3s;">▼</span>
+            </div>
+
+            <div class="heatmap-body" style="padding:0 15px 15px 15px;">
+              <div id="heatmapGrid" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px;">
+                <!-- Grid items 1-31 filled by JS -->
+              </div>
+              <div id="heatmapLegend"
+                style="margin-top:12px; display:flex; align-items:center; gap:8px; font-size:10px; color:var(--muted); justify-content:center;">
+                <span>Low</span>
+                <div style="width:12px; height:12px; background:rgba(244,63,94,0.1); border-radius:3px;"></div>
+                <div style="width:12px; height:12px; background:rgba(244,63,94,0.3); border-radius:3px;"></div>
+                <div style="width:12px; height:12px; background:rgba(244,63,94,0.6); border-radius:3px;"></div>
+                <div style="width:12px; height:12px; background:rgba(244,63,94,1.0); border-radius:3px;"></div>
+                <span>High</span>
+              </div>
+            </div>
+          </section>
+
+          <style>
+            .heatmap-collapsed .heatmap-body {
+              display: none;
+            }
+
+            .heatmap-collapsed .heatmap-chevron {
+              transform: rotate(-90deg);
+            }
+          </style>
+          <!-- NEW: ACHIEVEMENT BADGES (Gamification) -->
+          <div id="achievementsCard" class="card"
+            style="margin-bottom:16px; padding:15px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; gap:10px;">
+            <div
+              style="font-size:13px; font-weight:800; color:var(--accent-3); display:flex; align-items:center; gap:8px;">
+              <span>🏆</span> Milestones & Badges
+            </div>
+            <div id="badgeList"
+              style="display:flex; gap:10px; overflow-x:auto; padding-bottom:5px; scrollbar-width:none; -ms-overflow-style: none;">
+              <!-- Badges will be injected here by JS -->
+              <div class="info" style="font-size:11px;">Keep tracking to unlock badges...</div>
+            </div>
+          </div>
+          <section class="card">
+            <div class="section-title">Filters & totals</div>
 
           <!-- FIRST ROW: Period & Date Pickers -->
           <div class="summary-controls-row">
@@ -538,17 +707,7 @@
             </div>
           </div>
 
-          <!-- NEW: ACHIEVEMENT BADGES (Gamification) -->
-          <div id="achievementsCard" class="card"
-            style="margin-bottom:16px; padding:15px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; gap:10px;">
-            <div style="font-size:13px; font-weight:800; color:var(--accent-3); display:flex; align-items:center; gap:8px;">
-               <span>🏆</span> Milestones & Badges
-            </div>
-            <div id="badgeList" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:5px; scrollbar-width:none; -ms-overflow-style: none;">
-                <!-- Badges will be injected here by JS -->
-                <div class="info" style="font-size:11px;">Keep tracking to unlock badges...</div>
-            </div>
-          </div>
+
 
           <!-- SECOND ROW: Search, Rows & Sort -->
           <div class="summary-search-row">
@@ -557,10 +716,10 @@
               <span class="search-icon">🔍</span>
             </div>
             <div class="rows-select-wrap" style="flex:1;">
-               <select id="searchScope" style="width:100%; font-size:11px;">
-                  <option value="month">This Month</option>
-                  <option value="global">All Time</option>
-               </select>
+              <select id="searchScope" style="width:100%; font-size:11px;">
+                <option value="month">This Month</option>
+                <option value="global">All Time</option>
+              </select>
             </div>
             <div class="rows-select-wrap">
               <label for="rowsPerPage" style="font-size:10px; margin-right:4px;">Rows</label>
@@ -630,144 +789,19 @@
               </button>
             </div>
           </div>
-          <div style="display:flex; gap:15px; margin-bottom:15px; font-size:12px; color:var(--muted); justify-content: flex-end;">
-             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="hideTransfers" checked onchange="window.SummaryModule.renderSummary()"> Hide transfers</label>
-             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="hideSettlements" checked onchange="window.SummaryModule.renderSummary()"> Hide due settlements</label>
+          <div
+            style="display:flex; gap:15px; margin-bottom:15px; font-size:12px; color:var(--muted); justify-content: flex-end;">
+            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox"
+                id="hideTransfers" checked onchange="window.SummaryModule.renderSummary()"> Hide transfers</label>
+            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox"
+                id="hideSettlements" checked onchange="window.SummaryModule.renderSummary()"> Hide due
+              settlements</label>
           </div>
+          </section>
 
           <!-- GRID: left pie, right legend, bottom history -->
 
-          <section class="card" style="padding: 10px; position:relative;">
-            <!-- CHART CAROUSEL CONTROLS -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <button onclick="window.SummaryModule.prevChart()" class="btn-small" style="padding:4px 10px;">◀</button>
-              <div id="chartTitle" style="font-size:13px; font-weight:700; color:var(--accent);">Expense Categories
-              </div>
-              <button onclick="window.SummaryModule.nextChart()" class="btn-small" style="padding:4px 10px;">▶</button>
-            </div>
 
-            <div class="summary-charts-container overflow-hidden" style="height:260px; position:relative;">
-              <div id="chartSlot1" class="chart-slide active">
-                <!-- PIE CHART -->
-                <div class="summary-chart-grid" style="align-items:flex-start;">
-                  <div class="chart-col">
-                    <canvas id="categoryPie" style="max-height:180px;"></canvas>
-                  </div>
-                  <div class="legend-col" style="max-height:160px; overflow-y:auto;">
-                    <div id="categoryLegend" class="legend"></div>
-                  </div>
-                </div>
-              </div>
-
-              <div id="chartSlot2" class="chart-slide">
-                <!-- TREND CHART -->
-                <div style="height:220px; position:relative; width:100%;">
-                  <canvas id="trendChart"></canvas>
-                </div>
-              </div>
-            </div>
-
-            <!-- Dots -->
-            <div style="display:flex; justify-content:center; gap:6px; margin-top:8px;">
-              <div class="chart-dot active" onclick="window.SummaryModule.showChart(0)"></div>
-              <div class="chart-dot" onclick="window.SummaryModule.showChart(1)"></div>
-            </div>
-          </section>
-          <!-- NEW: TRUE BALANCE / NET WORTH HERO CARD -->
-          <div class="card"
-            style="margin-bottom:16px; padding:20px; text-align:center; background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(167,139,250,0.08)); border:1px solid rgba(99,102,241,0.2); box-shadow:0 10px 40px rgba(0,0,0,0.25);">
-            <div
-              style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
-              🛡️ True Balance (Net Worth)</div>
-            <div id="trueBalanceValue" style="font-size:32px; font-weight:900; color:var(--text); letter-spacing:-1px;">₹0.00
-            </div>
-            <div id="trueBalanceSub" style="font-size:11px; color:var(--muted); margin-top:6px;">
-              Accounts + Owed To You - You Owe
-            </div>
-          </div>
-
-          <section class="card">
-            <div class="summary-stats-grid"
-              style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; text-align:center;">
-              <div class="card mini-card"
-                style="margin:0; padding:12px; background:rgba(244,63,94,0.03); border-color:rgba(244,63,94,0.1);">
-                <div
-                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
-                  Expense</div>
-                <div id="monthSumExpense" style="font-size:18px; font-weight:800; color:var(--danger);">₹0.00</div>
-              </div>
-              <div class="card mini-card"
-                style="margin:0; padding:12px; background:rgba(52,211,153,0.03); border-color:rgba(52,211,153,0.1);">
-                <div
-                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
-                  Income</div>
-                <div id="monthSumIncome" style="font-size:18px; font-weight:800; color:var(--success);">₹0.00</div>
-              </div>
-              <div class="card mini-card"
-                style="margin:0; padding:12px; background:rgba(99,102,241,0.03); border-color:rgba(99,102,241,0.1);">
-                <div
-                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
-                  Owed To You</div>
-                <div id="splitOutstanding" style="font-size:18px; font-weight:800; color:var(--accent-1);">₹0.00</div>
-              </div>
-              <div class="card mini-card"
-                style="margin:0; padding:12px; background:rgba(216,180,254,0.03); border-color:rgba(216,180,254,0.1);">
-                <div
-                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
-                  You Owe</div>
-                <div id="totalIOwe" style="font-size:18px; font-weight:800; color:var(--accent-3);">₹0.00</div>
-              </div>
-              <div id="avgDailyWrap" class="card mini-card"
-                style="margin:0; padding:12px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; justify-content:center;">
-                <div
-                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
-                  Avg / Day</div>
-                <div id="avgDailySpend" style="font-size:18px; font-weight:800; color:var(--text-secondary);">₹0.00
-                </div>
-                <div id="vsLastMonth" style="font-size:11px; margin-top:4px; display:none;"></div>
-              </div>
-            </div>
-          </section>
-
-          <!-- NEW: SMART INSIGHTS -->
-          <section class="card" style="padding:15px; background:rgba(255,255,255,0.02); border-color:rgba(56,189,248,0.12);">
-            <div style="font-size:13px; font-weight:800; color:var(--accent-1); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-              <span>✨</span> Smart Insights
-            </div>
-            <div id="insightsList" style="display:flex; flex-direction:column;">
-                <!-- Filled by JS -->
-            </div>
-          </section>
-
-          <!-- NEW: SPENDING HEATMAP (Collapsible) -->
-          <section id="heatmapCard" class="card" style="padding:0; background:rgba(255,255,255,0.02); display:none; overflow:hidden;">
-            <div class="heatmap-header" onclick="this.parentElement.classList.toggle('heatmap-collapsed');" 
-                 style="padding:15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
-              <div style="font-size:13px; font-weight:800; color:var(--accent-2); display:flex; align-items:center; gap:8px;">
-                 <span>🗓️</span> Spending Heatmap
-              </div>
-              <span class="heatmap-chevron" style="font-size:10px; opacity:0.5; transition:0.3s;">▼</span>
-            </div>
-            
-            <div class="heatmap-body" style="padding:0 15px 15px 15px;">
-              <div id="heatmapGrid" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px;">
-                  <!-- Grid items 1-31 filled by JS -->
-              </div>
-              <div id="heatmapLegend" style="margin-top:12px; display:flex; align-items:center; gap:8px; font-size:10px; color:var(--muted); justify-content:center;">
-                  <span>Low</span>
-                  <div style="width:12px; height:12px; background:rgba(244,63,94,0.1); border-radius:3px;"></div>
-                  <div style="width:12px; height:12px; background:rgba(244,63,94,0.3); border-radius:3px;"></div>
-                  <div style="width:12px; height:12px; background:rgba(244,63,94,0.6); border-radius:3px;"></div>
-                  <div style="width:12px; height:12px; background:rgba(244,63,94,1.0); border-radius:3px;"></div>
-                  <span>High</span>
-              </div>
-            </div>
-          </section>
-
-          <style>
-              .heatmap-collapsed .heatmap-body { display: none; }
-              .heatmap-collapsed .heatmap-chevron { transform: rotate(-90deg); }
-          </style>
 
           <section class="card">
             <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
@@ -789,7 +823,6 @@
             </div>
             <div id="summaryHistory" class="list"></div>
           </section>
-        </section>
       </section>
 
       <section id="view-accounts" class="view">
@@ -941,17 +974,32 @@
                 <option value="light">Light</option>
               </select>
               <label style="margin-bottom:12px; display:block;">Theme Palette</label>
-              <div id="themePalette" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin-bottom:18px;">
-                <div class="theme-swatch active" data-color1="#38bdf8" data-color2="#6366f1" style="background:linear-gradient(135deg, #38bdf8, #6366f1); height:45px; border-radius:12px; cursor:pointer; border:2px solid #fff; box-shadow:0 0 10px rgba(99,102,241,0.3);"></div>
-                <div class="theme-swatch" data-color1="#10b981" data-color2="#34d399" style="background:linear-gradient(135deg, #10b981, #34d399); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;"></div>
-                <div class="theme-swatch" data-color1="#f43f5e" data-color2="#fb7185" style="background:linear-gradient(135deg, #f43f5e, #fb7185); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;"></div>
-                <div class="theme-swatch" data-color1="#f59e0b" data-color2="#fbbf24" style="background:linear-gradient(135deg, #f59e0b, #fbbf24); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;"></div>
-                <div class="theme-swatch" data-color1="#a78bfa" data-color2="#c084fc" style="background:linear-gradient(135deg, #a78bfa, #c084fc); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;"></div>
+              <div id="themePalette"
+                style="display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin-bottom:18px;">
+                <div class="theme-swatch active" data-color1="#38bdf8" data-color2="#6366f1"
+                  style="background:linear-gradient(135deg, #38bdf8, #6366f1); height:45px; border-radius:12px; cursor:pointer; border:2px solid #fff; box-shadow:0 0 10px rgba(99,102,241,0.3);">
+                </div>
+                <div class="theme-swatch" data-color1="#10b981" data-color2="#34d399"
+                  style="background:linear-gradient(135deg, #10b981, #34d399); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;">
+                </div>
+                <div class="theme-swatch" data-color1="#f43f5e" data-color2="#fb7185"
+                  style="background:linear-gradient(135deg, #f43f5e, #fb7185); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;">
+                </div>
+                <div class="theme-swatch" data-color1="#f59e0b" data-color2="#fbbf24"
+                  style="background:linear-gradient(135deg, #f59e0b, #fbbf24); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;">
+                </div>
+                <div class="theme-swatch" data-color1="#a78bfa" data-color2="#c084fc"
+                  style="background:linear-gradient(135deg, #a78bfa, #c084fc); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;">
+                </div>
               </div>
-              
-              <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; padding:10px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid var(--card-border);">
-                <input id="accentColorPicker" type="color" style="width:30px; height:30px; border:none; background:none; cursor:pointer;" title="Choose custom color" />
-                <div style="font-size:12px; color:var(--text-secondary); font-weight:600;">Choose Custom Accent Color</div>
+
+              <div
+                style="display:flex; align-items:center; gap:12px; margin-bottom:18px; padding:10px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid var(--card-border);">
+                <input id="accentColorPicker" type="color"
+                  style="width:30px; height:30px; border:none; background:none; cursor:pointer;"
+                  title="Choose custom color" />
+                <div style="font-size:12px; color:var(--text-secondary); font-weight:600;">Choose Custom Accent Color
+                </div>
               </div>
 
               <input id="accentColor" type="hidden" value="#38bdf8" />
@@ -1283,7 +1331,8 @@
             <div class="row">
               <div><label>Your Name</label><input id="userNameField" placeholder="Admin" /></div>
               <div><label>Security Question</label><input id="securityHint" placeholder="e.g. Pet's name" /></div>
-              <div><label>Security Answer</label><input id="securityAnswerField" type="password" placeholder="Answer" /></div>
+              <div><label>Security Answer</label><input id="securityAnswerField" type="password" placeholder="Answer" />
+              </div>
             </div>
             <div class="row" style="margin-top:10px;">
               <div style="flex:1;"><label>Bio/Note</label><input id="userBio" placeholder="Your note" /></div>
@@ -1299,8 +1348,15 @@
             </div>
 
             <div>
-              <button id="enableBiometricBtn" class="btn-secondary" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a10 10 0 0 1 10 10v2a4 4 0 0 1-4 4h-2a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h2a4 4 0 0 0-4-4 4 4 0 0 0-4 4v10a8 8 0 0 0 8 8"></path><path d="M8 12v2a4 4 0 0 0 4 4"></path><path d="M16 12v-2a4 4 0 0 0-4-4"></path></svg>
+              <button id="enableBiometricBtn" class="btn-secondary"
+                style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path
+                    d="M12 2a10 10 0 0 1 10 10v2a4 4 0 0 1-4 4h-2a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h2a4 4 0 0 0-4-4 4 4 0 0 0-4 4v10a8 8 0 0 0 8 8">
+                  </path>
+                  <path d="M8 12v2a4 4 0 0 0 4 4"></path>
+                  <path d="M16 12v-2a4 4 0 0 0-4-4"></path>
+                </svg>
                 Enable fingerprint unlock
               </button>
               <div id="biometricStatus" class="modal-status"></div>
@@ -1343,100 +1399,147 @@
 
           <div class="features-list-rich"
             style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;">
-            
+
             <!-- SMART DASHBOARD -->
-            <div class="card mini-card" style="background:rgba(56,189,248,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
-              <div style="font-weight:800; color:#38bdf8; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+            <div class="card mini-card" style="background:rgba(56,189,248,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#38bdf8; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:8px;"><span>📊</span> Smart Dashboard</div>
                 <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Real-time expense trends, category pie charts, and filtered history logs.</div>
-              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(56,189,248,0.2); padding-top:10px;">
-                💡 **Deep-Dive:** Use the <strong>Summary</strong> tab to visualize your financial health. Toggle the 'Month/Day' view to compare spending periods. The system automatically highlights budget-exceeding categories in red. Tap on the Charts themselves to see exact amounts per segment.
+              <div style="font-size:12px; color:var(--text-secondary);">Real-time expense trends, category pie charts,
+                and filtered history logs.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(56,189,248,0.2); padding-top:10px;">
+                💡 **Deep-Dive:** Use the <strong>Summary</strong> tab to visualize your financial health. Toggle the
+                'Month/Day' view to compare spending periods. The system automatically highlights budget-exceeding
+                categories in red. Tap on the Charts themselves to see exact amounts per segment.
               </div>
             </div>
 
             <!-- QUICK ENTRY -->
-            <div class="card mini-card" style="background:rgba(99,102,241,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
-              <div style="font-weight:800; color:#818cf8; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+            <div class="card mini-card" style="background:rgba(99,102,241,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#818cf8; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:8px;"><span>📥</span> Quick Entry</div>
                 <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Voice input, auto-filling presets (Prefills), and split-bill support.</div>
-              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(99,102,241,0.2); padding-top:10px;">
-                💡 **Efficiency:** Use the <strong>Prefills</strong> button in the Entry tab to save items you repeat daily. When using Voice, speak clearly: 'Fifty rupees for coffee' for auto-recognition. Trip Dates are available for the <strong>Travel</strong> category if you're booking in advance.
+              <div style="font-size:12px; color:var(--text-secondary);">Voice input, auto-filling presets (Prefills),
+                and split-bill support.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(99,102,241,0.2); padding-top:10px;">
+                💡 **Efficiency:** Use the <strong>Prefills</strong> button in the Entry tab to save items you repeat
+                daily. When using Voice, speak clearly: 'Fifty rupees for coffee' for auto-recognition. Trip Dates are
+                available for the <strong>Travel</strong> category if you're booking in advance.
               </div>
             </div>
 
             <!-- ADVANCED DUES -->
-            <div class="card mini-card" style="background:rgba(167,139,250,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
-              <div style="font-weight:800; color:#a78bfa; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+            <div class="card mini-card" style="background:rgba(167,139,250,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#a78bfa; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:8px;"><span>🤝</span> Advanced Dues</div>
                 <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Powerful 'I Owe' & 'They Owe' engine with Search and Bank Mapping.</div>
-              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(167,139,250,0.2); padding-top:10px;">
-                💡 **Debt Management:** Track exactly who owes you what. When marking as 'Received', the app asks for the <strong>Bank account</strong> and date to create a matching settlement entry. Use the 🔍 <strong>Filter</strong> to find old records or search by name.
+              <div style="font-size:12px; color:var(--text-secondary);">Powerful 'I Owe' & 'They Owe' engine with Search
+                and Bank Mapping.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(167,139,250,0.2); padding-top:10px;">
+                💡 **Debt Management:** Track exactly who owes you what. When marking as 'Received', the app asks for
+                the <strong>Bank account</strong> and date to create a matching settlement entry. Use the 🔍
+                <strong>Filter</strong> to find old records or search by name.
               </div>
             </div>
 
             <!-- PETROL -->
-            <div class="card mini-card" style="background:rgba(234,179,8,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
-              <div style="font-weight:800; color:#eab308; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+            <div class="card mini-card" style="background:rgba(234,179,8,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#eab308; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:8px;"><span>⛽</span> Fuel & Petrol Price</div>
                 <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Track fuel economy (km/L) and log daily petrol prices (₹/L).</div>
-              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(234,179,8,0.2); padding-top:10px;">
-                💡 **Cost Analysis:** By entering ODO readings and Liters refilled, the app calculates vehicle performance. Logging the <strong>Price per Litre</strong> allows you to see how fuel rate changes impact your monthly budget over time.
+              <div style="font-size:12px; color:var(--text-secondary);">Track fuel economy (km/L) and log daily petrol
+                prices (₹/L).</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(234,179,8,0.2); padding-top:10px;">
+                💡 **Cost Analysis:** By entering ODO readings and Liters refilled, the app calculates vehicle
+                performance. Logging the <strong>Price per Litre</strong> allows you to see how fuel rate changes impact
+                your monthly budget over time.
               </div>
             </div>
 
             <!-- NET WORTH -->
-            <div class="card mini-card" style="background:rgba(52,211,153,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
-              <div style="font-weight:800; color:#34d399; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+            <div class="card mini-card" style="background:rgba(52,211,153,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#34d399; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:8px;"><span>🏦</span> Net Worth</div>
                 <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Multi-account support for Banks, Wallets, and Cards.</div>
-              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(52,211,153,0.2); padding-top:10px;">
-                💡 **Balance Tracking:** Add your accounts in the <strong>Accounts</strong> tab. As you spend or receive income, choose the source account. The system maintains a ledger for each, ensuring your bank balance always matches the app's record.
+              <div style="font-size:12px; color:var(--text-secondary);">Multi-account support for Banks, Wallets, and
+                Cards.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(52,211,153,0.2); padding-top:10px;">
+                💡 **Balance Tracking:** Add your accounts in the <strong>Accounts</strong> tab. As you spend or receive
+                income, choose the source account. The system maintains a ledger for each, ensuring your bank balance
+                always matches the app's record.
               </div>
             </div>
 
             <!-- MASTER REPORTS -->
-            <div class="card mini-card" style="background:rgba(244,63,94,0.05); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
-              <div style="font-weight:800; color:#fb7185; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+            <div class="card mini-card" style="background:rgba(244,63,94,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#fb7185; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:8px;"><span>📋</span> Master Reports</div>
                 <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Export filtered data to Excel (XLSX) or professional PDF.</div>
-              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(244,63,94,0.2); padding-top:10px;">
-                💡 **Accounting:** Use the <strong>Statement</strong> view to audit your logs. You can filter by any specific category (e.g. only 'Rent') across years. Export high-quality PDFs for proof or XLSX for advanced data analysis.
+              <div style="font-size:12px; color:var(--text-secondary);">Export filtered data to Excel (XLSX) or
+                professional PDF.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(244,63,94,0.2); padding-top:10px;">
+                💡 **Accounting:** Use the <strong>Statement</strong> view to audit your logs. You can filter by any
+                specific category (e.g. only 'Rent') across years. Export high-quality PDFs for proof or XLSX for
+                advanced data analysis.
               </div>
             </div>
 
             <!-- ORDERING -->
-            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
-              <div style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:8px;"><span>🗂️</span> Infinite Ordering</div>
                 <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Drag-and-drop to reorder navigation and tabs.</div>
-              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px solid var(--card-border); padding-top:10px;">
-                💡 **Customization:** Head to <strong>Settings -> Order</strong>. Use the ☰ handles to prioritize the features you use most. Want 'Dues' as your first tab? Just drag it to the top to redefine your app flow.
+              <div style="font-size:12px; color:var(--text-secondary);">Drag-and-drop to reorder navigation and tabs.
+              </div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px solid var(--card-border); padding-top:10px;">
+                💡 **Customization:** Head to <strong>Settings -> Order</strong>. Use the ☰ handles to prioritize the
+                features you use most. Want 'Dues' as your first tab? Just drag it to the top to redefine your app flow.
               </div>
             </div>
 
             <!-- PRIVACY -->
-            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0; cursor:pointer;" onclick="this.classList.toggle('expanded')">
-              <div style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:8px;"><span>🔒</span> Privacy & Lock</div>
                 <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
               </div>
-              <div style="font-size:12px; color:var(--text-secondary);">Optional Biometric or PIN lock with AES encryption.</div>
-              <div class="feature-detail" style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px solid var(--card-border); padding-top:10px;">
-                💡 **Security:** Your data is strictly offline. Use the optional PIN or Fingerprint lock for an extra layer of privacy. Backups are exported as <strong>AES-Encrypted</strong> JSON files, keeping them safe even on external storage.
+              <div style="font-size:12px; color:var(--text-secondary);">Optional Biometric or PIN lock with AES
+                encryption.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px solid var(--card-border); padding-top:10px;">
+                💡 **Security:** Your data is strictly offline. Use the optional PIN or Fingerprint lock for an extra
+                layer of privacy. Backups are exported as <strong>AES-Encrypted</strong> JSON files, keeping them safe
+                even on external storage.
               </div>
             </div>
           </div>
@@ -1454,18 +1557,28 @@
           </div>
 
           <!-- WHAT'S NEW IN V4.0 -->
-          <div style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(167,139,250,0.06)); border:1px solid rgba(99,102,241,0.25);">
-            <div style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--accent);">
+          <div
+            style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(167,139,250,0.06)); border:1px solid rgba(99,102,241,0.25);">
+            <div
+              style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--accent);">
               <span>🚀</span> v4.0 "Titanium" Release
             </div>
-            <ul style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
-              <li><strong>Biometric Unlock:</strong> Secure your records with native Fingerprint or FaceID for instant, keyless entry.</li>
-              <li><strong>Smart Spending Heatmap:</strong> A visual monthly grid that highlights your peak spending days at a glance.</li>
-              <li><strong>Universal Search:</strong> Find any transaction across all years and months with the new All-Time Master Search.</li>
-              <li><strong>WhatsApp Share & Statements:</strong> Instantly share Bills or full Account Statements through WhatsApp with one tap.</li>
-              <li><strong>Gamified Achievements:</strong> Earn Badges and '🔥 Streaks' for consistent tracking. Celebrate milestones with confetti FX!</li>
-              <li><strong>UPI Deep-Linking:</strong> Pay off dues directly from the app—buttons now launch your mobile payment apps with amounts pre-filled.</li>
-              <li><strong>Premium Themes:</strong> Professional Indigo, Emerald, and Rose gradient palettes with custom accent support.</li>
+            <ul
+              style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
+              <li><strong>Biometric Unlock:</strong> Secure your records with native Fingerprint or FaceID for instant,
+                keyless entry.</li>
+              <li><strong>Smart Spending Heatmap:</strong> A visual monthly grid that highlights your peak spending days
+                at a glance.</li>
+              <li><strong>Universal Search:</strong> Find any transaction across all years and months with the new
+                All-Time Master Search.</li>
+              <li><strong>WhatsApp Share & Statements:</strong> Instantly share Bills or full Account Statements through
+                WhatsApp with one tap.</li>
+              <li><strong>Gamified Achievements:</strong> Earn Badges and '🔥 Streaks' for consistent tracking.
+                Celebrate milestones with confetti FX!</li>
+              <li><strong>UPI Deep-Linking:</strong> Pay off dues directly from the app—buttons now launch your mobile
+                payment apps with amounts pre-filled.</li>
+              <li><strong>Premium Themes:</strong> Professional Indigo, Emerald, and Rose gradient palettes with custom
+                accent support.</li>
             </ul>
           </div>
 
@@ -1478,7 +1591,8 @@
             </a>
           </div>
 
-          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 4.0 Titanium • Premium Edition •
+          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 4.0 Titanium • Premium
+            Edition •
             Professional Finance Master</p>
         </section>
       </section>
