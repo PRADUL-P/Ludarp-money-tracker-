@@ -250,7 +250,7 @@
           <div class="add-transaction-header" style="justify-content:space-between;">
             <h2>Add Transaction</h2>
             <!-- OCR BUTTON -->
-            <button id="ocrBtn" type="button" class="btn-primary" style="background:var(--accent); font-size:12px; border-radius:30px; height:32px;">
+            <button id="ocrBtn" type="button" class="btn-primary" style="display:none; background:var(--accent); font-size:12px; border-radius:30px; height:32px;">
               🧾 Auto-Scan Bill
             </button>
             <input type="file" id="ocrFileInput" accept="image/*" capture="environment" style="display:none;" />
@@ -1391,7 +1391,7 @@
               <div id="passwordStatus" class="modal-status"></div>
             </div>
           </section>
-          <section class="card settings-section">
+          <section class="card settings-section" style="display:none;">
             <div class="section-title">📡 Offline Data & Pairing</div>
             <p style="font-size:11px; color:var(--muted); margin-top:6px; margin-bottom:12px;">Sync your data across devices offline.</p>
             <div style="display:flex; flex-direction:column; gap:8px;">
@@ -1911,41 +1911,40 @@
           ocrBtn.innerHTML = '🔬 Scanning locally...';
           
           try {
-            const worker = await Tesseract.createWorker({
+            const result = await window.Tesseract.recognize(file, 'eng', {
               logger: m => {
                 if(m.status === 'recognizing text') {
                    ocrBtn.innerHTML = `🔬 Analysing: ${(m.progress*100).toFixed(0)}%`;
                  }
               }
             });
-            await worker.loadLanguage('eng');
-            await worker.initialize('eng');
-            const { data: { text } } = await worker.recognize(file);
-            await worker.terminate();
+            const text = result.data.text;
 
-            // Simple Regex extraction for Amount
-            const amtMatch = text.match(/(?:total|amount|tot|due).*?([\d,]+\.\d{2})/i);
+            // Smarter Regex: Match Total, Amount, RS, Due, Net, then allow optional colons or currency symbols, then numbers
+            const amtMatch = text.match(/(?:total|amount|tot|due|net|rs\.?|sum|pay)\s*[:=]?\s*[$₹]?\s*([\d,]+(?:\.\d{1,2})?)/i);
             const amtNum = amtMatch ? amtMatch[1].replace(/,/g, '') : null;
             
             if(amtNum && document.getElementById('amount')) {
                document.getElementById('amount').value = amtNum;
                ocrBtn.innerHTML = '✅ Found ₹' + amtNum;
-               setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 3000);
+               setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 4000);
             } else {
-               ocrBtn.innerHTML = '❌ No amount found';
-               setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 3000);
+               ocrBtn.innerHTML = '⚠️ No clear total found';
+               setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 4000);
             }
 
             // Fill note with raw text excerpt
             const noteEl = document.getElementById('note');
             if(noteEl && text.length > 5) {
-               noteEl.value = 'OCR Scan: ' + text.substring(0, 100).replace(/\n/g, ' ') + '...';
+               const cleanText = text.replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim();
+               noteEl.value = 'OCR Scan: ' + cleanText.substring(0, 80) + '...';
             }
 
           } catch (err) {
             console.error(err);
-            ocrBtn.innerHTML = '❌ Scanning Failed';
-            setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 3000);
+            ocrBtn.innerHTML = '❌ Scanner Blocked';
+            alert("AI Scanner Failed!\\n\\nModern browsers block background 'WebAssembly Workers' when running files directly off your C:/ drive (file://) to protect your privacy.\\n\\nOnce this app is hosted onto your GitHub Pages site, the AI Scanner will work perfectly!");
+            setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 6000);
           }
           ocrInput.value = ''; // Reset
         });
@@ -2064,34 +2063,34 @@
         // ---- 9. QR DATA BEAM ----
         const menuHeaderData = document.createElement('div');
         menuHeaderData.innerHTML = "<hr style='opacity:0.1'><div style='font-size:10px; font-weight:800; color:var(--muted); padding:8px 15px;'>📡 OFFLINE SYNC API</div>";
+        menuHeaderData.style.display = 'none';
         mainMenu.insertBefore(menuHeaderData, mainMenu.firstChild);
 
         const qrBtn = document.createElement('button');
         qrBtn.innerHTML = '🎬 Transmit Data Beam (QR)';
         qrBtn.style.color = '#3b82f6';
+        qrBtn.style.display = 'none';
         mainMenu.insertBefore(qrBtn, menuHeaderData.nextSibling);
 
         const qrRecBtn = document.createElement('button');
         qrRecBtn.innerHTML = '📸 Receive Beam (Scanner)';
         qrRecBtn.style.color = '#10b981';
+        qrRecBtn.style.display = 'none';
         mainMenu.insertBefore(qrRecBtn, qrBtn.nextSibling);
 
         // ---- 10. PC COMMAND CENTER PAIRING ----
         const pcPairBtn = document.createElement('button');
         pcPairBtn.innerHTML = '💻 Pair with PC (Command Center)';
         pcPairBtn.style.color = '#8b5cf6';
+        pcPairBtn.style.display = 'none';
         mainMenu.insertBefore(pcPairBtn, qrRecBtn.nextSibling);
 
         // ---- CORE SYNC FUNCTIONS ----
         const doTransmitBeam = () => {
            let backupData = localStorage.getItem('money_tracker_v3');
            
-           if(!backupData || backupData.length < 50) {
-              // Generate heavy dummy data for offline demonstration if user has 0 entries
-              backupData = JSON.stringify({
-                 demo: "true",
-                 data: new Array(50).fill("Dummy sync packet data. ").join("")
-              });
+           if(!backupData) {
+              backupData = JSON.stringify({ demo: "true", msg: "This is a single data transfer block!" });
            }
            
            const modal = document.createElement('div');
@@ -2121,7 +2120,7 @@
            modal.appendChild(clsBtn);
            document.body.appendChild(modal);
            
-           const C_SIZE = 500;
+           const C_SIZE = 1500; // Increased to maximum safe QR Payload
            const chunks = [];
            for(let i=0; i<backupData.length; i+=C_SIZE) {
               chunks.push(backupData.substring(i, i+C_SIZE));
@@ -2129,21 +2128,37 @@
            
            let currentIdx = 0;
            let beamInterval = null;
+           let qrcode = null;
 
            const renderChunk = () => {
               if(!window.QRCode) return;
-              qrContainer.innerHTML = '';
+              
               const payload = JSON.stringify({ i: currentIdx, t: chunks.length, d: chunks[currentIdx] });
-              new window.QRCode(qrContainer, { text: payload, width: 260, height: 260, colorDark : "#000", colorLight : "#fff", correctLevel : window.QRCode.CorrectLevel.L });
-              document.getElementById('beamProgress').textContent = `Chunk ${currentIdx + 1} / ${chunks.length}`;
+              
+              if (!qrcode) {
+                  qrcode = new window.QRCode(qrContainer, { text: payload, width: 260, height: 260, colorDark: "#000", colorLight: "#fff", correctLevel: window.QRCode.CorrectLevel.L });
+              } else {
+                  qrcode.clear();
+                  qrcode.makeCode(payload);
+              }
+              
+              if (chunks.length === 1) {
+                  document.getElementById('beamProgress').textContent = `Single Beam Generated (100% Data)`;
+              } else {
+                  document.getElementById('beamProgress').textContent = `Transmitting: Segment ${currentIdx + 1} / ${chunks.length}`;
+              }
               currentIdx = (currentIdx + 1) % chunks.length;
            };
 
            renderChunk();
-           beamInterval = setInterval(renderChunk, 400);
+           
+           // Only flash if it mathematically couldn't fit in one QR code
+           if (chunks.length > 1) {
+               beamInterval = setInterval(renderChunk, 500);
+           }
 
            clsBtn.onclick = () => {
-              clearInterval(beamInterval);
+              if(beamInterval) clearInterval(beamInterval);
               modal.remove();
            };
         };
