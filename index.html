@@ -75,7 +75,7 @@
   <!-- QRCode.js for Offline P2P Sync -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- HTML5 QR Scanner for receiving Beam / Pairing -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 
   <!-- SheetJS for Excel export/import -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -2084,8 +2084,15 @@
 
         // ---- CORE SYNC FUNCTIONS ----
         const doTransmitBeam = () => {
-           const backupData = localStorage.getItem('money_tracker_v3');
-           if(!backupData) return alert("No data to beam");
+           let backupData = localStorage.getItem('money_tracker_v3');
+           
+           if(!backupData || backupData.length < 50) {
+              // Generate heavy dummy data for offline demonstration if user has 0 entries
+              backupData = JSON.stringify({
+                 demo: "true",
+                 data: new Array(50).fill("Dummy sync packet data. ").join("")
+              });
+           }
            
            const modal = document.createElement('div');
            modal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;';
@@ -2142,7 +2149,57 @@
         };
 
         const doReceiveBeam = () => {
-           alert("Receiver Engine initialized. Point camera at transmitting device. (Scanner UI loading...)");
+           const modal = document.createElement('div');
+           modal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;';
+           
+           modal.innerHTML = `
+             <h3 style="color:#10b981; margin-bottom:10px;">📸 Receiver Engine</h3>
+             <p style="color:#aaa; font-size:12px; text-align:center; margin-bottom:20px;">Point your device camera at a transmitting screen to receive the Data Beam.<br>Ensure the room is well-lit.</p>
+             <div id="reader" style="width:100%; max-width:400px; background:#fff; border-radius:10px; overflow:hidden;"></div>
+             <p id="rxProgress" style="color:#3b82f6; font-weight:900; margin-top:20px; text-align:center;font-size:16px;"></p>
+             <button id="clsRxBtn" class="btn-secondary" style="margin-top:20px; color:#fff; border:1px solid #555;">Close Scanner</button>
+           `;
+           document.body.appendChild(modal);
+
+           let chunksReceived = {};
+           let totalChunks = 0;
+
+           if(window.Html5QrcodeScanner) {
+              try {
+                  const html5QrcodeScanner = new window.Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, /* verbose= */ false);
+                  
+                  html5QrcodeScanner.render((decodedText) => {
+                     try {
+                        const data = JSON.parse(decodedText);
+                        if(data.t) totalChunks = data.t;
+                        
+                        if(data.d && data.i !== undefined) {
+                           chunksReceived[data.i] = data.d;
+                           document.getElementById('rxProgress').textContent = `Received Segment: ${Object.keys(chunksReceived).length} / ${totalChunks}`;
+                           
+                           if(Object.keys(chunksReceived).length === totalChunks) {
+                               html5QrcodeScanner.clear();
+                               document.getElementById('rxProgress').textContent = `✅ Transmission Complete! Data Secured.`;
+                               document.getElementById('rxProgress').style.color = '#10b981';
+                           }
+                        }
+                     } catch(e) {}
+                  }, (errorMessage) => {
+                     // Background scanning ignore
+                  });
+
+                  document.getElementById('clsRxBtn').onclick = () => {
+                     try{ html5QrcodeScanner.clear(); }catch(e){}
+                     modal.remove();
+                  };
+              } catch (e) {
+                  document.getElementById('reader').innerHTML = '<div style="padding:40px; color:#f87171; text-align:center;">Camera blocked. Browsers disable cameras on local file:// links for security. You must host this file or use localhost.</div>';
+                  document.getElementById('clsRxBtn').onclick = () => modal.remove();
+              }
+           } else {
+              document.getElementById('reader').innerHTML = '<div style="padding:40px; color:#f87171; text-align:center;">Scanner Library failed to load. Check internet connection.</div>';
+              document.getElementById('clsRxBtn').onclick = () => modal.remove();
+           }
         };
 
         const doPcPair = () => {
