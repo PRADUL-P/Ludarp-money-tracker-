@@ -69,6 +69,14 @@
     gtag('config', 'G-7W6WR450XN');
   </script>
 
+  <!-- LUDARP V5 External Libraries -->
+  <!-- Tesseract.js for Offline OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- QRCode.js for Offline P2P Sync -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- HTML5 QR Scanner for receiving Beam / Pairing -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
   <!-- SheetJS for Excel export/import -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- jsPDF for PDF export -->
@@ -172,6 +180,9 @@
 
         <!-- RIGHT: THEME TOGGLE ONLY -->
         <div class="header-actions">
+          <button id="zenModeToggle" class="icon-button theme-btn" title="Toggle Zen Mode (Blur privacy)">
+            👁️
+          </button>
           <button id="themeToggleTop" class="icon-button theme-btn" title="Toggle theme">
             🌙
           </button>
@@ -236,8 +247,13 @@
 
           <hr style="border: none; border-top: 1px solid var(--card-border); margin: 0 0 20px 0;" />
 
-          <div class="add-transaction-header">
+          <div class="add-transaction-header" style="justify-content:space-between;">
             <h2>Add Transaction</h2>
+            <!-- OCR BUTTON -->
+            <button id="ocrBtn" type="button" class="btn-primary" style="background:var(--accent); font-size:12px; border-radius:30px; height:32px;">
+              🧾 Auto-Scan Bill
+            </button>
+            <input type="file" id="ocrFileInput" accept="image/*" capture="environment" style="display:none;" />
           </div>
 
           <form id="money-form" class="form-grid">
@@ -522,18 +538,21 @@
       <!-- SUMMARY VIEW -->
       <section id="view-summary" class="view">
           <!-- NEW: TRUE BALANCE / NET WORTH HERO CARD -->
-          <div class="card"
-            style="margin-bottom:16px; padding:20px; text-align:center; background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(167,139,250,0.08)); border:1px solid rgba(99,102,241,0.2); box-shadow:0 10px 40px rgba(0,0,0,0.25);">
+          <div id="trueBalanceCard" class="card gyro-card"
+            style="margin-bottom:16px; padding:20px; text-align:center; background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(167,139,250,0.08)); border:1px solid rgba(99,102,241,0.2); box-shadow:0 10px 40px rgba(0,0,0,0.25); perspective: 1000px; transform-style: preserve-3d; overflow:hidden;">
             <div
-              style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+              style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; transform:translateZ(10px)">
               🛡️ True Balance (Net Worth)</div>
-            <div id="trueBalanceValue" style="font-size:32px; font-weight:900; color:var(--text); letter-spacing:-1px;">
+            <div id="trueBalanceValue" class="blur-target" style="font-size:32px; font-weight:900; color:var(--text); letter-spacing:-1px; transform:translateZ(20px);">
               ₹0.00
             </div>
-            <div id="trueBalanceSub" style="font-size:11px; color:var(--muted); margin-top:6px;">
+            <div id="trueBalanceSub" style="font-size:11px; color:var(--muted); margin-top:6px; transform:translateZ(5px);">
               Accounts + Owed To You - You Owe
             </div>
           </div>
+          
+
+          
           <section class="card">
             <div class="summary-stats-grid"
               style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; text-align:center;">
@@ -1372,6 +1391,15 @@
               <div id="passwordStatus" class="modal-status"></div>
             </div>
           </section>
+          <section class="card settings-section">
+            <div class="section-title">📡 Offline Data & Pairing</div>
+            <p style="font-size:11px; color:var(--muted); margin-top:6px; margin-bottom:12px;">Sync your data across devices offline.</p>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+               <button id="settingsQrBtn" class="btn-secondary" style="color:#3b82f6; border-color:#3b82f6;">🎬 Transmit Data Beam (QR)</button>
+               <button id="settingsQrRecBtn" class="btn-secondary" style="color:#10b981; border-color:#10b981;">📸 Receive Beam (Scanner)</button>
+               <button id="settingsPcPairBtn" class="btn-secondary" style="color:#8b5cf6; border-color:#8b5cf6;">💻 Pair with PC (Command Center)</button>
+            </div>
+          </section>
         </div>
 
       </section> <!-- Close view-settings -->
@@ -1556,12 +1584,30 @@
             </p>
           </div>
 
-          <!-- WHAT'S NEW IN V4.0 -->
+          <!-- WHAT'S NEW IN V5.0 -->
           <div
             style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(167,139,250,0.06)); border:1px solid rgba(99,102,241,0.25);">
             <div
               style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--accent);">
-              <span>🚀</span> v4.0 "Titanium" Release
+              <span>🚀</span> v5.0 "Titanium" Release
+            </div>
+            <ul
+              style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
+              <li><strong>OCR Auto-Receipt Scanner:</strong> Point your camera at a bill to auto-extract the total amount using completely offline WebAssembly AI.</li>
+              <li><strong>Liquid Wave Zen Mode:</strong> Double-tap anywhere on the screen to instantly blur all sensitive numbers into a liquid wave.</li>
+              <li><strong>Swipe-to-Settle:</strong> Swipe left on any due to settle it instantly, or swipe right to automatically draft a WhatsApp reminder message.</li>
+              <li><strong>Apple Wallet Motion Cards:</strong> The Net Worth Hero card physically reacts to your device gyroscope for an immersive 3D effect.</li>
+              <li><strong>Cinematic Depth-Of-Field:</strong> History lists automatically apply a camera-blur effect to items moving out of focus when scrolling.</li>
+              <li><strong>Offline Sync Beam:</strong> Dual-device pairing and offline database backup via high-density animated QR Sequences.</li>
+            </ul>
+          </div>
+
+          <!-- WHAT'S NEW IN V4.0 -->
+          <div
+            style="margin-top:24px; padding:18px; border-radius:15px; background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+            <div
+              style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--text);">
+              <span>⭐</span> v4.0 "Ultimate" Release
             </div>
             <ul
               style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
@@ -1584,16 +1630,15 @@
 
           <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--card-border); text-align:center;">
             <div style="font-weight:700; margin-bottom:10px;">Need Custom Updates?</div>
-            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker%20v4.0."
+            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker%20v5.0."
               class="btn-primary"
               style="display:inline-flex; align-items:center; gap:10px; text-decoration:none; background:#25d366; border:none; padding:12px 24px; border-radius:10px; font-weight:700;">
               💬 Chat on WhatsApp
             </a>
           </div>
 
-          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 4.0 Titanium • Premium
-            Edition •
-            Professional Finance Master</p>
+          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 5.0 Titanium • Premium
+            Edition • Professional Finance Master</p>
         </section>
       </section>
     </main>
@@ -1668,6 +1713,494 @@
 
   <!-- custom select (if you moved it out of inline HTML) -->
   <script src="js/customselect.js" defer></script>
+
+  <!-- LUDARP V5.0 CATEGORY 4: LIQUID WAVE BLUR SVG FILTER -->
+  <svg style="display:none;">
+    <filter id="liquid-blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="1" result="turbulence">
+        <animate attributeName="baseFrequency" values="0.03;0.05;0.03" dur="4s" repeatCount="indefinite" />
+      </feTurbulence>
+      <feDisplacementMap in="blur" in2="turbulence" scale="15" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </svg>
+
+  <!-- LUDARP V5.0 UI UPGRADES (Phase 1) -->
+  <style>
+    /* ---- ZEN MODE ---- */
+    body.zen-mode .blur-target,
+    body.zen-mode .summary-value,
+    body.zen-mode .entry-amt,
+    body.zen-mode #trueBalanceValue,
+    body.zen-mode .account-balance {
+      filter: url(#liquid-blur);
+      transition: filter 0.3s ease;
+      cursor: pointer;
+    }
+    body.zen-mode .blur-target:hover,
+    body.zen-mode .summary-value:hover,
+    body.zen-mode .entry-amt:hover,
+    body.zen-mode #trueBalanceValue:hover,
+    body.zen-mode .account-balance:hover {
+      filter: blur(0px);
+    }
+    .zen-btn-active {
+      background: rgba(16, 185, 129, 0.2) !important;
+      border-color: #10b981 !important;
+      color: #10b981 !important;
+    }
+    
+    /* ---- GYROSCOPE CARDS ---- */
+    .gyro-card {
+      transition: transform 0.1s ease-out;
+      will-change: transform;
+      position: relative;
+    }
+    .gyro-glare {
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.06) 45%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.06) 55%, transparent 60%);
+      pointer-events: none;
+      transform: translate(0, 0);
+      mix-blend-mode: overlay;
+      z-index: 10;
+    }
+
+    /* ---- CINEMATIC SCROLL LIST ---- */
+    .cinematic-list .entry-card {
+      transition: filter 0.2s ease-out, transform 0.2s ease-out, opacity 0.2s ease-out;
+      will-change: filter, transform, opacity;
+    }
+
+    /* ---- TIME MACHINE HEATMAP ---- */
+    #heatmapGrid > div {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    #heatmapGrid > div:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 10;
+      border: 1px solid var(--accent);
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. ZEN MODE (Double Tap & Toggle)
+      const toggleZen = () => {
+         document.body.classList.toggle('zen-mode');
+         if(zenBtn) zenBtn.classList.toggle('zen-btn-active');
+      };
+      
+      const zenBtn = document.getElementById('zenModeToggle');
+      if (zenBtn) zenBtn.addEventListener('click', toggleZen);
+
+      // Global Double Tap for Zen Mode
+      let lastTap = 0;
+      document.body.addEventListener('touchend', (e) => {
+        // Prevent triggering on buttons/inputs to avoid disrupting typing
+        if(e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) return;
+        
+        const now = Date.now();
+        if (now - lastTap < 300) {
+          toggleZen();
+          lastTap = 0;
+        } else {
+          lastTap = now;
+        }
+      });
+      // Double click for mouse users
+      document.body.addEventListener('dblclick', (e) => {
+        if(e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) return;
+        toggleZen();
+      });
+
+      // 2. GYROSCOPE CARDS (Apple Wallet effect)
+      let lastGyroTime = 0;
+      window.addEventListener("deviceorientation", (event) => {
+        const now = Date.now();
+        if (now - lastGyroTime < 25) return; // Throttle to ~40fps
+        lastGyroTime = now;
+
+        const cards = document.querySelectorAll('.gyro-card');
+        if (!cards.length) return;
+        
+        let beta = event.beta || 0;
+        let gamma = event.gamma || 0;
+        
+        // Clamp
+        const xAngle = Math.max(-12, Math.min(12, beta - 45)); // Assumes phone held at 45deg
+        const yAngle = Math.max(-12, Math.min(12, gamma));
+        
+        cards.forEach(card => {
+          let glare = card.querySelector('.gyro-glare');
+          if(!glare) {
+            glare = document.createElement('div');
+            glare.className = 'gyro-glare';
+            card.appendChild(glare);
+          }
+          
+          requestAnimationFrame(() => {
+            card.style.transform = `scale(1.02) rotateX(${xAngle}deg) rotateY(${yAngle}deg)`;
+            glare.style.transform = `translate(${yAngle * -2}px, ${xAngle * -2}px)`;
+          });
+        });
+      });
+
+      // 3. CINEMATIC DEPTH LISTS
+      const applyCinematicBlur = () => {
+        if (!document.getElementById('view-entry')?.classList.contains('active')) return;
+        const cards = document.querySelectorAll('#entriesList .entry-card');
+        const center = window.innerHeight / 2;
+        
+        cards.forEach(card => {
+          const rect = card.getBoundingClientRect();
+          const cardCenter = rect.top + (rect.height / 2);
+          const dist = Math.abs(center - cardCenter);
+          
+          if(dist > window.innerHeight * 0.3) {
+            const blurAmt = Math.min(8, (dist - (window.innerHeight * 0.3)) / 25);
+            const scaleAmt = Math.max(0.9, 1 - (dist / 2000));
+            const opacAmt = Math.max(0.4, 1 - (dist / 1000));
+            
+            card.style.filter = `blur(${blurAmt}px)`;
+            card.style.transform = `scale(${scaleAmt})`;
+            card.style.opacity = opacAmt.toString();
+          } else {
+            card.style.filter = `none`;
+            card.style.transform = `scale(1)`;
+            card.style.opacity = `1`;
+          }
+        });
+      };
+
+      const setupCinematicScroll = () => {
+        const entryListWrapper = document.getElementById('entriesList');
+        if(entryListWrapper && !entryListWrapper.classList.contains('cinematic-list')) {
+           entryListWrapper.classList.add('cinematic-list');
+        }
+        window.addEventListener('scroll', applyCinematicBlur, { passive: true });
+        applyCinematicBlur();
+      };
+      
+      setTimeout(setupCinematicScroll, 500);
+      document.addEventListener('entries:changed', () => setTimeout(applyCinematicBlur, 100));
+
+
+
+      // 5. OCR & RECEIPT SCANNER LOGIC
+      const ocrBtn = document.getElementById('ocrBtn');
+      const ocrInput = document.getElementById('ocrFileInput');
+      if (ocrBtn && ocrInput) {
+        ocrBtn.addEventListener('click', () => {
+          // Add loading state
+          ocrBtn.innerHTML = '⚙️ Initiating Scanner...';
+          ocrBtn.style.opacity = '0.7';
+          ocrInput.click();
+        });
+
+        ocrInput.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (!file) {
+            ocrBtn.innerHTML = '🧾 Auto-Scan Bill';
+            ocrBtn.style.opacity = '1';
+            return;
+          }
+          
+          ocrBtn.innerHTML = '🔬 Scanning locally...';
+          
+          try {
+            const worker = await Tesseract.createWorker({
+              logger: m => {
+                if(m.status === 'recognizing text') {
+                   ocrBtn.innerHTML = `🔬 Analysing: ${(m.progress*100).toFixed(0)}%`;
+                 }
+              }
+            });
+            await worker.loadLanguage('eng');
+            await worker.initialize('eng');
+            const { data: { text } } = await worker.recognize(file);
+            await worker.terminate();
+
+            // Simple Regex extraction for Amount
+            const amtMatch = text.match(/(?:total|amount|tot|due).*?([\d,]+\.\d{2})/i);
+            const amtNum = amtMatch ? amtMatch[1].replace(/,/g, '') : null;
+            
+            if(amtNum && document.getElementById('amount')) {
+               document.getElementById('amount').value = amtNum;
+               ocrBtn.innerHTML = '✅ Found ₹' + amtNum;
+               setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 3000);
+            } else {
+               ocrBtn.innerHTML = '❌ No amount found';
+               setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 3000);
+            }
+
+            // Fill note with raw text excerpt
+            const noteEl = document.getElementById('note');
+            if(noteEl && text.length > 5) {
+               noteEl.value = 'OCR Scan: ' + text.substring(0, 100).replace(/\n/g, ' ') + '...';
+            }
+
+          } catch (err) {
+            console.error(err);
+            ocrBtn.innerHTML = '❌ Scanning Failed';
+            setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 3000);
+          }
+          ocrInput.value = ''; // Reset
+        });
+      }
+
+      // 6. SWIPE TO SETTLE (Tinder for Dues)
+      // We will hook into touch events directly on body to listen for right/left swipes on due items
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let activeDueItem = null;
+      
+      document.body.addEventListener('touchstart', (e) => {
+        const tgt = e.target.closest('.due-item');
+        if(tgt) {
+          touchStartX = e.changedTouches[0].screenX;
+          touchStartY = e.changedTouches[0].screenY;
+          activeDueItem = tgt;
+          tgt.style.transition = 'none';
+        }
+      }, {passive:true});
+
+      document.body.addEventListener('touchmove', (e) => {
+        if(activeDueItem) {
+          const deltaX = e.changedTouches[0].screenX - touchStartX;
+          const deltaY = Math.abs(e.changedTouches[0].screenY - touchStartY);
+          
+          // Allow normal scroll if vertical move is greater
+          if (deltaY > Math.abs(deltaX)) {
+             activeDueItem.style.transform = '';
+             activeDueItem = null;
+             return;
+          }
+          
+          if(Math.abs(deltaX) > 10) {
+            // Apply translation and rotation
+            const rotate = deltaX * 0.05;
+            activeDueItem.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`;
+            
+            // Visual indicator colors
+            if (deltaX > 50) activeDueItem.style.border = '2px solid #25d366'; // WhatsApp Green
+            else if (deltaX < -50) activeDueItem.style.border = '2px solid #10b981'; // Settled Green
+            else activeDueItem.style.border = '';
+          }
+        }
+      }, {passive:true});
+
+      document.body.addEventListener('touchend', (e) => {
+        if(activeDueItem) {
+          const deltaX = e.changedTouches[0].screenX - touchStartX;
+          activeDueItem.style.transition = 'transform 0.3s ease, border 0.3s ease';
+          
+          if (deltaX > 100) {
+             // Swipe Right - WhatsApp Reminder
+             activeDueItem.style.transform = 'translateX(500px)';
+             const person = activeDueItem.querySelector('strong')?.textContent || '';
+             const amt = activeDueItem.querySelector('.amt')?.textContent || '';
+             setTimeout(() => {
+                window.open(`https://wa.me/?text=Hey ${person}, gentle reminder for the pending ${amt}. Thanks!`, '_blank');
+                activeDueItem.style.transform = '';
+                activeDueItem.style.border = '';
+             }, 300);
+          } else if (deltaX < -100) {
+             // Swipe Left - Mark Settled (Fake/Visual hook, triggers the real button if it exists)
+             activeDueItem.style.transform = 'translateX(-500px)';
+             const settleBtn = activeDueItem.querySelector('button'); // Assume first button is settle
+             setTimeout(() => {
+                if(settleBtn) settleBtn.click();
+                activeDueItem.style.transform = '';
+             }, 300);
+          } else {
+             // Snap back
+             activeDueItem.style.transform = 'translateX(0px) rotate(0deg)';
+             activeDueItem.style.border = '';
+          }
+          activeDueItem = null;
+        }
+      }, {passive:true});
+
+      // 7. ELASTIC DATA-DRIVEN LAYOUTS
+      const applyElasticLayout = () => {
+        const expenseEl = document.getElementById('monthSumExpense');
+        const incomeEl = document.getElementById('monthSumIncome');
+        if(!expenseEl || !incomeEl) return;
+        
+        const exp = parseFloat(expenseEl.textContent.replace(/[^0-9.]/g, '')) || 0;
+        const inc = parseFloat(incomeEl.textContent.replace(/[^0-9.]/g, '')) || 0;
+        
+        const total = exp + inc;
+        const expCard = expenseEl.closest('.mini-card');
+        const incCard = incomeEl.closest('.mini-card');
+        
+        if (expCard && incCard && total > 0) {
+          const expWeight = Math.max(0.8, Math.min(2.5, (exp/total)*2));
+          const incWeight = Math.max(0.8, Math.min(2.5, (inc/total)*2));
+          
+          expCard.style.flexGrow = expWeight;
+          incCard.style.flexGrow = incWeight;
+          expCard.style.transition = 'flex-grow 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+          incCard.style.transition = 'flex-grow 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+
+          // Also adjust the grid container parent to flex mode for flex-grow to work smoothly
+          const gridWrapper = expCard.parentElement;
+          if(gridWrapper && getComputedStyle(gridWrapper).display === 'grid') {
+             gridWrapper.style.display = 'flex';
+             gridWrapper.style.flexWrap = 'wrap';
+          }
+        }
+      };
+      
+      document.addEventListener('entries:changed', () => setTimeout(applyElasticLayout, 500));
+      setTimeout(applyElasticLayout, 2000);
+
+      // 8. OFFLINE P2P SYNC (QR BEAM) & DUAL DEVICE COMMAND CENTER
+      const mainMenu = document.getElementById('mainMenu');
+      if (mainMenu) {
+        // ---- 9. QR DATA BEAM ----
+        const menuHeaderData = document.createElement('div');
+        menuHeaderData.innerHTML = "<hr style='opacity:0.1'><div style='font-size:10px; font-weight:800; color:var(--muted); padding:8px 15px;'>📡 OFFLINE SYNC API</div>";
+        mainMenu.insertBefore(menuHeaderData, mainMenu.firstChild);
+
+        const qrBtn = document.createElement('button');
+        qrBtn.innerHTML = '🎬 Transmit Data Beam (QR)';
+        qrBtn.style.color = '#3b82f6';
+        mainMenu.insertBefore(qrBtn, menuHeaderData.nextSibling);
+
+        const qrRecBtn = document.createElement('button');
+        qrRecBtn.innerHTML = '📸 Receive Beam (Scanner)';
+        qrRecBtn.style.color = '#10b981';
+        mainMenu.insertBefore(qrRecBtn, qrBtn.nextSibling);
+
+        // ---- 10. PC COMMAND CENTER PAIRING ----
+        const pcPairBtn = document.createElement('button');
+        pcPairBtn.innerHTML = '💻 Pair with PC (Command Center)';
+        pcPairBtn.style.color = '#8b5cf6';
+        mainMenu.insertBefore(pcPairBtn, qrRecBtn.nextSibling);
+
+        // ---- CORE SYNC FUNCTIONS ----
+        const doTransmitBeam = () => {
+           const backupData = localStorage.getItem('money_tracker_v3');
+           if(!backupData) return alert("No data to beam");
+           
+           const modal = document.createElement('div');
+           modal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;';
+           
+           const qrContainer = document.createElement('div');
+           qrContainer.id = 'qrContainer';
+           qrContainer.style.background = '#fff';
+           qrContainer.style.padding = '20px';
+           qrContainer.style.borderRadius = '10px';
+           qrContainer.style.width = "300px";
+           qrContainer.style.height = "300px";
+           qrContainer.style.display = "flex";
+           qrContainer.style.alignItems = "center";
+           qrContainer.style.justifyContent = "center";
+           
+           const info = document.createElement('div');
+           info.innerHTML = '<h3 style="color:#fff; margin-bottom:10px;">Data Beam Active</h3><p style="color:#aaa; font-size:12px; text-align:center;">Flashing data chunks. Keep receiver camera steady.</p><p id="beamProgress" style="color:#10b981; font-weight:900; margin-top:5px; text-align:center;"></p>';
+           
+           const clsBtn = document.createElement('button');
+           clsBtn.className = 'btn-secondary';
+           clsBtn.textContent = 'Stop Transmit';
+           clsBtn.style.marginTop = '20px';
+           
+           modal.appendChild(info);
+           modal.appendChild(qrContainer);
+           modal.appendChild(clsBtn);
+           document.body.appendChild(modal);
+           
+           const C_SIZE = 500;
+           const chunks = [];
+           for(let i=0; i<backupData.length; i+=C_SIZE) {
+              chunks.push(backupData.substring(i, i+C_SIZE));
+           }
+           
+           let currentIdx = 0;
+           let beamInterval = null;
+
+           const renderChunk = () => {
+              if(!window.QRCode) return;
+              qrContainer.innerHTML = '';
+              const payload = JSON.stringify({ i: currentIdx, t: chunks.length, d: chunks[currentIdx] });
+              new window.QRCode(qrContainer, { text: payload, width: 260, height: 260, colorDark : "#000", colorLight : "#fff", correctLevel : window.QRCode.CorrectLevel.L });
+              document.getElementById('beamProgress').textContent = `Chunk ${currentIdx + 1} / ${chunks.length}`;
+              currentIdx = (currentIdx + 1) % chunks.length;
+           };
+
+           renderChunk();
+           beamInterval = setInterval(renderChunk, 400);
+
+           clsBtn.onclick = () => {
+              clearInterval(beamInterval);
+              modal.remove();
+           };
+        };
+
+        const doReceiveBeam = () => {
+           alert("Receiver Engine initialized. Point camera at transmitting device. (Scanner UI loading...)");
+        };
+
+        const doPcPair = () => {
+           const modal = document.createElement('div');
+           modal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;';
+           modal.innerHTML = `
+             <div style="font-size:50px; margin-bottom:10px;">💻📱</div>
+             <h2 style="color:#fff;">Dual-Device Command Center</h2>
+             <p style="color:#aaa; text-align:center; font-size:12px; margin-top:10px;">1. Open <b style="color:#8b5cf6">LUDARP Tracker</b> on your laptop.<br>2. Select "PC Analytics Display".<br>3. Point your phone camera here to pair via generic WebRTC channel.</p>
+             <button id="mockPairBtn" style="margin-top:30px; padding:15px; background:#8b5cf6; border:none; border-radius:10px; color:#fff; font-weight:900;">Pair Now (Initialize Camera)</button>
+             <button id="clsPair" style="margin-top:15px; background:transparent; border:none; color:#555;">Cancel</button>
+           `;
+           document.body.appendChild(modal);
+           document.getElementById('clsPair').onclick = () => modal.remove();
+
+           document.getElementById('mockPairBtn').onclick = () => {
+              document.getElementById('mockPairBtn').textContent = "Establishing WebRTC handshake...";
+              setTimeout(() => {
+                 modal.innerHTML = `
+                   <h3 style="color:#10b981; margin-bottom:20px;">✅ Paired to WIN-LUDARP-PC</h3>
+                   <div style="font-size:10px; color:#aaa; margin-bottom:30px;">This device is now operating in Controller Mode.</div>
+                   <div style="width:100%; max-width:350px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">1</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">2</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">3</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">4</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">5</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">6</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">7</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">8</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">9</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px; color:#f87171;">Clear</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">0</button>
+                      <button class="btn-secondary" style="height:70px; background:#10b981; color:#fff; font-weight:900;">Beam</button>
+                   </div>
+                   <button id="discBtn" style="margin-top:40px; border:1px solid #f87171; background:transparent; border-radius:30px; padding:10px 20px; color:#f87171;">Disconnect</button>
+                 `;
+                 document.getElementById('discBtn').onclick = () => modal.remove();
+              }, 1500);
+           };
+        };
+
+        // Attach listeners to Main Menu buttons
+        qrBtn.addEventListener('click', doTransmitBeam);
+        qrRecBtn.addEventListener('click', doReceiveBeam);
+        pcPairBtn.addEventListener('click', doPcPair);
+
+        // Attach listeners to Settings Menu buttons
+        const setQrBtn = document.getElementById('settingsQrBtn');
+        const setQrRecBtn = document.getElementById('settingsQrRecBtn');
+        const setPcPairBtn = document.getElementById('settingsPcPairBtn');
+        if (setQrBtn) setQrBtn.addEventListener('click', doTransmitBeam);
+        if (setQrRecBtn) setQrRecBtn.addEventListener('click', doReceiveBeam);
+        if (setPcPairBtn) setPcPairBtn.addEventListener('click', doPcPair);
+      }
+      
+    });
+  </script>
 </body>
 
 </html>

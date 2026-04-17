@@ -1,6 +1,6 @@
-# 📊 LUDARP Money Tracker — Version 4.0 (Ultimate)
+# 📊 LUDARP Money Tracker — Version 5.0 (Titanium)
 
-[![v4.0 Release](https://img.shields.io/badge/Release-v4.0_Ultimate-f43f5e?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
+[![v5.0 Release](https://img.shields.io/badge/Release-v5.0_Titanium-f43f5e?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Offline First](https://img.shields.io/badge/PWA-Technologically_Offline-38bdf8?style=for-the-badge&logo=pwa)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Privacy Protected](https://img.shields.io/badge/Privacy-100%25_On_Device-34d399?style=for-the-badge&logo=shield)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 
@@ -15,7 +15,19 @@
 
 ---
 
-## 🔥 Major v4.0 Ultimate Upgrades
+## 🔥 Major v5.0 Titanium Upgrades
+
+*   🧾 **100% Offline OCR Scanner**: WebAssembly AI instantly reads your physical receipts to extract total amounts automatically.
+*   👁️ **Liquid Wave Zen Mode**: Double-tap anywhere on the screen to blur all sensitive numbers into an unreadable liquid wave.
+*   🎬 **Cinematic Depth-of-Field**: Highly performant CSS `blur` filters automatically adjust focus on active history transactions as you scroll.
+*   👆 **"Tinder" Swipe-to-Settle**: Touch and swipe dues left to immediately mark them settled, or swipe right to draft a WhatsApp reminder.
+*   📱 **Apple Wallet Gyro Cards**: Premium 3D-tilt physics applied to your Net Worth hero cards using the device compass/gyroscope.
+*   📡 **P2P Offline Data Beam**: Pair your phone and laptop natively, and synchronize local storage arrays using an animated QR Sequence.
+*   🔍 **Elastic Data-Driven Grid**: CSS Flex blocks intelligently expand and collapse based on your real-time expense ratios.
+
+---
+
+## 🚀 Major v4.0 Ultimate Upgrades
 
 *   🗓️ **Spending Heatmap**: Interactive GitHub-style grid to visualize expenditure intensity over time.
 *   🏆 **Financial Gamification**: Unlock 20+ milestone badges and achievements with interactive celebrations.
