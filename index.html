@@ -250,7 +250,7 @@
           <div class="add-transaction-header" style="justify-content:space-between;">
             <h2>Add Transaction</h2>
             <!-- OCR BUTTON -->
-            <button id="ocrBtn" type="button" class="btn-primary" style="display:none; background:var(--accent); font-size:12px; border-radius:30px; height:32px;">
+            <button id="ocrBtn" type="button" class="btn-primary" style="background:var(--accent); font-size:12px; border-radius:30px; height:32px; flex: 1; max-width: 140px; padding: 0 10px;">
               🧾 Auto-Scan Bill
             </button>
             <input type="file" id="ocrFileInput" accept="image/*" capture="environment" style="display:none;" />
@@ -1892,10 +1892,16 @@
       // 5. OCR & RECEIPT SCANNER LOGIC
       const ocrBtn = document.getElementById('ocrBtn');
       const ocrInput = document.getElementById('ocrFileInput');
+      let ocrWorkerInstance = null; // Cache the worker to drastically improve speed on subsequent scans
+
       if (ocrBtn && ocrInput) {
         ocrBtn.addEventListener('click', () => {
           // Add loading state
-          ocrBtn.innerHTML = '⚙️ Initiating Scanner...';
+          if (ocrWorkerInstance) {
+            ocrBtn.innerHTML = '📸 Select Image...';
+          } else {
+            ocrBtn.innerHTML = '⚙️ Initiating Engine...';
+          }
           ocrBtn.style.opacity = '0.7';
           ocrInput.click();
         });
@@ -1908,21 +1914,42 @@
             return;
           }
           
-          ocrBtn.innerHTML = '🔬 Scanning locally...';
+          ocrBtn.innerHTML = '⚙️ Loading AI Engine...';
           
           try {
-            const result = await window.Tesseract.recognize(file, 'eng', {
-              logger: m => {
-                if(m.status === 'recognizing text') {
-                   ocrBtn.innerHTML = `🔬 Analysing: ${(m.progress*100).toFixed(0)}%`;
-                 }
-              }
-            });
+            if (!ocrWorkerInstance) {
+              ocrWorkerInstance = await window.Tesseract.createWorker('eng', 1, {
+                logger: m => {
+                  if(m.status === 'recognizing text') {
+                     ocrBtn.innerHTML = `🔬 Analysing: ${(m.progress*100).toFixed(0)}%`;
+                   } else if(m.status.includes('loading') || m.status.includes('initializing')) {
+                     ocrBtn.innerHTML = `⚙️ Downloading AI...`;
+                   }
+                }
+              });
+            } else {
+              ocrBtn.innerHTML = '🔬 Scanning locally...';
+            }
+
+            const result = await ocrWorkerInstance.recognize(file);
             const text = result.data.text;
 
             // Smarter Regex: Match Total, Amount, RS, Due, Net, then allow optional colons or currency symbols, then numbers
-            const amtMatch = text.match(/(?:total|amount|tot|due|net|rs\.?|sum|pay)\s*[:=]?\s*[$₹]?\s*([\d,]+(?:\.\d{1,2})?)/i);
-            const amtNum = amtMatch ? amtMatch[1].replace(/,/g, '') : null;
+            const amtMatch = text.match(/(?:total|amount|tot|due|net|rs\.?|sum|pay)(?:\s*)[:=-]?(?:\s*)[$₹]?(?:\s*)([0-9,]+(?:\.\d{1,2})?)/i);
+            let amtNum = amtMatch ? amtMatch[1].replace(/,/g, '') : null;
+            
+            // Fallback: If no clear total keyword, pick the largest formatted number on the receipt
+            if (!amtNum) {
+               const allNumbers = text.match(/[$₹]?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{2})?|\d+(?:\.\d{2})?)/g);
+               if (allNumbers) {
+                   let maxAmt = 0;
+                   allNumbers.forEach(m => {
+                       const n = parseFloat(m.replace(/[^0-9.]/g, ''));
+                       if (!isNaN(n) && n > maxAmt && n < 5000000) maxAmt = n; // Sanity cap 50 Lakhs
+                   });
+                   if (maxAmt > 0) amtNum = maxAmt.toString();
+               }
+            }
             
             if(amtNum && document.getElementById('amount')) {
                document.getElementById('amount').value = amtNum;
