@@ -561,37 +561,37 @@
                 <div
                   style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
                   Expense</div>
-                <div id="monthSumExpense" style="font-size:18px; font-weight:800; color:var(--danger);">₹0.00</div>
+                <div id="monthSumExpense" class="blur-target" style="font-size:18px; font-weight:800; color:var(--danger);">₹0.00</div>
               </div>
               <div class="card mini-card"
                 style="margin:0; padding:12px; background:rgba(52,211,153,0.03); border-color:rgba(52,211,153,0.1);">
                 <div
                   style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
                   Income</div>
-                <div id="monthSumIncome" style="font-size:18px; font-weight:800; color:var(--success);">₹0.00</div>
+                <div id="monthSumIncome" class="blur-target" style="font-size:18px; font-weight:800; color:var(--success);">₹0.00</div>
               </div>
               <div class="card mini-card"
                 style="margin:0; padding:12px; background:rgba(99,102,241,0.03); border-color:rgba(99,102,241,0.1);">
                 <div
                   style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
                   Owed To You</div>
-                <div id="splitOutstanding" style="font-size:18px; font-weight:800; color:var(--accent-1);">₹0.00</div>
+                <div id="splitOutstanding" class="blur-target" style="font-size:18px; font-weight:800; color:var(--accent-1);">₹0.00</div>
               </div>
               <div class="card mini-card"
                 style="margin:0; padding:12px; background:rgba(216,180,254,0.03); border-color:rgba(216,180,254,0.1);">
                 <div
                   style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
                   You Owe</div>
-                <div id="totalIOwe" style="font-size:18px; font-weight:800; color:var(--accent-3);">₹0.00</div>
+                <div id="totalIOwe" class="blur-target" style="font-size:18px; font-weight:800; color:var(--accent-3);">₹0.00</div>
               </div>
               <div id="avgDailyWrap" class="card mini-card"
                 style="margin:0; padding:12px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; justify-content:center;">
                 <div
                   style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
                   Avg / Day</div>
-                <div id="avgDailySpend" style="font-size:18px; font-weight:800; color:var(--text-secondary);">₹0.00
+                <div id="avgDailySpend" class="blur-target" style="font-size:18px; font-weight:800; color:var(--text-secondary);">₹0.00
                 </div>
-                <div id="vsLastMonth" style="font-size:11px; margin-top:4px; display:none;"></div>
+                <div id="vsLastMonth" class="blur-target" style="font-size:11px; margin-top:4px; display:none;"></div>
               </div>
             </div>
           </section>
@@ -1958,6 +1958,52 @@
             } else {
                ocrBtn.innerHTML = '⚠️ No clear total found';
                setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 4000);
+            }
+
+            // Extract Date (Look for DD/MM/YYYY, MM/DD/YYYY, or YYYY-MM-DD or DD-MM-YYYY)
+            const dateMatch = text.match(/\b(\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4})\b/);
+            if (dateMatch) {
+               try {
+                  const dStr = dateMatch[1].replace(/[\.\-]/g, '/');
+                  const parts = dStr.split('/');
+                  let d = new Date('invalid'); // Default to invalid
+                  
+                  if (parts.length === 3) {
+                      if (parts[2].length === 4) { // DD/MM/YYYY or MM/DD/YYYY
+                          d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`); // Try DD/MM/YYYY
+                          if (isNaN(d.getTime())) d = new Date(dStr); // Try MM/DD/YYYY
+                      } else if (parts[0].length === 4) { // YYYY/MM/DD
+                          d = new Date(`${parts[0]}-${parts[1]}-${parts[2]}`);
+                      } else { // DD-MM-YY
+                          d = new Date(`20${parts[2]}-${parts[1]}-${parts[0]}`);
+                      }
+                  }
+                  
+                  const dateEl = document.getElementById('date');
+                  if (!isNaN(d.getTime()) && dateEl) {
+                      const isoDate = d.toISOString().split('T')[0];
+                      dateEl.value = isoDate;
+                      // Trigger change so `entry.js` handles label updates natively
+                      dateEl.dispatchEvent(new Event('change', { bubbles: true })); 
+                  }
+               } catch(ex) {}
+            }
+
+            // Extract Merchant / Title (Usually top 1-3 lines)
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 3);
+            if(lines.length > 0 && document.getElementById('description')) {
+               let merchant = lines[0];
+               const genericHeaders = ['tax invoice', 'receipt', 'bill', 'cash memo', 'invoice', 'estimate'];
+               // Ignore obvious generic headers
+               for(let i=0; i<Math.min(3, lines.length); i++) {
+                   if (!genericHeaders.some(h => lines[i].toLowerCase().includes(h))) {
+                       merchant = lines[i];
+                       break;
+                   }
+               }
+               // Remove unwanted junk symbols from Merchant
+               merchant = merchant.replace(/[^a-zA-Z0-9 &'.-]/g, '').trim();
+               document.getElementById('description').value = merchant.substring(0, 40);
             }
 
             // Fill note with raw text excerpt

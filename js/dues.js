@@ -100,10 +100,16 @@
       filtered.sort((a, b) => (a.paid === b.paid) ? 0 : a.paid ? 1 : -1);
     }
 
-    // Group by person
+    // Group by person case-insensitively, preserving the first encountered casing
     const groups = {};
+    const groupKeyMap = {};
     filtered.forEach(d => {
-      const key = (d.person || 'Unknown').trim();
+      const rawName = (d.person || 'Unknown').trim();
+      const lowerKey = rawName.toLowerCase();
+      
+      if (!groupKeyMap[lowerKey]) groupKeyMap[lowerKey] = rawName;
+      
+      const key = groupKeyMap[lowerKey];
       if (!groups[key]) groups[key] = [];
       groups[key].push(d);
     });
@@ -360,8 +366,14 @@
   /* ---- Known people autocomplete ---- */
   function getKnownPeople() {
     const dues = loadDues();
-    const set = new Set(dues.map(d => d.person).filter(Boolean));
-    return Array.from(set).sort();
+    const map = new Map();
+    dues.forEach(d => {
+      if (d.person) {
+        const lower = d.person.trim().toLowerCase();
+        if (!map.has(lower)) map.set(lower, d.person.trim());
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   }
 
   /* ================================================================
@@ -678,7 +690,7 @@
       const bank = document.getElementById('settleAllBank').value;
       const date = document.getElementById('settleAllDate').value;
       const list = loadDues();
-      const pendings = list.filter(d => d.person === person && !d.paid);
+      const pendings = list.filter(d => (d.person || '').trim().toLowerCase() === person.toLowerCase() && !d.paid);
       if (pendings.length === 0) { panel.remove(); return; }
       pendings.forEach(d => markPaid(d.id, date, bank));
       window.MT.ui?.showToast(`All ${pendings.length} dues settled!`, 'success');
@@ -783,7 +795,7 @@
 
   function sharePersonSummary(person) {
     const list = loadDues();
-    const pending = list.filter(d => d.person === person && !d.paid);
+    const pending = list.filter(d => (d.person || '').trim().toLowerCase() === person.toLowerCase() && !d.paid);
     if (pending.length === 0) { window.MT.ui?.showToast('No pending dues to share', 'info'); return; }
     const cur = sym();
     const total = pending.reduce((s, d) => s + (d.type === 'they_owe' ? 1 : -1) * d.amount, 0);
