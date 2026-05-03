@@ -276,6 +276,10 @@
                               ⚡ Pay
                             </a>
                           ` : ''}
+                          <button class="due-del-btn" title="Edit"
+                            onclick="window.MT.dues.openEditDue('${due.id}')">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                          </button>
                           <button class="due-pay-btn" title="Mark as ${due.type === 'i_owe' ? 'paid' : 'received'}"
                             onclick="window.MT.dues.markPaid('${due.id}')">
                             ✓ Settle
@@ -700,6 +704,126 @@
     });
   }
 
+  function openEditDue(id) {
+    const itemEl = document.querySelector(`.due-item[data-id="${id}"]`);
+    if (!itemEl) return;
+
+    if (itemEl.querySelector('.edit-panel')) {
+      itemEl.querySelector('.edit-panel').remove();
+      return;
+    }
+
+    const list = loadDues();
+    const d = list.find(x => x.id === id);
+    if (!d) return;
+
+    const panel = document.createElement('div');
+    panel.className = 'edit-panel';
+    panel.style.cssText = `
+      background: var(--card-hover); border: 1px solid var(--accent);
+      border-radius: 10px; padding: 12px; margin-top: 10px; grid-column: 1/-1;
+    `;
+    panel.innerHTML = `
+      <div style="font-size:12px; font-weight:700; margin-bottom:8px; color:var(--accent);">✎ Edit Due</div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div style="grid-column: span 2;">
+          <label style="font-size:11px; color:var(--muted);">Person</label>
+          <input id="editDuePerson_${id}" type="text" value="${d.person}" style="width:100%;" />
+        </div>
+        <div>
+          <label style="font-size:11px; color:var(--muted);">Amount</label>
+          <input id="editDueAmount_${id}" type="number" value="${d.amount}" step="0.01" style="width:100%;" />
+        </div>
+        <div>
+          <label style="font-size:11px; color:var(--muted);">Date</label>
+          <input id="editDueDate_${id}" type="date" value="${d.date}" style="width:100%;" />
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size:11px; color:var(--muted);">Description</label>
+          <input id="editDueDesc_${id}" type="text" value="${d.description || ''}" style="width:100%;" />
+        </div>
+        <div style="grid-column: span 2; display:flex; gap:8px; margin-top:4px;">
+          <button id="saveEditDue_${id}" class="btn-primary" style="flex:1;">Save</button>
+          <button id="cancelEditDue_${id}" class="btn-secondary" style="flex:1;">Cancel</button>
+        </div>
+      </div>
+    `;
+
+    itemEl.appendChild(panel);
+    document.getElementById(`cancelEditDue_${id}`)?.addEventListener('click', () => panel.remove());
+    document.getElementById(`saveEditDue_${id}`)?.addEventListener('click', () => {
+      const newPerson = document.getElementById(`editDuePerson_${id}`).value.trim();
+      const newAmt = parseFloat(document.getElementById(`editDueAmount_${id}`).value) || 0;
+      const newDate = document.getElementById(`editDueDate_${id}`).value;
+      const newDesc = document.getElementById(`editDueDesc_${id}`).value.trim();
+
+      if (!newPerson || newAmt <= 0 || !newDesc) {
+        alert('Please fill all fields correctly');
+        return;
+      }
+
+      const allDues = loadDues();
+      const idx = allDues.findIndex(x => x.id === id);
+      if (idx >= 0) {
+        allDues[idx].person = newPerson;
+        allDues[idx].amount = newAmt;
+        allDues[idx].date = newDate;
+        allDues[idx].description = newDesc;
+        saveDues(allDues);
+
+        // SYNC TO HISTORY
+        if (window.MT.db) {
+          const store = window.MT.db.loadStore();
+          let historyUpdated = false;
+          
+          for (const dStr in store.days) {
+            store.days[dStr].forEach(e => {
+              // 1. Check direct linked due (Quick Due)
+              if (e.dueId === id) {
+                 e.duePerson = newPerson;
+                 e.amount = newAmt;
+                 e.description = newDesc;
+                 const oldDate = e.dateStr;
+                 e.dateStr = newDate;
+                 if (newDate !== oldDate) e._moveDate = { from: oldDate, to: newDate };
+                 historyUpdated = true;
+              }
+              // 2. Check split participant
+              if (e.split && e.split.enabled) {
+                 e.split.participants.forEach(p => {
+                    if (p.dueId === id) {
+                       p.name = newPerson;
+                       p.amount = newAmt;
+                       historyUpdated = true;
+                    }
+                 });
+              }
+            });
+          }
+          
+          if (historyUpdated) {
+             for (const dStr in store.days) {
+                const moves = store.days[dStr].filter(e => e._moveDate);
+                moves.forEach(e => {
+                   const { from, to } = e._moveDate;
+                   delete e._moveDate;
+                   store.days[from] = store.days[from].filter(x => x.id !== e.id);
+                   if (store.days[from].length === 0) delete store.days[from];
+                   if (!store.days[to]) store.days[to] = [];
+                   store.days[to].push(e);
+                });
+             }
+             window.MT.db.saveStore(store);
+             window.dispatchEvent(new Event('mt:entries-changed'));
+          }
+        }
+
+        window.MT.ui?.showToast('Due updated & synced', 'success');
+        renderDuesView();
+      }
+    });
+  }
+
   function deleteDue(id) {
     const itemEl = document.querySelector(`.due-item[data-id="${id}"]`);
     if (!itemEl) return;
@@ -811,7 +935,7 @@
   window.MT.dues = {
     loadDues, saveDues,
     renderDuesView, setFilter, setAddTab,
-    addDue, clearForm, markPaid, undoPaid, deleteDue,
+    addDue, clearForm, markPaid, undoPaid, deleteDue, openEditDue,
     showSettleAll,
     updateDuesBadge,
     toggleFilter, applyFilter, clearFilters,
