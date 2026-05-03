@@ -293,50 +293,69 @@
         entry.amount = amountValue;
         entry.split = { enabled: true, participants: participantsSplit, myShare: myShare, mode: splitModeSelect.value, status: 'pending' };
 
-        // Link to Dues Tracker — ONLY on new entries, never on edit (prevents duplication)
-        if (!currentEdit) {
-          const linkToDues = document.getElementById('linkToDues');
-          if (linkToDues && linkToDues.checked && window.MT.dues) {
-            const duesList = window.MT.dues.loadDues();
-            participantsSplit.forEach(p => {
-              const dueId = `due_split_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-              p.dueId = dueId; // Link in the history entry's split data
-              duesList.push({
-                id: dueId,
-                type: 'they_owe',
-                person: p.name,
-                amount: p.amount,
-                description: `Split: ${description}`,
-                date: dateStr,
-                occasion: 'Split Payment',
-                note: `From transaction: ${description}`,
-                paid: false,
-                paidDate: null,
-                createdAt: new Date().toISOString()
+        // SYNC TO DUES TRACKER (Splits)
+        if (window.MT.dues) {
+          const duesList = window.MT.dues.loadDues();
+          if (!currentEdit) {
+            // Create new dues for split
+            const linkToDues = document.getElementById('linkToDues');
+            if (linkToDues && linkToDues.checked) {
+              participantsSplit.forEach(p => {
+                const dueId = `due_split_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+                p.dueId = dueId;
+                duesList.push({
+                  id: dueId,
+                  type: 'they_owe',
+                  person: p.name,
+                  amount: p.amount,
+                  description: `Split: ${description}`,
+                  date: dateStr,
+                  occasion: 'Split Payment',
+                  note: `From transaction: ${description}`,
+                  paid: false,
+                  paidDate: null,
+                  createdAt: new Date().toISOString()
+                });
               });
+              window.MT.dues.saveDues(duesList);
+              window.MT.dues.updateDuesBadge();
+            }
+          } else {
+            // Update existing split dues
+            let splitChanged = false;
+            entry.split.participants.forEach(p => {
+              if (p.dueId) {
+                const dIdx = duesList.findIndex(d => d.id === p.dueId);
+                if (dIdx >= 0) {
+                  duesList[dIdx].amount = p.amount;
+                  duesList[dIdx].description = `Split: ${description}`;
+                  duesList[dIdx].date = dateStr;
+                  splitChanged = true;
+                }
+              }
             });
-            window.MT.dues.saveDues(duesList);
-            window.MT.dues.updateDuesBadge();
+            if (splitChanged) {
+              window.MT.dues.saveDues(duesList);
+              window.MT.dues.updateDuesBadge();
+            }
           }
         }
       } else {
         // Fallback for Quick Due if they didn't use split
+        entry.amount = amountValue;
         if (forceDuePerson && window.MT.dues) {
-          // Show the true outflow, but flag it so analytics can exclude it from personal budget
-          entry.amount = amountValue; 
           entry.duePerson = forceDuePerson;
           entry.isQuickDue = true;
-          entry.quickDueType = forceDueType; // 'i_owe' or 'they_owe'
+          entry.quickDueType = forceDueType;
           entry.isSettled = false;
           
-          // Only create new due on NEW entries, not on edit (prevents duplication)
           if (!currentEdit) {
             const duesList = window.MT.dues.loadDues();
             const dueId = `due_quick_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-            entry.dueId = dueId; // Link it
+            entry.dueId = dueId;
             duesList.push({
               id: dueId,
-              type: forceDueType, // use the captured type
+              type: forceDueType,
               person: forceDuePerson,
               amount: amountValue,
               description: description,
@@ -350,28 +369,25 @@
             window.MT.dues.saveDues(duesList);
             window.MT.dues.updateDuesBadge();
           }
-        } else {
-          entry.amount = amountValue;
+        }
+      }
 
-          // UPDATE LINKED DUE if editing
-          if (currentEdit && entry.dueId && window.MT.dues) {
-             const dues = window.MT.dues.loadDues();
-             const dIdx = dues.findIndex(d => d.id === entry.dueId);
-             if (dIdx >= 0) {
-                // Update based on the NEW entry data
-                dues[dIdx].person = entry.duePerson || forceDuePerson || dues[dIdx].person;
-                dues[dIdx].amount = entry.amount;
-                dues[dIdx].description = entry.description;
-                dues[dIdx].date = entry.dateStr;
-                dues[dIdx].note = entry.note;
-                // If they used the quick toggle to change 'forceDueType', update it
-                if (forceDueType) dues[dIdx].type = forceDueType;
-                
-                window.MT.dues.saveDues(dues);
-                entry.duePerson = dues[dIdx].person;
-                entry.quickDueType = dues[dIdx].type;
-             }
-          }
+      // UNIVERSAL SYNC FOR EDITS (Covers both Quick Dues and other linked dues)
+      if (currentEdit && entry.dueId && window.MT.dues) {
+        const dues = window.MT.dues.loadDues();
+        const dIdx = dues.findIndex(d => d.id === entry.dueId);
+        if (dIdx >= 0) {
+          dues[dIdx].person = entry.duePerson || forceDuePerson || dues[dIdx].person;
+          dues[dIdx].amount = entry.amount;
+          dues[dIdx].description = description;
+          dues[dIdx].date = dateStr;
+          dues[dIdx].note = note;
+          if (forceDueType) dues[dIdx].type = forceDueType;
+          
+          window.MT.dues.saveDues(dues);
+          entry.duePerson = dues[dIdx].person;
+          entry.quickDueType = dues[dIdx].type;
+          window.MT.dues.updateDuesBadge();
         }
       }
     }
