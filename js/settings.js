@@ -528,6 +528,7 @@
       storageKey: 'mt_finance_tab_order',
       defaults: [
         { target: 'finance-accounts', icon: '🏦', label: 'Balances' },
+        { target: 'finance-subscriptions', icon: '📅', label: 'Subs' },
         { target: 'finance-statement', icon: '📄', label: 'Statement' },
         { target: 'finance-petrol',   icon: '⛽', label: 'Petrol Log' }
       ],

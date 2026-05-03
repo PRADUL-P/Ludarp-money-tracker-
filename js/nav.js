@@ -184,6 +184,13 @@
       document.querySelectorAll('.tab-content').forEach(p => p.style.display = 'none');
       const target = document.getElementById(targetId);
       if (target) target.style.display = 'block';
+
+      // Dispatch event so sub-modules know they became visible
+      window.dispatchEvent(
+        new CustomEvent('mt:tab-changed', {
+          detail: { tabId: targetId }
+        })
+      );
     });
   }
 

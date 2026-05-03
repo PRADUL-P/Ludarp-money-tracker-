@@ -14,7 +14,7 @@ window.exportCSV = exportCSV;
 window.exportJSON = exportJSON;
 window.exportXLSX = exportXLSX;
 function initApp(){
-  ensureSettingsSeeded(); // 🔥 REQUIRED
+  if(window.ensureSettingsSeeded) window.ensureSettingsSeeded();
 
   applyCustom();
   setupTheme();
@@ -87,10 +87,11 @@ function setupAuthSimple(){
 function enterApp(){
   DOM.authScreen.style.display='none';
   DOM.appRoot.style.display='block';
-  initApp();
+  initApp2();
 }
 
-function initApp(){
+function initApp2(){ // merged into single initApp
+  if(window.ensureSettingsSeeded) window.ensureSettingsSeeded();
   applyCustom();
   setupTheme();
   initNav(showView);
@@ -114,6 +115,32 @@ function initApp(){
 
   // small layout fixes
   setTimeout(()=> { ensureMenuElementsInBody(); positionMenuToggle(); }, 80);
+  
+  // handle shortcuts
+  handleAppShortcuts();
+}
+
+function handleAppShortcuts() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const action = urlParams.get('action');
+  const view = urlParams.get('view');
+  
+  if (view) {
+    if (window.MT && window.MT.nav) {
+      window.MT.nav.showView(view);
+    } else {
+      showView(view);
+    }
+  } else if (action === 'add_expense') {
+    if (window.MT && window.MT.nav) {
+      window.MT.nav.showView('entry');
+    } else {
+      showView('entry');
+    }
+    setTimeout(() => {
+      document.getElementById('amount')?.focus();
+    }, 300);
+  }
 }
 
 // showView used by nav

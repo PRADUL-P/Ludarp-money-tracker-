@@ -988,8 +988,51 @@
     });
   }
 
+  function shareWhatsAppReport() {
+    if (!window.MT || !window.MT.db) return;
+    const mode = document.getElementById('dateMode')?.value || 'month';
+    const monthVal = document.getElementById('monthPicker')?.value;
+    
+    let title = "📊 *LUDARP Financial Report*";
+    if (mode === 'month' && monthVal) {
+        const d = new Date(monthVal + '-01');
+        title += ` (${d.toLocaleString('default', { month: 'long', year: 'numeric' })})`;
+    } else if (mode === 'day') {
+        title += ` (Daily Report)`;
+    } else {
+        title += " (Custom Period)";
+    }
+
+    const exp = document.getElementById('monthSumExpense')?.textContent || '0';
+    const inc = document.getElementById('monthSumIncome')?.textContent || '0';
+    const owedToMe = document.getElementById('splitOutstanding')?.textContent || '0';
+    const iOwe = document.getElementById('totalIOwe')?.textContent || '0';
+    const trueBal = document.getElementById('trueBalanceValue')?.textContent || '0';
+
+    let text = `${title}\n\n`;
+    text += `💸 *Expense*: ${exp}\n`;
+    text += `💰 *Income*: ${inc}\n`;
+    text += `🛡️ *True Balance*: ${trueBal}\n\n`;
+    
+    if (owedToMe !== '₹0.00' && owedToMe !== '0') text += `🤝 *Owed to you*: ${owedToMe}\n`;
+    if (iOwe !== '₹0.00' && iOwe !== '0') text += `⚠️ *You owe*: ${iOwe}\n`;
+
+    const insights = document.getElementById('insightsList')?.innerText || '';
+    if (insights && !insights.includes('No data')) {
+        const lines = insights.split('\n').filter(l => l.trim().length > 0 && !l.includes('Keep logging'));
+        if (lines.length > 0) {
+            text += `\n✨ *Insights*:\n${lines.join('\n')}\n`;
+        }
+    }
+
+    text += `\n_Generated via LUDARP Money Tracker_`;
+    
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  }
+
   // expose module
-  window.SummaryModule = { initSummaryControls, renderSummary, drawCategoryPie, renderHistoryList, nextChart, prevChart, showChart };
+  window.SummaryModule = { initSummaryControls, renderSummary, drawCategoryPie, renderHistoryList, nextChart, prevChart, showChart, shareWhatsAppReport };
 
   // Re-render whenever user navigates to the summary view
   window.addEventListener('mt:view-changed', (ev) => {

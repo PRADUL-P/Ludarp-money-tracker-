@@ -59,60 +59,65 @@
     return Math.round((target - today) / 86400000);
   }
 
-  /* ---- AUTO-APPLY on load ---- */
-  function applyDueRecurring() {
-    const db = window.MT.db;
-    if (!db) return;
-
+  /* ---- CHECK UPCOMING on load ---- */
+  function checkUpcomingRecurring() {
     const list = loadRecurring();
     if (!list.length) return;
 
     const today = todayISO();
-    let applied = 0;
+    let upcomingCount = 0;
 
     list.forEach(rule => {
       if (!rule.active) return;
       const due = getDueDate(rule);
-      if (due > today) return; // not yet due
-
-      // Could be multiple missed periods - apply up to today
-      let cursor = due;
-      while (cursor <= today) {
-        // Create entry in the store
-        const store = db.loadStore();
-        if (!store.days[cursor]) store.days[cursor] = [];
-        const entry = {
-          id: Date.now() + Math.random(),
-          dateStr: cursor,
-          type: rule.type,
-          description: rule.description,
-          category: rule.category || '',
-          payMethod: rule.payMethod || 'Cash',
-          paySubType: rule.paySubType || '',
-          mappedBank: rule.paySubType || '',
-          amount: rule.amount,
-          note: `🔁 Auto-added recurring: ${rule.description}`,
-          createdAt: new Date().toISOString(),
-          split: null,
-          isRecurring: true
-        };
-        store.days[cursor].push(entry);
-        db.saveStore(store);
-        rule.lastApplied = cursor;
-        applied++;
-
-        // Advance to next period
-        const next = nextDueDate({ ...rule, lastApplied: cursor });
-        if (next <= cursor) break; // safety guard
-        cursor = next;
-      }
+      const days = daysUntil(due);
+      if (days <= 7) upcomingCount++;
     });
 
-    if (applied > 0) {
-      saveRecurring(list);
-      window.dispatchEvent(new Event('mt:entries-changed'));
-      window.MT.ui?.showToast(`🔁 ${applied} recurring transaction${applied > 1 ? 's' : ''} added`);
+    if (upcomingCount > 0) {
+      window.MT.ui?.showToast(`📅 You have ${upcomingCount} subscription${upcomingCount > 1 ? 's' : ''} due soon!`);
     }
+  }
+
+  function markAsPaid(idx) {
+    const list = loadRecurring();
+    const rule = list[idx];
+    if (!rule) return;
+
+    const db = window.MT.db;
+    if (!db) return;
+
+    const today = todayISO();
+    const due = getDueDate(rule);
+    
+    // Log as expense
+    const store = db.loadStore();
+    if (!store.days[today]) store.days[today] = [];
+    const entry = {
+      id: Date.now() + Math.random(),
+      dateStr: today,
+      type: rule.type,
+      description: rule.description,
+      category: rule.category || '',
+      payMethod: rule.payMethod || 'Cash',
+      paySubType: rule.paySubType || '',
+      mappedBank: rule.paySubType || '',
+      amount: rule.amount,
+      note: `🔁 Subscription paid: ${rule.description}`,
+      createdAt: new Date().toISOString(),
+      split: null,
+      isRecurring: true
+    };
+    store.days[today].push(entry);
+    db.saveStore(store);
+
+    // Update lastApplied to the due date we just settled (or today if it was completely missing)
+    rule.lastApplied = due <= today ? due : today;
+    saveRecurring(list);
+
+    window.dispatchEvent(new Event('mt:entries-changed'));
+    window.MT.ui?.showToast(`✅ Logged ${rule.description} as paid`);
+    renderRecurringUI();
   }
 
   /* ---- UI RENDERING ---- */
@@ -176,6 +181,7 @@
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
               <span class="recurring-amount ${amtClass}">${amtSign}${sym}${Number(rule.amount).toFixed(2)}</span>
               <span class="${badgeClass}">${badgeText}</span>
+              ${(days <= 7 && rule.active) ? `<button class="btn-primary" style="font-size:10px; padding:3px 8px;" onclick="window.MT.recurring.markAsPaid(${idx})">✓ Pay Now</button>` : ''}
             </div>
             <div class="recurring-actions">
               <button class="btn-small" onclick="window.MT.recurring.openEdit(${idx})" title="Edit">✏️</button>
@@ -308,11 +314,19 @@
       const sym = window.MT.db?.loadCustom().currency || '₹';
       
       modal.innerHTML = `
-        <div class="card" style="width:100%; max-width:400px; padding:20px;">
+        <div class="card" style="width:100%; max-width:400px; padding:20px; max-height:90vh; overflow-y:auto;">
           <div class="section-title">Edit Recurring Rule</div>
           <div class="form-grid" style="display:grid; gap:12px; margin-top:15px;">
             <div><label>Description</label><input id="editRecDesc" value="${rule.description || ''}" /></div>
             <div><label>Amount (${sym})</label><input id="editRecAmt" type="number" step="0.01" value="${rule.amount || 0}" /></div>
+            <div>
+              <label>Type</label>
+              <select id="editRecType">
+                <option value="Expense" ${rule.type === 'Expense' ? 'selected' : ''}>Expense</option>
+                <option value="Income" ${rule.type === 'Income' ? 'selected' : ''}>Income</option>
+              </select>
+            </div>
+            <div><label>Category</label><input id="editRecCategory" value="${rule.category || ''}" /></div>
             <div>
               <label>Frequency</label>
               <select id="editRecFreq">
@@ -323,12 +337,22 @@
               </select>
             </div>
             <div>
+              <label>Payment Method</label>
+              <select id="editRecPayMethod">
+                <option ${rule.payMethod === 'Cash' ? 'selected' : ''}>Cash</option>
+                <option ${rule.payMethod === 'UPI' ? 'selected' : ''}>UPI</option>
+                <option ${rule.payMethod === 'Card' ? 'selected' : ''}>Card</option>
+                <option ${rule.payMethod === 'Bank' ? 'selected' : ''}>Bank</option>
+              </select>
+            </div>
+            <div>
               <label>Bank / Account</label>
               <select id="editRecSubType">
                 <option value="">None / Cash</option>
                 ${(window.MT.db.loadStore().settings?.banks || []).map(b => `<option value="${b}" ${rule.paySubType === b ? 'selected' : ''}>${b}</option>`).join('')}
               </select>
             </div>
+            <div><label>Start Date / Next Due</label><input id="editRecStartDate" type="date" value="${rule.startDate || ''}" /></div>
           </div>
           <div style="margin-top:20px; display:flex; gap:10px;">
             <button id="saveEditRec" class="btn-primary" style="flex:1;">Save Changes</button>
@@ -342,15 +366,29 @@
       document.getElementById('saveEditRec').onclick = () => {
           const newDesc = document.getElementById('editRecDesc').value.trim();
           const newAmt = parseFloat(document.getElementById('editRecAmt').value) || 0;
+          const newType = document.getElementById('editRecType').value;
+          const newCategory = document.getElementById('editRecCategory').value.trim();
           const newFreq = document.getElementById('editRecFreq').value;
+          const newPayMethod = document.getElementById('editRecPayMethod').value;
           const newSubType = document.getElementById('editRecSubType').value;
+          const newStartDate = document.getElementById('editRecStartDate').value;
 
-          if (!newDesc || newAmt <= 0) {
-              alert('Please enter valid description and amount');
+          if (!newDesc || newAmt <= 0 || !newStartDate) {
+              alert('Please enter valid description, amount, and start date');
               return;
           }
 
-          list[idx] = { ...rule, description: newDesc, amount: newAmt, frequency: newFreq, paySubType: newSubType };
+          list[idx] = { 
+            ...rule, 
+            description: newDesc, 
+            amount: newAmt, 
+            type: newType,
+            category: newCategory,
+            frequency: newFreq, 
+            payMethod: newPayMethod,
+            paySubType: newSubType,
+            startDate: newStartDate
+          };
           saveRecurring(list);
           modal.remove();
           renderRecurringUI();
@@ -378,18 +416,28 @@
   window.MT = window.MT || {};
   window.MT.recurring = {
     loadRecurring, saveRecurring,
-    applyDueRecurring, renderRecurringUI,
+    checkUpcomingRecurring, renderRecurringUI, markAsPaid,
     addRule, deleteRule, toggleActive, openEdit,
     getDueDate, daysUntil
   };
 
-  // Auto-apply on login
+  // Check on login
   window.addEventListener('mt:auth-entered', () => {
-    applyDueRecurring();
+    checkUpcomingRecurring();
 
-    // Render UI when settings view opens
+    // Render UI when subscriptions sub-tab opens
+    window.addEventListener('mt:tab-changed', (e) => {
+      if (e.detail?.tabId === 'finance-subscriptions') renderRecurringUI();
+    });
+    
+    // Also render when Accounts view opens if it happens to be the active tab
     window.addEventListener('mt:view-changed', (e) => {
-      if (e.detail?.viewName === 'settings') renderRecurringUI();
+       if (e.detail?.viewName === 'accounts') {
+           const subTab = document.getElementById('finance-subscriptions');
+           if (subTab && subTab.style.display !== 'none') {
+               renderRecurringUI();
+           }
+       }
     });
   });
 

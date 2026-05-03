@@ -22,5 +22,21 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Expense",
+      "short_name": "Expense",
+      "description": "Quickly add a new expense",
+      "url": "./index.html?action=add_expense",
+      "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "View Dues",
+      "short_name": "Dues",
+      "description": "Check your pending dues",
+      "url": "./index.html?view=dues",
+      "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]
+    }
   ]
 }

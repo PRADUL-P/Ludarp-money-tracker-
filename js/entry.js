@@ -689,11 +689,28 @@
     renderEntries(); window.dispatchEvent(new Event('mt:entries-changed'));
   }
 
+  function updateDescriptionDatalist() {
+    const descList = document.getElementById('descList');
+    if (!descList) return;
+    const s = db.loadStore();
+    const days = s.days || {};
+    const descriptions = new Set();
+    Object.values(days).forEach(entries => {
+      entries.forEach(e => {
+        if (e.description) descriptions.add(e.description.trim());
+      });
+    });
+    descList.innerHTML = Array.from(descriptions)
+      .sort()
+      .map(desc => `<option value="${desc}">`)
+      .join('');
+  }
+
   // expose helpers for other modules (e.g., accounts or summary need to call renderEntries)
   window.MT = window.MT || {};
   window.MT.entry = {
     initDatePickers, renderCategoryPills, updatePaySubTypeOptions, updateTransferUI, renderEntries,
-    startEdit, deleteEntry
+    startEdit, deleteEntry, updateDescriptionDatalist
   };
 
   // init on auth-entered so DOM is visible
@@ -703,13 +720,61 @@
     updatePaySubTypeOptions();
     updateTransferUI();
     renderEntries();
+    updateDescriptionDatalist();
     ui.ensureSelectColors();
     // listeners for pay method / type changes
     payMethodSelect && payMethodSelect.addEventListener('change', () => { updatePaySubTypeOptions(); updateTransferUI(); });
     typeEl && typeEl.addEventListener('change', updateTransferUI);
+
+    const aiCategorizeBtn = document.getElementById('aiCategorizeBtn');
+    if (aiCategorizeBtn) {
+      aiCategorizeBtn.addEventListener('click', () => {
+        const desc = document.getElementById('description')?.value.toLowerCase().trim();
+        if (!desc) {
+           window.MT.ui?.showToast('Enter description first');
+           return;
+        }
+        const categoryMap = {
+           'Food': ['zomato', 'swiggy', 'lunch', 'dinner', 'snack', 'tea', 'coffee', 'mcdonalds', 'kfc', 'pizza', 'burger'],
+           'Groceries': ['milk', 'bread', 'supermarket', 'mart', 'grocery', 'vegetables', 'fruits', 'dmart', 'reliance', 'blinkit', 'instamart', 'zepto'],
+           'Travel': ['uber', 'ola', 'rapido', 'auto', 'bus', 'flight', 'train', 'irctc', 'metro', 'petrol', 'fuel', 'cab'],
+           'Utilities': ['electricity', 'water', 'internet', 'wifi', 'recharge', 'mobile', 'broadband', 'jio', 'airtel', 'bescom', 'gas'],
+           'Shopping': ['amazon', 'flipkart', 'myntra', 'shoes', 'clothes', 'shirt', 'pant', 'dress', 'zara', 'h&m'],
+           'Entertainment': ['movie', 'netflix', 'prime', 'spotify', 'hotstar', 'cinema', 'game', 'pub', 'club'],
+           'Health': ['medical', 'hospital', 'pharmacy', 'medicine', 'doctor', 'clinic', 'apollo', 'practo', 'pill'],
+           'Salary': ['salary', 'wage', 'bonus', 'paycheck'],
+           'Rent': ['rent', 'maintenance']
+        };
+        
+        let matchedCategory = 'Other';
+        for (const [cat, keywords] of Object.entries(categoryMap)) {
+            if (keywords.some(k => desc.includes(k))) {
+                matchedCategory = cat;
+                break;
+            }
+        }
+        
+        const catInput = document.getElementById('category');
+        if (catInput) {
+           catInput.value = matchedCategory;
+           window.MT.ui?.showToast(`✨ Categorized as: ${matchedCategory}`);
+           // update active state of category pills
+           const pills = document.querySelectorAll('#categoryPills .pill');
+           pills.forEach(p => p.classList.remove('active'));
+           pills.forEach(p => {
+              if(p.textContent.toLowerCase() === matchedCategory.toLowerCase()) {
+                  p.classList.add('active');
+              }
+           });
+        }
+      });
+    }
   });
 
-  window.addEventListener('mt:entries-changed', renderEntries);
+  window.addEventListener('mt:entries-changed', () => {
+    renderEntries();
+    updateDescriptionDatalist();
+  });
   
   // Quick Dues Buttons Logic
   window.pendingQuickDueType = null;
