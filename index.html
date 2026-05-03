@@ -1948,7 +1948,7 @@
             const text = result.data.text;
 
             // Smarter Regex: Match Total, Amount, RS, Due, Net, then allow optional colons or currency symbols, then numbers
-            const amtMatch = text.match(/(?:total|amount|tot|due|net|rs\.?|sum|pay)(?:\s*)[:=-]?(?:\s*)[$₹]?(?:\s*)([0-9,]+(?:\.\d{1,2})?)/i);
+            const amtMatch = text.match(/(?:grand total|total amount|total|amount|tot|due|net|rs\.?|sum|pay|balance|amt)(?:\s*|[\.\-:=]*\s*)[$₹]?(?:\s*)([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/i);
             let amtNum = amtMatch ? amtMatch[1].replace(/,/g, '') : null;
             
             // Fallback: If no clear total keyword, pick the largest formatted number on the receipt
@@ -2019,13 +2019,13 @@
                document.getElementById('description').value = merchant.substring(0, 40);
             }
 
-            // Fill note with raw text excerpt
+            // Fill note with full raw text of the bill
             const noteEl = document.getElementById('note');
             if(noteEl && text.length > 5) {
-               const cleanText = text.replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim();
-               noteEl.value = 'OCR Scan: ' + cleanText.substring(0, 80) + '...';
+               // Remove excessive blank lines but preserve the multi-line structure of the bill
+               const cleanText = text.replace(/\n{3,}/g, '\n\n').trim();
+               noteEl.value = '🧾 BILL SCAN DETAILS:\n' + cleanText;
             }
-
           } catch (err) {
             console.error(err);
             ocrBtn.innerHTML = '❌ Scanner Blocked';
