@@ -2024,9 +2024,15 @@
             // Fill note with full raw text of the bill
             const noteEl = document.getElementById('note');
             if(noteEl && text.length > 5) {
-               // Remove excessive blank lines but preserve the multi-line structure of the bill
-               const cleanText = text.replace(/\n{3,}/g, '\n\n').trim();
-               noteEl.value = '🧾 BILL SCAN DETAILS:\n' + cleanText;
+               // Aggressive cleanup to remove OCR artifacts and garbage lines
+               const cleanText = text.split(/\r?\n/)
+                  .map(line => line.replace(/[^a-zA-Z0-9 .,₹$€£\-%:/@()]/g, ' ').replace(/\s+/g, ' ').trim())
+                  .filter(line => line.length > 2 && /[a-zA-Z0-9]/.test(line))
+                  .join('\n');
+               
+               if (cleanText) {
+                   noteEl.value = '🧾 BILL SCAN DETAILS:\n' + cleanText;
+               }
             }
           } catch (err) {
             console.error(err);
