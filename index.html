@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <!-- SEO & Primary Meta Tags -->
-  <title>LUDARP Money Tracker v5.9 Titanium | Secure Private Expense Manager</title>
+  <title>LUDARP Money Tracker v6.0 | Secure Private Expense Manager</title>
   <meta name="title" content="LUDARP Money Tracker Premium | Secure Private Expense Manager" />
   <meta name="description"
     content="Manage your finances with LUDARP Money Tracker. A secure, offline-first PWA for tracking expenses, income, splits, and petrol logs without cloud privacy risks." />
@@ -1493,7 +1493,7 @@
       <section id="view-about" class="view">
         <section class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 class="section-title" style="margin:0;">LUDARP v5.9 Titanium+</h2>
+            <h2 class="section-title" style="margin:0;">LUDARP v6.0 Official</h2>
             <span class="badge" style="background:var(--accent); color:white;">LATEST</span>
           </div>
           <div class="subtitle" style="margin-bottom:20px;">
@@ -1690,37 +1690,29 @@
 
           <!-- WHAT'S NEW IN V6.0 -->
           <div
-            style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(225,29,72,0.06), rgba(244,63,94,0.06)); border:1px solid rgba(225,29,72,0.25);">
-            <div
-              style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--danger);">
-              <span>🚀</span> Version 5.9 Titanium+ Release
-            </div>
-            <ul
-              style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
-              <li><strong>🎯 Goals & Savings Planner:</strong> Fixed progress bar rendering and UI sync issues for custom savings goals.</li>
-              <li><strong>🧪 LUDARP Lab:</strong> Added experimental What-If Simulator, Cash Flow Maps, and Wrapped insights.</li>
-              <li><strong>✨ Safe-to-Spend Calculator:</strong> Updated widget logic to correctly calculate surplus after reserved goals.</li>
-              <li><strong>⚙️ Streamlined UI Settings:</strong> Consolidated Payments & Recurring tab directly into General Settings.</li>
-              <li><strong>🔄 Reliability:</strong> Enhanced database stability and added Global Undo support for accidental deletions.</li>
-            </ul>
-          </div>
-
-          <!-- V6.0 ROADMAP -->
-          <div
             style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(167,139,250,0.06)); border:1px solid rgba(99,102,241,0.25);">
             <div
               style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--accent);">
-              <span>🔮</span> Version 6.0 Upcoming Roadmap
+              <span>✨</span> Official Version 6.0 Release
             </div>
             <ul
               style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
-              <li><strong>What-If Scenario Simulator:</strong> Predict future net worth by testing hypothetical spending cuts.</li>
-              <li><strong>Global Undo Time-Machine:</strong> A master log to instantly roll back accidental database changes.</li>
-              <li><strong>Splitwise Bill Splitter:</strong> Seamlessly split group dinners and generate 'They Owe' entries instantly.</li>
-              <li><strong>Salary Auto-Distributor:</strong> One-click routing of monthly salary into goals and envelopes.</li>
-              <li><strong>Cash Flow Sankey Diagram:</strong> Highly visual mapping of money movement from income to accounts to categories.</li>
-              <li><strong>LUDARP Wrapped:</strong> Animated, Spotify-style year-in-review financial presentation.</li>
+              <li><strong>🔮 What-If Simulator:</strong> Predict future net worth by testing hypothetical spending cuts.</li>
+              <li><strong>⏪ Global Undo:</strong> A master log to instantly roll back accidental database changes.</li>
+              <li><strong>🌊 Cash Flow Map:</strong> Highly visual mapping of money movement from income to accounts.</li>
+              <li><strong>🎬 LUDARP Wrapped:</strong> Animated, Spotify-style year-in-review financial presentation.</li>
+              <li><strong>🤝 Splitwise & Salary:</strong> Preliminary framework added for Bill Splitting and Auto-Distribution.</li>
+              <li><strong>🛡️ Navigation Fix:</strong> 100% stable capture-phase navigation and menu visibility engine.</li>
             </ul>
+          </div>
+
+          <!-- OLDER RELEASES -->
+          <div
+            style="margin-top:24px; padding:18px; border-radius:15px; background:rgba(255,255,255,0.01); border:1px solid var(--card-border); opacity:0.7;">
+            <div
+              style="font-weight:800; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:10px;">
+              <span>🚀</span> Previous: Version 5.9 Titanium+
+            </div>
           </div>
 
           <!-- WHAT'S NEW IN V5.6 -->
@@ -1924,7 +1916,7 @@
   <script src="js/statement.js" defer></script>
   <script src="js/gsheets.js" defer></script>
   <!-- Versioning & Navigation Core -->
-  <script>window.LUDARP_VERSION = '5.9';</script>
+  <script>window.LUDARP_VERSION = '6.0';</script>
 
   <!-- custom select (if you moved it out of inline HTML) -->
   <script src="js/customselect.js" defer></script>
@@ -2579,26 +2571,27 @@
   <script>
     // --- ONE-TIME UPDATE MESSAGE ---
     (function() {
-      const CURRENT_VER = '5.9';
+      const CURRENT_VER = '6.0';
       const lastShown = localStorage.getItem('ludarp_update_shown');
       if (lastShown !== CURRENT_VER) {
         setTimeout(() => {
           if (window.MT && window.MT.ui && window.MT.ui.showModal) {
             window.MT.ui.showModal(
-              '🚀 LUDARP v5.9 Titanium+ Updated!',
+              '🚀 LUDARP v6.0 Official Release!',
               `
               <div style="text-align:center; margin-bottom:15px;">
-                <div style="font-size:40px;">💎</div>
-                <h3 style="margin:10px 0;">Titanium+ Edition is here!</h3>
+                <div style="font-size:40px;">🛡️</div>
+                <h3 style="margin:10px 0;">Version 6.0 is officially here!</h3>
+                <p style="font-size:12px; color:var(--accent);">The most stable and powerful LUDARP ever.</p>
               </div>
-              <ul style="padding-left:18px; margin-bottom:15px;">
-                <li>🧪 <strong>LUDARP Lab:</strong> New experimental analytical tools.</li>
-                <li>💰 <strong>Salary Distributor:</strong> Auto-route income to goals.</li>
-                <li>🔄 <strong>Global Undo:</strong> Roll back accidental changes instantly.</li>
-                <li>📊 <strong>Cash Flow Map:</strong> Visual mapping of money movement.</li>
-                <li>✨ <strong>UI Stability Fixes:</strong> Perfectly synced navigation.</li>
+              <ul style="padding-left:18px; margin-bottom:15px; font-size:13px; line-height:1.6;">
+                <li>🧪 <strong>Lab Access:</strong> Use the Simulator, Cash Flow Map, and Wrapped.</li>
+                <li>🔄 <strong>Global Undo:</strong> Never worry about accidental deletions again.</li>
+                <li>🛠️ <strong>Nav Stability:</strong> 100% reliable page switching and menu visibility.</li>
+                <li>✨ <strong>Direct Install:</strong> New premium PWA installation shortcuts.</li>
+                <li>📦 <strong>Framework v6:</strong> Ready for Splitwise and Salary Auto-Distributor.</li>
               </ul>
-              <p style="font-size:11px; color:var(--muted); text-align:center;">Your data stays 100% private and offline on this device.</p>
+              <p style="font-size:11px; color:var(--muted); text-align:center;">Privacy First. Offline Always. Secure on this device.</p>
               `
             );
             localStorage.setItem('ludarp_update_shown', CURRENT_VER);

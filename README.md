@@ -1,6 +1,6 @@
-# 📊 LUDARP Money Tracker — Version 5.9 (Titanium+)
+# 📊 LUDARP Money Tracker — Version 6.0 (Official Release)
 
-[![v5.9 Release](https://img.shields.io/badge/Release-v5.9_Titanium+-f43f5e?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
+[![v6.0 Release](https://img.shields.io/badge/Release-v6.0_Official-38bdf8?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Offline First](https://img.shields.io/badge/PWA-Technologically_Offline-38bdf8?style=for-the-badge&logo=pwa)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Privacy Protected](https://img.shields.io/badge/Privacy-100%25_On_Device-34d399?style=for-the-badge&logo=shield)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 
@@ -15,27 +15,27 @@
 
 ---
 
-## 💎 Major v5.9 Titanium+ Release Features
-*   🧪 **LUDARP Lab**: Dedicated experimental hub with analytical tools:
+## 💎 Major v6.0 Official Release Features
+*   🧪 **LUDARP Lab (Full Access)**: Advanced analytical hub with:
     *   *What-If Simulator*: Predict future net worth by testing hypothetical spending cuts.
-    *   *Cash Flow Map*: Highly visual mapping of money movement from income to accounts.
+    *   *Cash Flow Map*: Highly visual mapping of money movement (Rolling 30-Day View).
     *   *LUDARP Wrapped*: Animated, cinematic year-in-review financial presentation.
-*   💰 **Salary Auto-Distributor**: One-click routing of monthly salary into goals and envelopes.
-*   🔄 **Global Undo Time-Machine**: A master log to instantly roll back accidental database changes.
-*   📊 **Smart Spending Heatmap**: A visual monthly grid that highlights your peak spending days.
-*   🏆 **Milestones & Badges**: Unlock achievements as you track more transactions.
-*   ✨ **Safe-to-Spend (Guilt-Free) Calculator**: Smart widget calculating spendable surplus after bills/goals.
-
-### 🚀 Major v5.0 Titanium Original Features
-*   🎯 **Goals & Savings Planner**: Create financial targets with custom icons and interactive progress bars.
-*   📄 **Beautiful PDF Report Generator**: Export financial statements to paginated PDF reports offline.
-*   ⚙️ **Streamlined UI Settings**: Consolidated Payments & Recurring tab directly into General Settings.
-*   🧾 **100% Offline OCR Scanner**: WebAssembly AI instantly reads physical receipts for amounts.
-*   👁️ **Liquid Wave Zen Mode**: Double-tap anywhere on the screen to blur sensitive numbers.
+*   🛡️ **Navigation v2 Engine**: 100% stable capture-phase event delegation. No more broken tabs or hidden menus.
+*   ⏪ **Global Undo Time-Machine**: A master log to instantly roll back accidental database changes.
+*   ✨ **Premium PWA Experience**: Direct "One-Click" install shortcuts and App Status tracking.
+*   💰 **Salary & Splitwise Framework**: Preliminary logic added for automated salary routing and bill splitting.
+*   🔄 **Smart Refresh System**: Manual "Check for Updates" button to ensure you always have the latest code.
 
 ---
 
-## 🔥 Major v5.0 Titanium Upgrades
+## 🚀 Major v5.9 Titanium+ Release
+*   🎯 **Goals & Savings Planner**: Fixed progress bar rendering and UI sync issues for custom savings goals.
+*   ✨ **Safe-to-Spend Calculator**: Updated widget logic to correctly calculate surplus after reserved goals.
+*   ⚙️ **Streamlined UI Settings**: Consolidated Payments & Recurring tab directly into General Settings.
+
+---
+
+## 🔥 Legacy v5.0 Titanium Upgrades
 
 *   🧾 **100% Offline OCR Scanner**: WebAssembly AI instantly reads your physical receipts to extract total amounts automatically.
 *   👁️ **Liquid Wave Zen Mode**: Double-tap anywhere on the screen to blur all sensitive numbers into an unreadable liquid wave.
@@ -43,30 +43,6 @@
 *   👆 **"Tinder" Swipe-to-Settle**: Touch and swipe dues left to immediately mark them settled, or swipe right to draft a WhatsApp reminder.
 *   📱 **Apple Wallet Gyro Cards**: Premium 3D-tilt physics applied to your Net Worth hero cards using the device compass/gyroscope.
 *   📡 **P2P Offline Data Beam**: Pair your phone and laptop natively, and synchronize local storage arrays using an animated QR Sequence.
-*   🔍 **Elastic Data-Driven Grid**: CSS Flex blocks intelligently expand and collapse based on your real-time expense ratios.
-
----
-
-## 🚀 Major v4.0 Ultimate Upgrades
-
-*   🗓️ **Spending Heatmap**: Interactive GitHub-style grid to visualize expenditure intensity over time.
-*   🏆 **Financial Gamification**: Unlock 20+ milestone badges and achievements with interactive celebrations.
-*   🔍 **Global All-Time Search**: Instant deep-search across your entire transaction history (Categories, Notes, Amounts).
-*   🛡️ **Net Worth Hero Card**: Real-time "True Balance" calculation (Total Assets + Receivables - Payables).
-*   📈 **Dual-Mode Analytics**: Toggle between Category Distribution (Pie) and Spending Trends (Line Charts).
-*   ✨ **Smart Insights Engine**: Periodic financial health checks and automated spending anomaly detection.
-*   📱 **UPI Deep-Linking**: One-tap payment integration for settling dues via any mobile UPI app.
-*   📤 **WhatsApp Bill Sharing**: Generate and share professional text/PDF summaries of dues and settlements instantly.
-
----
-
-## 💎 Major v3.0 Premium Upgrades
-
-*   **⛽ Fuel Price Tracking**: Record petrol rates (₹/L) during refills to analyze cost efficiency trends per KM.
-*   **🤝 Advanced Dues Filter**: Professional Search & Sort engine for 'I Owe' and 'They Owe' records.
-*   **📈 Header Spent Statistics**: History group headers (Daily/Monthly) now show instant total expenditure summaries.
-*   **🔒 Enhanced Security**: Biometric (Fingerprint/FaceID) or PIN lock—or toggle security off entirely.
-*   **🏛️ 3D Brand Identity**: Glassmorphic 3D icon for a modern, high-end finance app feel.
 
 ---
 
@@ -88,69 +64,8 @@
 - 📊 **Summary** – Analytics and reports  
 - 🤝 **Dues** – Track money you owe or are owed  
 - 🏦 **Finance** – Manage bank accounts and balances  
+- 🧪 **Lab** – Experimental analytics & Wrapped  
 - ⚙️ **Settings** – Full customization  
-
----
-
-## ⚡ Entry Page (Command Command)
-
-Designed for speed — log transactions in seconds.
-
-- **Expense / Income / Transfer**: Full transaction lifecycle support.  
-- **Smart Categories**: Dynamic category selection with custom icon support.  
-- **Voice Input**: Hands-free entry using speech-to-text.  
-- **Built-in Calculator**: Perform GST or split calculations during entry.  
-- **Date Support**: Backdate or pre-date transactions easily.  
-- **Advanced Features**: Fuel efficiency tracker and travel booking logs.
-
----
-
-## 📊 Summary Page (Analytics Hub)
-
-Turn your financial data into actionable insights.
-
-- **Monthly Overview**: Income vs Expense vs Net Flow at a glance.  
-- **Interactive Charts**: Category-wise distribution and spending trends.  
-- **Flexible Views**: Toggle between List and Table formats.  
-- **Advanced Navigation**: Group totals by day or month with collapsible headers.  
-- **Export Power**: Generate professional **Excel (.xlsx)** or **PDF** reports.
-
----
-
-## 🤝 Dues Page (Debt Manager)
-
-Professional tracking for all your personal lending and borrowing.
-
-- **Person-wise Tracking**: Group balances by friend or colleague.  
-- **Smart Settlement**: Mark as Paid/Received with auto-account updates.  
-- **Deep Filtering**: Search by amount, person, or status.  
-- **Undo Logic**: Reliable undo settlement option.
-
----
-
-## 🏦 Finance & Net Worth
-
-Manage all your financial sources in one unified place.
-
-- **Multiple Accounts**: Track Cash, Bank Accounts, and Credit Cards.  
-- **Opening Balances**: Setup starting points for each account.  
-- **Real-time Sync**: Balances update instantly with every transaction.  
-- **Net Worth Calculation**: Automatic calculation of your true assets.
-
----
-
-## ⚙️ Tech Stack
-*   **Core**: Pure HTML5 & Vanilla JavaScript.
-*   **Styling**: Modern CSS3 with Glassmorphism.
-*   **Analytics**: Chart.js for interactive visualizations.
-*   **Offline**: Service Worker (PWA) integration.
-*   **Export**: SheetJS (Excel) & jsPDF (Reports).
-
----
-
-## 📦 Installation
-1.  **Mobile**: Open URL -> Chrome/Safari Menu -> **Add to Home Screen**.
-2.  **Desktop**: Click the **Install** button in the address bar.
 
 ---
 
