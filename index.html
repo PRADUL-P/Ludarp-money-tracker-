@@ -231,18 +231,6 @@
         <button class="nav-item" data-view="about">About</button>
       </nav>
 
-      <div id="mainMenu" class="menu-panel" aria-hidden="true">
-        <button data-view="user">User Info</button>
-        <button data-view="settings">Settings</button>
-        <button data-view="dues">🤝 Dues &amp; Payments</button>
-        <button data-view="about">About</button>
-        <button data-view="entry">Home</button>
-        <button data-view="summary">Summary</button>
-        <button data-view="accounts">Accounts & Statement</button>
-        <button id="exportMenuBtn" data-view="backup">Export/Backup</button>
-        <hr style="opacity:.06;margin:8px 0" />
-        <button id="clearAppDataBtn" class="btn-secondary">Clear all (Export first)</button>
-      </div>
     </header>
 
     <main class="app-body">
@@ -2602,6 +2590,18 @@
       }
     })();
   </script>
+  <div id="mainMenu" class="menu-panel" style="display:none; position:fixed; z-index:200000;" aria-hidden="true">
+    <button data-view="user">User Info</button>
+    <button data-view="settings">Settings</button>
+    <button data-view="dues">🤝 Dues &amp; Payments</button>
+    <button data-view="about">About</button>
+    <button data-view="entry">Home</button>
+    <button data-view="summary">Summary</button>
+    <button data-view="accounts">Accounts & Statement</button>
+    <button id="exportMenuBtn" data-view="backup">Export/Backup</button>
+    <hr style="opacity:.06;margin:8px 0" />
+    <button id="clearAppDataBtn" class="btn-secondary">Clear all (Export first)</button>
+  </div>
 </body>
 
 </html>
