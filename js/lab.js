@@ -27,15 +27,14 @@
         const resultEl = document.getElementById('simResult');
         const tipEl = document.getElementById('simTip');
         const store = window.MT.db.loadStore();
-        const cats = store.settings.categories || [];
         
-        // Let's take last 30 days of data to get average spend per category
+        // Look back up to 90 days to get realistic averages
         const today = new Date();
-        const thirtyDaysAgo = new Date(today - 30 * 24 * 60 * 60 * 1000);
+        const ninetyDaysAgo = new Date(today - 90 * 24 * 60 * 60 * 1000);
         const catAverages = {};
         
         Object.keys(store.days).forEach(date => {
-            if (new Date(date) >= thirtyDaysAgo) {
+            if (new Date(date) >= ninetyDaysAgo) {
                 store.days[date].forEach(e => {
                     if (e.type === 'Expense') {
                         catAverages[e.category] = (catAverages[e.category] || 0) + parseFloat(e.amount || 0);
@@ -44,16 +43,28 @@
             }
         });
 
+        // Normalize to monthly average
+        Object.keys(catAverages).forEach(c => {
+            catAverages[c] = catAverages[c] / 3; // 90 days = 3 months
+        });
+
         container.innerHTML = '';
-        const activeCats = Object.keys(catAverages).sort((a,b) => catAverages[b] - catAverages[a]).slice(0, 5);
+        const activeCats = Object.keys(catAverages).sort((a,b) => catAverages[b] - catAverages[a]).slice(0, 6);
         
+        if (activeCats.length === 0) {
+            container.innerHTML = '<div class="info" style="text-align:center; padding:20px;">No expense data found in the last 90 days. Start logging to use the simulator!</div>';
+            resultEl.textContent = '₹0.00';
+            tipEl.textContent = 'Add some expenses to see your potential savings.';
+            return;
+        }
+
         activeCats.forEach(cat => {
             const avg = catAverages[cat] || 0;
             const div = document.createElement('div');
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
-                    <span>${cat} (Monthly: ${window.MT.db.currencyFmt(avg)})</span>
-                    <span id="val-${cat}">0% cut</span>
+                    <span>${cat} (Avg: ${window.MT.db.currencyFmt(avg)}/mo)</span>
+                    <span id="val-${cat}" style="color:var(--accent); font-weight:700;">0% cut</span>
                 </div>
                 <input type="range" class="sim-slider" data-cat="${cat}" data-avg="${avg}" min="0" max="100" value="0" style="width:100%;" />
             `;
@@ -67,7 +78,8 @@
                 const cat = s.getAttribute('data-cat');
                 const avg = parseFloat(s.getAttribute('data-avg'));
                 const cutPercent = parseInt(s.value);
-                document.getElementById(`val-${cat}`).textContent = `${cutPercent}% cut`;
+                const valDisp = document.getElementById(`val-${cat}`);
+                if(valDisp) valDisp.textContent = `${cutPercent}% cut`;
                 totalMonthlySaving += (avg * cutPercent) / 100;
             });
 
@@ -75,14 +87,9 @@
             resultEl.textContent = window.MT.db.currencyFmt(yearly);
             
             if (yearly > 0) {
-                const goals = JSON.parse(localStorage.getItem('mt_goals_v1') || '[]');
-                const pending = goals.reduce((a, b) => a + (b.targetAmount - b.currentAmount), 0);
-                if (pending > 0 && totalMonthlySaving > 0) {
-                    const monthsEarlier = Math.round(pending / totalMonthlySaving);
-                    tipEl.textContent = `You could achieve your goals ${monthsEarlier} months earlier!`;
-                } else {
-                    tipEl.textContent = `That's enough to buy a flagship phone every year!`;
-                }
+                tipEl.textContent = `By cutting these expenses, you'll save ${window.MT.db.currencyFmt(yearly)} in just one year!`;
+            } else {
+                tipEl.textContent = `Slide the bars to see how much you could save!`;
             }
         };
 
@@ -90,51 +97,63 @@
         updateSim();
     }
 
-    // --- CASH FLOW MAP (SANKEY-ISH) ---
+    // --- CASH FLOW MAP (Last 30 Days) ---
     function initSankey() {
         const container = document.getElementById('sankeyContainer');
         const store = window.MT.db.loadStore();
         
-        // Totals for current month
-        const currentMonth = window.MT.db.todayISO().slice(0,7);
+        // Use last 30 days instead of just current month (better for start-of-month)
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today - 30 * 24 * 60 * 60 * 1000);
         let income = 0, expense = 0;
         const catTotals = {};
 
         Object.keys(store.days).forEach(date => {
-            if (date.startsWith(currentMonth)) {
+            if (new Date(date) >= thirtyDaysAgo) {
                 store.days[date].forEach(e => {
-                    if (e.type === 'Income') income += parseFloat(e.amount);
+                    if (e.type === 'Income') income += parseFloat(e.amount || 0);
                     if (e.type === 'Expense') {
-                        expense += parseFloat(e.amount);
-                        catTotals[e.category] = (catTotals[e.category] || 0) + parseFloat(e.amount);
+                        expense += parseFloat(e.amount || 0);
+                        catTotals[e.category] = (catTotals[e.category] || 0) + parseFloat(e.amount || 0);
                     }
                 });
             }
         });
 
+        if (income === 0 && expense === 0) {
+            container.innerHTML = '<div class="info" style="text-align:center; padding:40px;">No cash flow detected in the last 30 days.</div>';
+            return;
+        }
+
         const max = Math.max(income, expense, 1);
-        const sortedCats = Object.entries(catTotals).sort((a,b) => b[1] - a[1]).slice(0, 5);
+        const sortedCats = Object.entries(catTotals).sort((a,b) => b[1] - a[1]).slice(0, 6);
 
         container.innerHTML = `
             <div style="margin-bottom:20px;">
-                <div style="font-size:11px; margin-bottom:5px;">Monthly Income: ${window.MT.db.currencyFmt(income)}</div>
-                <div style="height:20px; background:var(--success); width:${(income/max)*100}%; border-radius:10px; opacity:0.8;"></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
+                    <span>Monthly Income</span>
+                    <span>${window.MT.db.currencyFmt(income)}</span>
+                </div>
+                <div style="height:20px; background:var(--success); width:${Math.max(2, (income/max)*100)}%; border-radius:10px; opacity:0.8; transition: width 0.5s ease;"></div>
             </div>
             <div style="margin-bottom:20px;">
-                <div style="font-size:11px; margin-bottom:5px;">Monthly Expense: ${window.MT.db.currencyFmt(expense)}</div>
-                <div style="height:20px; background:var(--danger); width:${(expense/max)*100}%; border-radius:10px; opacity:0.8;"></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
+                    <span>Monthly Expenses</span>
+                    <span>${window.MT.db.currencyFmt(expense)}</span>
+                </div>
+                <div style="height:20px; background:var(--danger); width:${Math.max(2, (expense/max)*100)}%; border-radius:10px; opacity:0.8; transition: width 0.5s ease;"></div>
             </div>
-            <div style="margin-top:10px;">
-                <div style="font-size:11px; font-weight:700; margin-bottom:10px;">Where the money goes:</div>
-                ${sortedCats.map(([cat, amt]) => `
-                    <div style="margin-bottom:10px;">
-                        <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:3px;">
-                            <span>${cat}</span>
-                            <span>${window.MT.db.currencyFmt(amt)}</span>
+            <div style="margin-top:20px; padding-top:20px; border-top:1px dashed var(--card-border);">
+                <div style="font-size:12px; font-weight:800; margin-bottom:15px; color:var(--accent);">Where your money went (Last 30 Days):</div>
+                ${sortedCats.length > 0 ? sortedCats.map(([cat, amt]) => `
+                    <div style="margin-bottom:12px;">
+                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+                            <span style="color:var(--text-secondary);">${cat}</span>
+                            <span style="font-weight:700;">${window.MT.db.currencyFmt(amt)}</span>
                         </div>
-                        <div style="height:8px; background:var(--accent-1); width:${(amt/expense)*100}%; border-radius:4px; opacity:0.5;"></div>
+                        <div style="height:6px; background:linear-gradient(90deg, var(--accent-1), var(--accent-2)); width:${(amt/expense)*100}%; border-radius:3px; opacity:0.6;"></div>
                     </div>
-                `).join('')}
+                `).join('') : '<div class="info">No categorized expenses found.</div>'}
             </div>
         `;
     }
@@ -151,8 +170,8 @@
         Object.keys(store.days).forEach(date => {
             store.days[date].forEach(e => {
                 if (e.type === 'Expense') {
-                    totalExp += parseFloat(e.amount);
-                    cats[e.category] = (cats[e.category] || 0) + parseFloat(e.amount);
+                    totalExp += parseFloat(e.amount || 0);
+                    cats[e.category] = (cats[e.category] || 0) + parseFloat(e.amount || 0);
                     count++;
                 }
             });
@@ -164,20 +183,32 @@
             topCatAmt = sorted[0][1];
         }
 
-        const slides = [
-            `<h1>Hi ${window.MT.db.loadUser()?.name || 'User'}!</h1><p>Ready to see your year in review?</p>`,
-            `<h3>You logged</h3><h1>${count}</h1><p>transactions so far!</p>`,
-            `<h3>You spent a total of</h3><h1>${window.MT.db.currencyFmt(totalExp)}</h1><p>on your journey.</p>`,
-            `<h3>Your biggest crush was</h3><h1>${topCat}</h1><p>You spent ${window.MT.db.currencyFmt(topCatAmt)} here!</p>`,
-            `<h1>You're a Legend!</h1><p>Keep tracking and stay financially sharp with LUDARP.</p>`
+        const slides = count > 0 ? [
+            `<h1>Hi ${window.MT.db.loadUser()?.name || 'Friend'}!</h1><p style="opacity:0.7;">Ready to see your LUDARP journey so far?</p>`,
+            `<h3 style="color:var(--accent-1); letter-spacing:1px; text-transform:uppercase; font-size:12px;">You've been busy...</h3><h1 style="font-size:64px;">${count}</h1><p style="opacity:0.7;">Total transactions logged!</p>`,
+            `<h3 style="color:var(--danger); letter-spacing:1px; text-transform:uppercase; font-size:12px;">Total Movement</h3><h1 style="font-size:42px;">${window.MT.db.currencyFmt(totalExp)}</h1><p style="opacity:0.7;">successfully tracked and managed.</p>`,
+            `<h3 style="color:var(--accent-3); letter-spacing:1px; text-transform:uppercase; font-size:12px;">Your #1 Category</h3><h1 style="font-size:42px;">${topCat}</h1><p style="opacity:0.7;">You dedicated ${window.MT.db.currencyFmt(topCatAmt)} to this.</p>`,
+            `<h1 style="background:linear-gradient(135deg, #fff, #8fa3c0); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Financial Legend.</h1><p style="opacity:0.7;">Keep tracking. Stay sharp. Stay LUDARP.</p>`
+        ] : [
+            `<h1>Welcome to Wrapped!</h1><p>It looks like you haven't logged many transactions yet.</p>`,
+            `<p>Start tracking your daily expenses to see your personalized <strong>Financial Story</strong> here!</p>`
         ];
 
         let currentSlide = 0;
         const showSlide = () => {
             container.style.opacity = '0';
+            container.style.transform = 'translateY(10px)';
             setTimeout(() => {
-                container.innerHTML = slides[currentSlide] + `<button class="btn-primary" style="margin-top:30px;" id="nextWrapped">${currentSlide === slides.length - 1 ? 'Finish' : 'Next →'}</button>`;
+                container.innerHTML = `
+                    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;">
+                        ${slides[currentSlide]}
+                    </div>
+                    <button class="btn-primary" style="width:100%; padding:15px; margin-top:30px; border-radius:15px;" id="nextWrapped">
+                        ${currentSlide === slides.length - 1 ? 'Back to Hub' : 'Next Story →'}
+                    </button>
+                `;
                 container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
                 document.getElementById('nextWrapped').onclick = () => {
                     currentSlide++;
                     if (currentSlide < slides.length) showSlide();
@@ -185,7 +216,7 @@
                 };
             }, 300);
         };
-        container.style.transition = 'opacity 0.3s ease';
+        container.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
         showSlide();
     }
 
