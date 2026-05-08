@@ -1,6 +1,6 @@
-# 📊 LUDARP Money Tracker — Version 6.0 (Titanium+)
+# 📊 LUDARP Money Tracker — Version 5.9 (Titanium+)
 
-[![v6.0 Release](https://img.shields.io/badge/Release-v6.0_Titanium+-f43f5e?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
+[![v5.9 Release](https://img.shields.io/badge/Release-v5.9_Titanium+-f43f5e?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Offline First](https://img.shields.io/badge/PWA-Technologically_Offline-38bdf8?style=for-the-badge&logo=pwa)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Privacy Protected](https://img.shields.io/badge/Privacy-100%25_On_Device-34d399?style=for-the-badge&logo=shield)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 
@@ -15,19 +15,23 @@
 
 ---
 
-## 🚀 Major v6.0 Ultimate Release Features
-*   🎯 **Goals & Savings Planner**: Create financial targets with custom icons. Features an interactive progress bar that fills up as you save money towards your goals.
-*   📄 **Beautiful PDF Report Generator**: Export your financial statements to perfectly paginated PDF reports offline, dynamically styled with your custom accent theme.
-*   ✨ **Safe-to-Spend (Guilt-Free) Calculator**: A smart widget that calculates exactly how much money you can safely spend by automatically subtracting upcoming bills and reserved goals from your True Balance.
-*   ⚙️ **Streamlined UI Settings**: Consolidated Payments & Recurring tab directly into General Settings for a cleaner aesthetic.
-*   📲 **Native App Installation**: Integrated PWA Prompt directly on the About Page, enabling true Native installation on any OS.
+## 💎 Major v5.9 Titanium+ Release Features
+*   🧪 **LUDARP Lab**: Dedicated experimental hub with analytical tools:
+    *   *What-If Simulator*: Predict future net worth by testing hypothetical spending cuts.
+    *   *Cash Flow Map*: Highly visual mapping of money movement from income to accounts.
+    *   *LUDARP Wrapped*: Animated, cinematic year-in-review financial presentation.
+*   💰 **Salary Auto-Distributor**: One-click routing of monthly salary into goals and envelopes.
+*   🔄 **Global Undo Time-Machine**: A master log to instantly roll back accidental database changes.
+*   📊 **Smart Spending Heatmap**: A visual monthly grid that highlights your peak spending days.
+*   🏆 **Milestones & Badges**: Unlock achievements as you track more transactions.
+*   ✨ **Safe-to-Spend (Guilt-Free) Calculator**: Smart widget calculating spendable surplus after bills/goals.
 
-### 🔮 v6.0 Upcoming Roadmap (In Development)
-*   *Cash Flow Sankey Diagram*: Visual mapping of Income -> Accounts -> Spending.
-*   *Receipt Photo Vault*: Attach high-res bill photos directly to transactions via IndexedDB.
-*   *Envelope Budgeting System*: Visual budget envelopes that empty as you spend.
-*   *LUDARP Wrapped*: An animated year-in-review financial summary.
-*   *Hashtag Analytics*: Add custom `#tags` to track micro-events across categories.
+### 🚀 Major v5.0 Titanium Original Features
+*   🎯 **Goals & Savings Planner**: Create financial targets with custom icons and interactive progress bars.
+*   📄 **Beautiful PDF Report Generator**: Export financial statements to paginated PDF reports offline.
+*   ⚙️ **Streamlined UI Settings**: Consolidated Payments & Recurring tab directly into General Settings.
+*   🧾 **100% Offline OCR Scanner**: WebAssembly AI instantly reads physical receipts for amounts.
+*   👁️ **Liquid Wave Zen Mode**: Double-tap anywhere on the screen to blur sensitive numbers.
 
 ---
 

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <!-- SEO & Primary Meta Tags -->
-  <title>LUDARP Money Tracker Premium | Secure Private Expense Manager</title>
+  <title>LUDARP Money Tracker v5.9 Titanium | Secure Private Expense Manager</title>
   <meta name="title" content="LUDARP Money Tracker Premium | Secure Private Expense Manager" />
   <meta name="description"
     content="Manage your finances with LUDARP Money Tracker. A secure, offline-first PWA for tracking expenses, income, splits, and petrol logs without cloud privacy risks." />
@@ -678,7 +678,14 @@
 
 
           <!-- NEW: SMART INSIGHTS -->
-          </section>
+          <div id="smartInsights" class="card" style="display:none; padding:15px; background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.15); margin-bottom:15px;">
+            <div style="font-size:13px; font-weight:800; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                <span>💡</span> AI Smart Insights
+            </div>
+            <div id="insightsList" style="font-size:12px; line-height:1.5; color:var(--text-secondary); display:flex; flex-direction:column; gap:8px;">
+                <!-- Filled by JS -->
+            </div>
+          </div>
 
           <!-- NEW: HASHTAG ANALYZER -->
           <section id="hashtagCard" class="card"
@@ -1497,7 +1504,14 @@
       <!-- ABOUT VIEW -->
       <section id="view-about" class="view">
         <section class="card">
-          <div class="section-title">✨ LUDARP Money Tracker Premium</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 class="section-title" style="margin:0;">LUDARP v5.9 Titanium+</h2>
+            <span class="badge" style="background:var(--accent); color:white;">LATEST</span>
+          </div>
+          <div class="subtitle" style="margin-bottom:20px;">
+            Professional-grade, privacy-first financial tracking. 
+            Titanium+ focuses on analytical depth, speed, and 100% offline security.
+          </div>
           <p class="info" style="font-size:14px; line-height:1.6; margin-bottom:18px;">
             A professional-grade, privacy-first financial companion. Every byte of your data stays on your device—no
             cloud prying, no ads, just pure management.
@@ -1674,15 +1688,15 @@
             style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(225,29,72,0.06), rgba(244,63,94,0.06)); border:1px solid rgba(225,29,72,0.25);">
             <div
               style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--danger);">
-              <span>🚀</span> Version 6.0 Titanium+ Release
+              <span>🚀</span> Version 5.9 Titanium+ Release
             </div>
             <ul
               style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
-              <li><strong>🎯 Goals & Savings Planner:</strong> Create financial targets with custom icons and interactive progress bars that fill up as you save money towards your goals.</li>
-              <li><strong>📄 Beautiful PDF Report Generator:</strong> Export your financial statements to perfectly paginated PDF reports offline, dynamically styled with your custom accent theme.</li>
-              <li><strong>✨ Safe-to-Spend (Guilt-Free) Calculator:</strong> A smart widget that calculates exactly how much money you can safely spend by automatically subtracting upcoming bills and reserved goals from your True Balance.</li>
-              <li><strong>⚙️ Streamlined UI Settings:</strong> Consolidated Payments & Recurring tab directly into General Settings for a cleaner, unified aesthetic.</li>
-              <li><strong>📲 Native App Installation:</strong> Integrated PWA Prompt directly on the About Page, enabling true Native installation on any OS.</li>
+              <li><strong>🎯 Goals & Savings Planner:</strong> Fixed progress bar rendering and UI sync issues for custom savings goals.</li>
+              <li><strong>🧪 LUDARP Lab:</strong> Added experimental What-If Simulator, Cash Flow Maps, and Wrapped insights.</li>
+              <li><strong>✨ Safe-to-Spend Calculator:</strong> Updated widget logic to correctly calculate surplus after reserved goals.</li>
+              <li><strong>⚙️ Streamlined UI Settings:</strong> Consolidated Payments & Recurring tab directly into General Settings.</li>
+              <li><strong>🔄 Reliability:</strong> Enhanced database stability and added Global Undo support for accidental deletions.</li>
             </ul>
           </div>
 
@@ -2554,6 +2568,37 @@
   <script src="js/undolog.js" defer></script>
   <script src="js/salary-dist.js" defer></script>
   <script src="js/lab.js" defer></script>
+  <script>
+    // --- ONE-TIME UPDATE MESSAGE ---
+    (function() {
+      const CURRENT_VER = '5.9';
+      const lastShown = localStorage.getItem('ludarp_update_shown');
+      if (lastShown !== CURRENT_VER) {
+        setTimeout(() => {
+          if (window.MT && window.MT.ui && window.MT.ui.showModal) {
+            window.MT.ui.showModal(
+              '🚀 LUDARP v5.9 Titanium+ Updated!',
+              `
+              <div style="text-align:center; margin-bottom:15px;">
+                <div style="font-size:40px;">💎</div>
+                <h3 style="margin:10px 0;">Titanium+ Edition is here!</h3>
+              </div>
+              <ul style="padding-left:18px; margin-bottom:15px;">
+                <li>🧪 <strong>LUDARP Lab:</strong> New experimental analytical tools.</li>
+                <li>💰 <strong>Salary Distributor:</strong> Auto-route income to goals.</li>
+                <li>🔄 <strong>Global Undo:</strong> Roll back accidental changes instantly.</li>
+                <li>📊 <strong>Cash Flow Map:</strong> Visual mapping of money movement.</li>
+                <li>✨ <strong>UI Stability Fixes:</strong> Perfectly synced navigation.</li>
+              </ul>
+              <p style="font-size:11px; color:var(--muted); text-align:center;">Your data stays 100% private and offline on this device.</p>
+              `
+            );
+            localStorage.setItem('ludarp_update_shown', CURRENT_VER);
+          }
+        }, 1500);
+      }
+    })();
+  </script>
 </body>
 
 </html>
