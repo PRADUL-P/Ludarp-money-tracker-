@@ -1,340 +1,124 @@
 'use strict';
-/* nav.js
-   Navigation wiring, menu handling, bottom nav + FAB support
-*/
+/* nav.js - REBUILT FOR v6.0 STABILITY */
 
-(function () {
+// Global State
+window.MT = window.MT || {};
 
-  const headerTop = document.querySelector('.header-top');
-  let mainMenu = document.getElementById('mainMenu');
-  let menuToggle = document.getElementById('menuToggle');
+(function() {
+    const views = ['entry', 'summary', 'accounts', 'settings', 'dues', 'about', 'lab'];
 
-  // 🔥 Top + Bottom navigation buttons
-  const navItems = document.querySelectorAll('.nav-item, .fn-item');
+    function showView(name) {
+        if (!name) name = 'entry';
+        const cleanName = (name === 'statement') ? 'accounts' : name;
+        console.log('[NAV] Switching to:', cleanName);
 
-  /* ================= MENU REPARENT ================= */
-
-  function ensureMenuElementsInBody() {
-    try {
-      if (!mainMenu) mainMenu = document.getElementById('mainMenu');
-      if (!menuToggle) menuToggle = document.getElementById('menuToggle');
-
-      if (mainMenu && mainMenu.parentElement !== document.body) {
-        document.body.appendChild(mainMenu);
-        mainMenu.style.position = 'fixed';
-        mainMenu.style.zIndex = 99999;
-        mainMenu.style.pointerEvents = 'none';
-      }
-
-      if (menuToggle && menuToggle.parentElement !== document.body) {
-        document.body.appendChild(menuToggle);
-        menuToggle.style.position = 'fixed';
-        menuToggle.style.zIndex = 100000;
-        menuToggle.style.pointerEvents = 'auto';
-        positionMenuToggle();
-      }
-    } catch (e) {
-      console.warn('Menu reparent failed', e);
-    }
-  }
-
-  function positionMenuToggle() {
-    if (!menuToggle) return;
-    try {
-      const rect = headerTop
-        ? headerTop.getBoundingClientRect()
-        : { top: 12 };
-
-      menuToggle.style.top = `${Math.max(8, rect.top + 8)}px`;
-      menuToggle.style.right = '18px';
-      menuToggle.style.left = 'auto';
-    } catch (e) {
-      menuToggle.style.top = '12px';
-      menuToggle.style.right = '18px';
-    }
-  }
-
-  function positionMainMenu() {
-    if (!mainMenu) return;
-    try {
-      const rect = headerTop
-        ? headerTop.getBoundingClientRect()
-        : { bottom: 64 };
-
-      mainMenu.style.position = 'fixed';
-      mainMenu.style.top = `${rect.bottom + 8}px`;
-      mainMenu.style.right = '12px';
-      mainMenu.style.left = 'auto';
-      mainMenu.style.zIndex = 99999;
-    } catch (e) {
-      mainMenu.style.top = '64px';
-      mainMenu.style.right = '12px';
-    }
-  }
-
-  function openMainMenu() {
-    if (!mainMenu) return;
-    mainMenu.classList.add('open');
-    mainMenu.style.display = 'block';
-    mainMenu.style.pointerEvents = 'auto';
-    mainMenu.setAttribute('aria-hidden', 'false');
-    positionMainMenu();
-  }
-
-  function closeMainMenu() {
-    if (!mainMenu) return;
-    mainMenu.classList.remove('open');
-    mainMenu.style.display = 'none';
-    mainMenu.style.pointerEvents = 'none';
-    mainMenu.setAttribute('aria-hidden', 'true');
-  }
-
-  /* ================= INIT NAV ================= */
-
-  function initNav() {
-    ensureMenuElementsInBody();
-
-    /* ===== EVENT DELEGATION FOR ALL DATA-VIEW BUTTONS ===== */
-    document.body.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-view]');
-      if (btn) {
-        const view = btn.dataset.view;
-        if (view) {
-            console.log('[NAV] Clicked view:', view);
-            showView(view);
-            closeMainMenu();
-        }
-      }
-    });
-
-    if (menuToggle) {
-      menuToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (mainMenu.classList.contains('open')) closeMainMenu();
-        else openMainMenu();
-      });
-    }
-
-    document.addEventListener('click', (e) => {
-      if (mainMenu?.classList.contains('open') && !mainMenu.contains(e.target) && !menuToggle?.contains(e.target)) {
-        closeMainMenu();
-      }
-    });
-
-    /* ===== INITIAL SYNC ===== */
-    const activeView = document.querySelector('.view.active');
-    if (activeView) {
-        const currentName = activeView.id.replace('view-', '');
-        syncNavButtons(currentName);
-    }
-  }
-
-  function syncNavButtons(cleanName) {
-    document.querySelectorAll('[data-view]').forEach(item => {
-      if (item.dataset.view === cleanName) {
-        item.classList.add('active');
-      } else {
-        item.classList.remove('active');
-      }
-    });
-  }
-
-    /* ===== FAB (+) — PRIMARY ACTION ===== */
-    const fab = document.getElementById('fabAdd');
-    if (fab) {
-      fab.addEventListener('click', () => {
-        showView('entry');
-
-        // Focus amount input if exists
-        const amountInput = document.getElementById('amount');
-        if (amountInput) {
-          setTimeout(() => amountInput.focus(), 50);
-        }
-      });
-    }
-
-    /* ===== WINDOW EVENTS ===== */
-    window.addEventListener('resize', () => {
-      positionMenuToggle();
-      if (mainMenu?.classList.contains('open')) positionMainMenu();
-    });
-
-    window.addEventListener('scroll', () => {
-      positionMenuToggle();
-      if (mainMenu?.classList.contains('open')) positionMainMenu();
-    });
-
-    /* ===== FINANCE TABS ===== */
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.finance-tab-bar .tab-btn');
-      if (!btn) return;
-      const targetId = btn.dataset.target;
-      const bar = btn.parentElement;
-      bar.querySelectorAll('.tab-btn').forEach(b => {
-          b.classList.remove('active');
-          // Inline style reset
-          b.style.background = 'none';
-          b.style.color = 'var(--text-secondary)';
-      });
-      btn.classList.add('active');
-      btn.style.background = 'var(--accent)';
-      btn.style.color = '#fff';
-      
-      document.querySelectorAll('.tab-content').forEach(p => p.style.display = 'none');
-      const target = document.getElementById(targetId);
-      if (target) target.style.display = 'block';
-
-      // Dispatch event so sub-modules know they became visible
-      window.dispatchEvent(
-        new CustomEvent('mt:tab-changed', {
-          detail: { tabId: targetId }
-        })
-      );
-    });
-  }
-
-  /* ================= VIEW SWITCHER ================= */
-
-  function showView(name) {
-    if (!name) name = 'entry';
-    const cleanName = (name === 'statement') ? 'accounts' : name;
-    
-    // 1. Force hide ALL views
-    const allViews = document.querySelectorAll('section.view');
-    allViews.forEach(v => {
-      v.classList.remove('active');
-      v.style.setProperty('display', 'none', 'important');
-    });
-
-    // 2. Show target view
-    const target = document.getElementById(`view-${cleanName}`);
-    if (target) {
-      target.classList.add('active');
-      target.style.setProperty('display', 'block', 'important');
-
-      // --- Finance Sub-tabs ---
-      if (cleanName === 'accounts') {
-        const tabs = target.querySelectorAll('.tab-content');
-        const defaultTabId = (name === 'statement') ? 'finance-statement' : 'finance-accounts';
-        tabs.forEach(t => {
-          t.style.display = (t.id === defaultTabId) ? 'block' : 'none';
-          if (t.id === defaultTabId) t.classList.add('active');
-          else t.classList.remove('active');
+        // 1. Hide all views
+        const allViews = document.querySelectorAll('section.view');
+        allViews.forEach(v => {
+            v.classList.remove('active');
+            v.style.setProperty('display', 'none', 'important');
         });
-        // Sync tab buttons
-        target.querySelectorAll('.tab-btn').forEach(btn => {
-          if (btn.dataset.target === defaultTabId) {
-            btn.classList.add('active');
-            btn.style.background = 'var(--accent)';
-            btn.style.color = '#fff';
-          } else {
-            btn.classList.remove('active');
-            btn.style.background = 'none';
-            btn.style.color = 'var(--text-secondary)';
-          }
+
+        // 2. Show target
+        const target = document.getElementById(`view-${cleanName}`);
+        if (target) {
+            target.classList.add('active');
+            target.style.setProperty('display', 'block', 'important');
+
+            // --- Sub-tab Sync (Finance) ---
+            if (cleanName === 'accounts') {
+                const defaultTab = (name === 'statement') ? 'finance-statement' : 'finance-accounts';
+                const tabs = target.querySelectorAll('.tab-content');
+                tabs.forEach(t => {
+                    t.style.display = (t.id === defaultTab) ? 'block' : 'none';
+                    if (t.id === defaultTab) t.classList.add('active');
+                });
+            }
+
+            // --- Lab Back to Hub ---
+            if (cleanName === 'lab' && window.MT.lab) {
+                window.MT.lab.back();
+            }
+        }
+
+        // 3. Sync UI (Nav Buttons)
+        document.querySelectorAll('[data-view]').forEach(btn => {
+            if (btn.dataset.view === cleanName) btn.classList.add('active');
+            else btn.classList.remove('active');
         });
-      }
 
-      // --- Lab Back to Hub ---
-      if (cleanName === 'lab' && window.MT.lab) {
-        window.MT.lab.back();
-      }
+        // 4. Close menu
+        const menu = document.getElementById('mainMenu');
+        if (menu) {
+            menu.classList.remove('open');
+            menu.style.display = 'none';
+        }
+
+        window.dispatchEvent(new CustomEvent('mt:view-changed', { detail: { viewName: cleanName } }));
     }
 
-    // 3. Global Nav Sync
-    syncNavButtons(cleanName);
+    function initNav() {
+        console.log('[NAV] Initializing delegated listeners...');
+        
+        // Use Global Event Delegation on WINDOW for ultimate reach
+        window.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-view]');
+            if (btn) {
+                const v = btn.dataset.view;
+                console.log('[NAV] Click detected for view:', v);
+                if (v) showView(v);
+            }
+            
+            // Side Menu Toggle
+            const toggle = e.target.closest('#menuToggle');
+            if (toggle) {
+                console.log('[NAV] Menu Toggle clicked');
+                const menu = document.getElementById('mainMenu');
+                if (menu) {
+                    const isOpen = menu.classList.contains('open');
+                    if (isOpen) {
+                        menu.classList.remove('open');
+                        menu.style.setProperty('display', 'none', 'important');
+                    } else {
+                        menu.classList.add('open');
+                        menu.style.setProperty('display', 'block', 'important');
+                    }
+                }
+            }
+        }, true); // Use capture phase to ensure we get it first
 
-    window.dispatchEvent(new CustomEvent('mt:view-changed', { detail: { viewName: cleanName } }));
-  }
+        // Swipe support
+        let startX = 0;
+        document.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+        document.addEventListener('touchend', e => {
+            if (!startX) return;
+            const dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) < 80) return;
+            
+            const active = document.querySelector('section.view.active');
+            const current = active ? active.id.replace('view-', '') : 'entry';
+            const idx = views.indexOf(current);
+            if (idx === -1) return;
 
-  /* ================= EXPORT ================= */
+            if (dx < 0 && idx < views.length - 1) showView(views[idx + 1]);
+            if (dx > 0 && idx > 0) showView(views[idx - 1]);
+            startX = 0;
+        }, {passive:true});
 
-  window.MT = window.MT || {};
-  window.MT.nav = {
-    initNav,
-    showView,
-    openMainMenu,
-    closeMainMenu
-  };
-
-  // Compatibility with older / other modules
-  window.showView = showView;
-
-  document.addEventListener('DOMContentLoaded', initNav);
-
-})();
-
-/* ===============================
-   HIDE BOTTOM BAR ON SCROLL
-================================ */
-(function () {
-  const bar = document.querySelector('.floating-nav-wrap');
-  if (!bar) return;
-
-  let lastScrollY = window.scrollY;
-
-  window.addEventListener('scroll', () => {
-    const current = window.scrollY;
-
-    // scrolling down → hide
-    if (current > lastScrollY + 6) {
-      bar.classList.add('hide');
-    }
-    // scrolling up → show
-    else if (current < lastScrollY - 6) {
-      bar.classList.remove('hide');
-    }
-
-    lastScrollY = current;
-  }, { passive: true });
-})();
-
-/* ===============================
-   SWIPE NAVIGATION
-================================ */
-(function () {
-
-  const views = ['entry', 'summary', 'accounts', 'settings', 'dues', 'about', 'lab'];
-  let startX = 0;
-  let startY = 0;
-
-  function getCurrentView() {
-    const active = document.querySelector('.view.active');
-    if (!active) return 'entry';
-    return active.id.replace('view-', '');
-  }
-
-  document.addEventListener('touchstart', e => {
-    if (e.touches.length !== 1) return;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-  }, { passive: true });
-
-  document.addEventListener('touchend', e => {
-    if (!startX) return;
-
-    const dx = e.changedTouches[0].clientX - startX;
-    const dy = e.changedTouches[0].clientY - startY;
-
-    // Ignore vertical scroll gestures
-    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return;
-
-    const current = getCurrentView();
-    const index = views.indexOf(current);
-    if (index === -1) return;
-
-    // swipe left → next
-    if (dx < 0 && index < views.length - 1) {
-      window.MT.nav.showView(views[index + 1]);
+        // Initial Sync
+        const active = document.querySelector('section.view.active');
+        if (active) showView(active.id.replace('view-', ''));
+        else showView('entry');
     }
 
-    // swipe right → previous
-    if (dx > 0 && index > 0) {
-      window.MT.nav.showView(views[index - 1]);
-    }
+    // Export
+    window.MT.nav = { showView, initNav };
+    window.showView = showView;
 
-    startX = 0;
-    startY = 0;
-  });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initNav);
+    } else {
+        initNav();
+    }
 
 })();
