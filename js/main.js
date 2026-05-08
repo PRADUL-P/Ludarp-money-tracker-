@@ -18,7 +18,8 @@ function initApp(){
 
   applyCustom();
   setupTheme();
-  initNav(showView);
+  // initNav handled by nav.js DOMContentLoaded
+
   ensureSelectColors();
   initEntryModule();
   initSummaryModule();
@@ -94,7 +95,8 @@ function initApp2(){ // merged into single initApp
   if(window.ensureSettingsSeeded) window.ensureSettingsSeeded();
   applyCustom();
   setupTheme();
-  initNav(showView);
+  // initNav handled by nav.js DOMContentLoaded
+
   ensureSelectColors();
   initEntryModule();
   initSummaryModule();
@@ -143,51 +145,8 @@ function handleAppShortcuts() {
   }
 }
 
-// showView used by nav
-function showView(name){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+// Navigation is now handled exclusively by js/nav.js
 
-  if(!name || name==='entry'){
-    document.getElementById('view-entry')?.classList.add('active');
-    renderEntries();
-    return;
-  }
-
-  if(name==='summary'){
-    document.getElementById('view-summary')?.classList.add('active');
-    renderSummary();
-    return;
-  }
-
-  if(name==='accounts'){
-    document.getElementById('view-accounts')?.classList.add('active');
-    return;
-  }
-
-  if(name==='settings'){
-    const v = document.getElementById('view-settings');
-    v?.classList.add('active');
-
-    // 🔥 CRITICAL FIX
-    requestAnimationFrame(()=>{
-      ensureSettingsSeeded();
-      window.renderSettingsUI?.();
-    });
-    return;
-  }
-
-  if(name==='user'){
-    document.getElementById('view-user')?.classList.add('active');
-    return;
-  }
-
-  if(name==='about'){
-    document.getElementById('view-about')?.classList.add('active');
-  }
-}
-
-
-window.showView = showView;
 
 // Start auth
 setupAuthSimple();

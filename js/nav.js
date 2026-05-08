@@ -197,34 +197,76 @@
   /* ================= VIEW SWITCHER ================= */
 
   function showView(name) {
-    document.querySelectorAll('.view').forEach(v =>
-      v.classList.remove('active')
-    );
+    if (!name) name = 'entry';
+    
+    // 1. Hide ALL views first
+    const allViews = document.querySelectorAll('.view');
+    allViews.forEach(v => {
+      v.classList.remove('active');
+      v.style.display = 'none';
+    });
 
-    if (!name || name === 'entry')
-      document.getElementById('view-entry')?.classList.add('active');
-    if (name === 'summary')
-      document.getElementById('view-summary')?.classList.add('active');
-    if (name === 'accounts' || name === 'statement')
-      document.getElementById('view-accounts')?.classList.add('active');
-    if (name === 'settings')
-      document.getElementById('view-settings')?.classList.add('active');
-    if (name === 'user')
-      document.getElementById('view-user')?.classList.add('active');
-    if (name === 'about')
-      document.getElementById('view-about')?.classList.add('active');
-    if (name === 'dues')
-      document.getElementById('view-dues')?.classList.add('active');
+    // 2. Identify the target view
+    // Special case: 'statement' maps to 'accounts'
+    const targetId = (name === 'statement') ? 'view-accounts' : `view-${name}`;
+    const target = document.getElementById(targetId);
 
-    /* ===== ACTIVE STATE (TOP + BOTTOM) ===== */
+    if (target) {
+      target.classList.add('active');
+      target.style.display = 'block';
+
+      // --- FINANCE VIEW SPECIAL HANDLING ---
+      if (name === 'accounts' || name === 'statement') {
+        const tabs = target.querySelectorAll('.tab-content');
+        const tabBar = target.querySelector('.finance-tab-bar');
+        
+        // Decide which tab to show
+        let targetTabId = (name === 'statement') ? 'finance-statement' : 'finance-accounts';
+        let activeTab = document.getElementById(targetTabId) || tabs[0];
+
+        tabs.forEach(t => {
+            t.style.display = 'none';
+            t.classList.remove('active');
+        });
+
+        if (activeTab) {
+          activeTab.style.display = 'block';
+          activeTab.classList.add('active');
+          
+          if (tabBar) {
+            tabBar.querySelectorAll('.tab-btn').forEach(btn => {
+              if (btn.dataset.target === activeTab.id) {
+                btn.classList.add('active');
+                btn.style.background = 'var(--accent)';
+                btn.style.color = '#fff';
+              } else {
+                btn.classList.remove('active');
+                btn.style.background = 'none';
+                btn.style.color = 'var(--text-secondary)';
+              }
+            });
+          }
+        }
+      }
+      
+      // --- LAB VIEW SPECIAL HANDLING ---
+      if (name === 'lab' && window.MT.lab) {
+          window.MT.lab.back(); // Always start at the hub
+      }
+    }
+
+    /* ===== UPDATE NAV BUTTONS ACTIVE STATE ===== */
     document.querySelectorAll('.nav-item, .fn-item').forEach(btn => {
-      if (btn.dataset.view === name) {
+      // Normalize 'statement' to 'accounts' for highlighting
+      const btnView = btn.dataset.view;
+      if (btnView === name || (name === 'statement' && btnView === 'accounts')) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
       }
     });
 
+    // 3. Dispatch event
     window.dispatchEvent(
       new CustomEvent('mt:view-changed', {
         detail: { viewName: name }
@@ -279,7 +321,7 @@
 ================================ */
 (function () {
 
-  const views = ['entry', 'summary', 'accounts', 'dues', 'settings', 'about'];
+  const views = ['entry', 'summary', 'accounts', 'settings', 'dues', 'about', 'lab'];
   let startX = 0;
   let startY = 0;
 

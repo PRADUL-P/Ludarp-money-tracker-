@@ -166,23 +166,6 @@
 /* ===============================
    BOTTOM NAV HANDLER
 ================================ */
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('.fn-item');
-  if (!btn) return;
+// Bottom nav listener removed—handled by nav.js initNav()
 
-  const view = btn.dataset.view;
-  if (!view) return;
-
-  // Switch view
-  if (typeof window.showView === 'function') {
-    window.showView(view);
-  } else if (window.MT && window.MT.nav && typeof window.MT.nav.showView === 'function') {
-    window.MT.nav.showView(view);
-  }
-
-  // Active state
-  document.querySelectorAll('.fn-item')
-    .forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-});
 
