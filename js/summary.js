@@ -335,6 +335,7 @@
     }
 
     renderHeatmap(dailyTotals, mode, monthVal);
+    renderHashtags(filtered);
     renderInsights(filtered, totalExp, totalInc, mode === 'month' ? monthVal : '');
     renderAchievements(arr);
   }
@@ -386,6 +387,39 @@
         <div class="badge-item" style="flex:0 0 auto; display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:30px; background:rgba(255,255,255,0.05); border:1px solid ${b.color}44;">
             <span style="font-size:14px;">${b.icon}</span>
             <span style="font-size:11px; font-weight:700; color:${b.color}; white-space:nowrap;">${b.label}</span>
+        </div>
+    `).join('');
+  }
+
+  function renderHashtags(filtered) {
+    const card = document.getElementById('hashtagCard');
+    const list = document.getElementById('hashtagList');
+    if (!card || !list) return;
+
+    const tags = {};
+    filtered.forEach(e => {
+        const desc = (e.description || '') + ' ' + (e.note || '');
+        const found = desc.match(/#\w+/g);
+        if (found) {
+            found.forEach(t => {
+                const tag = t.toLowerCase();
+                tags[tag] = (tags[tag] || 0) + Number(e.amount || 0);
+            });
+        }
+    });
+
+    const sorted = Object.entries(tags).sort((a, b) => b[1] - a[1]);
+    
+    if (sorted.length === 0) {
+        card.style.display = 'none';
+        return;
+    }
+
+    card.style.display = 'block';
+    list.innerHTML = sorted.map(([tag, amt]) => `
+        <div style="background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.2); padding:6px 12px; border-radius:12px; font-size:11px; display:flex; gap:8px; align-items:center;">
+            <span style="color:var(--accent-2); font-weight:700;">${tag}</span>
+            <span style="opacity:0.6;">${currencyFmt(amt)}</span>
         </div>
     `).join('');
   }

@@ -406,6 +406,12 @@
       if (!s2.days[dateStr]) s2.days[dateStr] = [];
       s2.days[dateStr].push(entry);
       db.saveStore(s2);
+
+      // --- SALARY DISTRIBUTOR TRIGGER ---
+      if (entry.category === 'Salary' && entry.amount > 0 && window.MT.salaryDist) {
+          window.MT.salaryDist.show(entry.amount);
+      }
+
       currentEdit = null;
       submitBtn.textContent = 'Save entry';
       statusEl.textContent = 'Updated ✓';

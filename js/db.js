@@ -31,7 +31,24 @@ function loadStore(){
     return raw ? JSON.parse(raw) : { version:1, days:{}, settings: DEFAULTS.settings, accounts:{}, paymentBankMap:{} };
   }catch(e){ console.error(e); return { version:1, days:{}, settings: DEFAULTS.settings, accounts:{}, paymentBankMap:{} }; }
 }
-function saveStore(store){ localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }
+const UNDO_KEY = 'ludarp_undo_stack';
+function saveStore(store){ 
+  try {
+    const current = localStorage.getItem(STORAGE_KEY);
+    if (current) {
+        let stack = [];
+        try { stack = JSON.parse(localStorage.getItem(UNDO_KEY) || '[]'); } catch(e) { stack = []; }
+        // Don't save if identical to top of stack
+        if (stack.length === 0 || stack[0].data !== current) {
+            stack.unshift({ data: current, time: Date.now() });
+            if (stack.length > 5) stack.pop(); 
+            localStorage.setItem(UNDO_KEY, JSON.stringify(stack));
+            window.dispatchEvent(new Event('mt:undo-updated'));
+        }
+    }
+  } catch(e) {}
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); 
+}
 
 function loadUser(){ try{ const r=localStorage.getItem(USER_KEY); return r?JSON.parse(r):null;}catch{return null;} }
 function saveUser(u){ localStorage.setItem(USER_KEY, JSON.stringify(u)); }

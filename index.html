@@ -148,6 +148,34 @@
     </div>
   </div>
 
+  <!-- SALARY DISTRIBUTOR MODAL -->
+  <div id="salaryDistModal" class="auth-screen" style="display:none; z-index:10001; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px);">
+    <div class="card" style="max-width:400px; width:90%; padding:25px; border-radius:24px;">
+        <div style="font-size:40px; margin-bottom:15px; text-align:center;">💰</div>
+        <h3 style="text-align:center; margin-bottom:10px;">Salary Distributor</h3>
+        <p style="font-size:12px; opacity:0.7; text-align:center; margin-bottom:20px;">Allocate your income to your goals and savings immediately.</p>
+        
+        <div style="display:flex; flex-direction:column; gap:15px;" id="salaryDistList">
+            <!-- Goal rows will be injected here -->
+        </div>
+
+        <div style="margin-top:20px; padding-top:15px; border-top:1px solid var(--card-border);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:700;">
+                <span>Total Salary:</span>
+                <span id="salaryTotalDisp">₹0.00</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:12px; color:var(--muted);">
+                <span>Remaining:</span>
+                <span id="salaryRemainingDisp">₹0.00</span>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button id="salaryDistCancel" class="btn-secondary" style="flex:1;">Skip</button>
+                <button id="salaryDistConfirm" class="btn-primary" style="flex:1;">Distribute</button>
+            </div>
+        </div>
+    </div>
+  </div>
+
   <!-- APP -->
   <div id="appRoot" class="appRoot" style="display:none;">
     <header class="app-header card" role="banner">
@@ -434,7 +462,7 @@
 
               <label style="display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;">
                 <input id="isGroup" type="checkbox" />
-                <span style="font-size:13px; font-weight:600;">Custom Split / Group Expense</span>
+                <span style="font-size:13px; font-weight:700; color:var(--accent-1);">🚀 Splitwise Bill Splitter</span>
               </label>
 
               <div id="splitOptions"
@@ -649,13 +677,16 @@
 
 
           <!-- NEW: SMART INSIGHTS -->
-          <section class="card"
-            style="padding:15px; background:rgba(255,255,255,0.02); border-color:rgba(56,189,248,0.12);">
+          </section>
+
+          <!-- NEW: HASHTAG ANALYZER -->
+          <section id="hashtagCard" class="card"
+            style="padding:15px; background:rgba(255,255,255,0.02); border-color:rgba(167,139,250,0.12); display:none;">
             <div
-              style="font-size:13px; font-weight:800; color:var(--accent-1); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-              <span>✨</span> Smart Insights
+              style="font-size:13px; font-weight:800; color:var(--accent-2); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <span>🏷️</span> Hashtag Analyzer
             </div>
-            <div id="insightsList" style="display:flex; flex-direction:column;">
+            <div id="hashtagList" style="display:flex; flex-wrap:wrap; gap:8px;">
               <!-- Filled by JS -->
             </div>
           </section>
@@ -1353,6 +1384,20 @@
             </div>
           </section>
 
+          <!-- Time Machine (Undo Log) -->
+          <section id="gs-undolog" class="card settings-section">
+            <button class="settings-header" data-target="undoLogPanel">
+              <span>⏳ Time Machine (Undo Log)</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="undoLogPanel" class="settings-panel">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
+                <p style="font-size:11px; color:var(--muted);">Roll back your database to a previous state. Only the last 5 major changes are kept.</p>
+                <div id="undoList" style="display:flex; flex-direction:column; gap:8px;"></div>
+              </div>
+            </div>
+          </section>
+
           <!-- Danger Zone -->
           <section class="card settings-section" style="border:1px solid var(--danger-dim);">
             <button class="settings-header" data-target="clearDataPanel" style="color: var(--danger);">
@@ -1716,6 +1761,72 @@
           <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 6.0 • Titanium+ Edition
             • Professional Finance Master</p>
         </section>
+      <!-- V6.0 LAB VIEW -->
+      <section id="view-lab" class="view">
+        <div class="section-title">🧪 LUDARP v6.0 Titanium+ Lab</div>
+        <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Experimental high-end features for advanced finance tracking.</p>
+
+        <!-- Main Lab Hub -->
+        <div id="labHub">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+                <div class="card lab-card" onclick="window.MT.lab.show('simulator')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">🔮</div>
+                    <div style="font-weight:700; font-size:13px;">What-If Simulator</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('sankey')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">🌊</div>
+                    <div style="font-weight:700; font-size:13px;">Cash Flow Map</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('wrapped')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">🎬</div>
+                    <div style="font-weight:700; font-size:13px;">LUDARP Wrapped</div>
+                </div>
+                <div class="card lab-card" style="text-align:center; padding:20px; opacity:0.5;">
+                    <div style="font-size:24px; margin-bottom:8px;">💎</div>
+                    <div style="font-weight:700; font-size:13px;">More Coming...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulator View -->
+        <div id="lab-simulator" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div class="card" style="padding:20px;">
+                <h3>What-If Scenario Simulator</h3>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Test how cutting spending affects your future net worth.</p>
+                
+                <div id="simSliders" style="display:flex; flex-direction:column; gap:20px;">
+                    <!-- Filled by JS -->
+                </div>
+                
+                <div style="margin-top:30px; padding:20px; background:rgba(16,185,129,0.05); border-radius:15px; border:1px solid rgba(16,185,129,0.1); text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">Projected Savings (12 Months)</div>
+                    <div id="simResult" style="font-size:28px; font-weight:800; color:var(--success);">₹0.00</div>
+                    <div id="simTip" style="font-size:11px; color:var(--muted); margin-top:8px;">You could achieve your goals 4 months earlier!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sankey View -->
+        <div id="lab-sankey" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div class="card" style="padding:20px;">
+                <h3>Cash Flow Map</h3>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Visualizing how money flows through your accounts.</p>
+                <div id="sankeyContainer" style="height:400px; display:flex; flex-direction:column; gap:10px;">
+                    <!-- Simple bar-based flow visualizer -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Wrapped View -->
+        <div id="lab-wrapped" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div id="wrappedContainer" class="card" style="padding:40px; text-align:center; background:linear-gradient(180deg, #1e1b4b 0%, #000 100%); color:#fff; min-height:500px; display:flex; flex-direction:column; justify-content:center;">
+                <!-- Content filled by JS -->
+            </div>
+        </div>
+
       </section>
     </main>
   </div>
@@ -1754,6 +1865,12 @@
       <button class="fn-item" data-view="settings" title="Settings">
         <span class="fn-icon">⚙️</span>
         <span class="fn-label">Settings</span>
+      </button>
+
+      <!-- LAB -->
+      <button class="fn-item" data-view="lab" title="v6.0 Lab">
+        <span class="fn-icon">🧪</span>
+        <span class="fn-label">Lab</span>
       </button>
 
     </nav>
@@ -2433,6 +2550,9 @@
   <script src="js/goals.js" defer></script>
   <script src="js/pdf-generator.js" defer></script>
   <script src="js/whatsnew.js" defer></script>
+  <script src="js/undolog.js" defer></script>
+  <script src="js/salary-dist.js" defer></script>
+  <script src="js/lab.js" defer></script>
 </body>
 
 </html>
