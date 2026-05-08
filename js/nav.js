@@ -94,51 +94,40 @@
   function initNav() {
     ensureMenuElementsInBody();
 
-    /* ===== TOP + BOTTOM NAV (SAME LOGIC) ===== */
-    navItems.forEach(btn => {
-      btn.addEventListener('click', () => {
+    /* ===== CLICK HANDLERS ===== */
+    document.querySelectorAll('[data-view]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
         const view = btn.dataset.view;
         if (!view) return;
-
         showView(view);
-        closeMainMenu();
       });
     });
 
-    /* ===== MENU TOGGLE ===== */
     if (menuToggle) {
       menuToggle.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (mainMenu.classList.contains('open')) {
-          closeMainMenu();
-        } else {
-          openMainMenu();
-        }
+        if (mainMenu.classList.contains('open')) closeMainMenu();
+        else openMainMenu();
       });
     }
 
-    /* ===== CLICK OUTSIDE MENU ===== */
     document.addEventListener('click', (e) => {
-      if (
-        mainMenu &&
-        mainMenu.classList.contains('open') &&
-        !mainMenu.contains(e.target) &&
-        !menuToggle.contains(e.target)
-      ) {
+      if (mainMenu?.classList.contains('open') && !mainMenu.contains(e.target) && !menuToggle?.contains(e.target)) {
         closeMainMenu();
       }
     });
 
-    /* ===== MENU PANEL BUTTONS ===== */
-    if (mainMenu) {
-      mainMenu.querySelectorAll('button[data-to]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const to = btn.dataset.to;
-          if (to) showView(to);
-          closeMainMenu();
-        });
-      });
+    /* ===== START STATE ===== */
+    // Only trigger if we aren't already on a view (e.g. from a deep link)
+    const activeView = document.querySelector('.view.active');
+    if (!activeView) {
+        showView('entry');
+    } else {
+        // Sync nav buttons for the hardcoded active view
+        const currentName = activeView.id.replace('view-', '');
+        showView(currentName);
     }
+  }
 
     /* ===== FAB (+) — PRIMARY ACTION ===== */
     const fab = document.getElementById('fabAdd');
@@ -198,80 +187,60 @@
 
   function showView(name) {
     if (!name) name = 'entry';
+    const cleanName = (name === 'statement') ? 'accounts' : name;
     
-    // 1. Hide ALL views first
-    const allViews = document.querySelectorAll('.view');
+    // 1. Force hide ALL views
+    const allViews = document.querySelectorAll('section.view');
     allViews.forEach(v => {
       v.classList.remove('active');
-      v.style.display = 'none';
+      v.style.setProperty('display', 'none', 'important');
     });
 
-    // 2. Identify the target view
-    // Special case: 'statement' maps to 'accounts'
-    const targetId = (name === 'statement') ? 'view-accounts' : `view-${name}`;
-    const target = document.getElementById(targetId);
-
+    // 2. Show target view
+    const target = document.getElementById(`view-${cleanName}`);
     if (target) {
       target.classList.add('active');
-      target.style.display = 'block';
+      target.style.setProperty('display', 'block', 'important');
 
-      // --- FINANCE VIEW SPECIAL HANDLING ---
-      if (name === 'accounts' || name === 'statement') {
+      // --- Finance Sub-tabs ---
+      if (cleanName === 'accounts') {
         const tabs = target.querySelectorAll('.tab-content');
-        const tabBar = target.querySelector('.finance-tab-bar');
-        
-        // Decide which tab to show
-        let targetTabId = (name === 'statement') ? 'finance-statement' : 'finance-accounts';
-        let activeTab = document.getElementById(targetTabId) || tabs[0];
-
+        const defaultTabId = (name === 'statement') ? 'finance-statement' : 'finance-accounts';
         tabs.forEach(t => {
-            t.style.display = 'none';
-            t.classList.remove('active');
+          t.style.display = (t.id === defaultTabId) ? 'block' : 'none';
+          if (t.id === defaultTabId) t.classList.add('active');
+          else t.classList.remove('active');
         });
-
-        if (activeTab) {
-          activeTab.style.display = 'block';
-          activeTab.classList.add('active');
-          
-          if (tabBar) {
-            tabBar.querySelectorAll('.tab-btn').forEach(btn => {
-              if (btn.dataset.target === activeTab.id) {
-                btn.classList.add('active');
-                btn.style.background = 'var(--accent)';
-                btn.style.color = '#fff';
-              } else {
-                btn.classList.remove('active');
-                btn.style.background = 'none';
-                btn.style.color = 'var(--text-secondary)';
-              }
-            });
+        // Sync tab buttons
+        target.querySelectorAll('.tab-btn').forEach(btn => {
+          if (btn.dataset.target === defaultTabId) {
+            btn.classList.add('active');
+            btn.style.background = 'var(--accent)';
+            btn.style.color = '#fff';
+          } else {
+            btn.classList.remove('active');
+            btn.style.background = 'none';
+            btn.style.color = 'var(--text-secondary)';
           }
-        }
+        });
       }
-      
-      // --- LAB VIEW SPECIAL HANDLING ---
-      if (name === 'lab' && window.MT.lab) {
-          window.MT.lab.back(); // Always start at the hub
+
+      // --- Lab Back to Hub ---
+      if (cleanName === 'lab' && window.MT.lab) {
+        window.MT.lab.back();
       }
     }
 
-    /* ===== UPDATE NAV BUTTONS ACTIVE STATE ===== */
-    document.querySelectorAll('.nav-item, .fn-item').forEach(btn => {
-      // Normalize 'statement' to 'accounts' for highlighting
-      const btnView = btn.dataset.view;
-      if (btnView === name || (name === 'statement' && btnView === 'accounts')) {
-        btn.classList.add('active');
+    // 3. Global Nav Sync (Top + Bottom + Menu)
+    document.querySelectorAll('[data-view]').forEach(item => {
+      if (item.dataset.view === cleanName) {
+        item.classList.add('active');
       } else {
-        btn.classList.remove('active');
+        item.classList.remove('active');
       }
     });
 
-    // 3. Dispatch event
-    window.dispatchEvent(
-      new CustomEvent('mt:view-changed', {
-        detail: { viewName: name }
-      })
-    );
+    window.dispatchEvent(new CustomEvent('mt:view-changed', { detail: { viewName: cleanName } }));
   }
 
   /* ================= EXPORT ================= */

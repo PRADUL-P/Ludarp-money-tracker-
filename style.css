@@ -395,17 +395,17 @@ body {
    VIEWS
    ============================================================ */
 .view {
-  display: none;
+  display: none !important;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  width: 100%;
 }
 
 .view.active {
-  display: block;
+  display: block !important;
   opacity: 1;
   transform: none;
-  animation: viewIn 0.25s ease-out;
 }
 
 @keyframes viewIn {
