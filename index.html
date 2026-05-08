@@ -1505,14 +1505,16 @@
             cloud prying, no ads, just pure management.
           </p>
 
-          <div style="margin-bottom: 20px; text-align: center;">
-            <button id="installAppBtn" class="btn-primary" style="display:none; width:100%; justify-content:center; gap:8px;">
-               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-               Install LUDARP App
+          <div id="installSection" style="margin-bottom: 30px; text-align: center;">
+            <div style="font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-bottom:12px; letter-spacing:1px;">App Status: Browser Mode</div>
+            <button id="installAppBtn" class="btn-primary" style="display:none; width:100%; justify-content:center; gap:10px; padding:16px; font-size:16px; box-shadow:0 10px 30px rgba(99,102,241,0.4);">
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+               DIRECT DOWNLOAD & INSTALL
             </button>
-            <div id="installManualMsg" style="font-size:12px; color:var(--muted); padding:10px; border-radius:10px; background:rgba(255,255,255,0.02); border:1px dashed var(--card-border);">
-               <div style="font-weight:700; color:var(--text-secondary); margin-bottom:4px;">App Ready for Use</div>
-               To install: Tap the browser menu (⋮ or <span style="font-size:14px;">⎙</span>) and select <strong>'Add to Home Screen'</strong> or <strong>'Install App'</strong>.
+            <div id="installManualMsg" style="font-size:12px; color:var(--muted); padding:15px; border-radius:15px; background:rgba(255,255,255,0.02); border:1px dashed var(--card-border);">
+               <div style="font-weight:800; color:var(--text-secondary); margin-bottom:6px; font-size:14px;">✨ Premium PWA Experience</div>
+               LUDARP is a Progressive Web App. To install directly to your home screen:
+               <div style="margin-top:10px; font-style:italic; opacity:0.8;">Tap browser menu (⋮) → 'Install App'</div>
             </div>
           </div>
 
@@ -2603,6 +2605,7 @@
     <button data-view="summary">Summary</button>
     <button data-view="accounts">Accounts & Statement</button>
     <button id="exportMenuBtn" data-view="backup">Export/Backup</button>
+    <button id="menuInstallBtn" style="display:none; color:var(--accent-1); font-weight:900; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.2); margin-top:5px;">✨ Install LUDARP App</button>
     <hr style="opacity:.06;margin:8px 0" />
     <button id="clearAppDataBtn" class="btn-secondary">Clear all (Export first)</button>
   </div>

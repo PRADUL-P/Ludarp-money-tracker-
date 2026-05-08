@@ -12,28 +12,40 @@
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    
     const installBtn = document.getElementById('installAppBtn');
+    const menuInstallBtn = document.getElementById('menuInstallBtn');
     const manualMsg = document.getElementById('installManualMsg');
+
+    const triggerInstall = async (btn) => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          if(installBtn) installBtn.style.display = 'none';
+          if(menuInstallBtn) menuInstallBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    };
+
     if(installBtn) {
        installBtn.style.display = 'flex';
        if(manualMsg) manualMsg.style.display = 'none';
-       installBtn.addEventListener('click', async () => {
-          if (deferredPrompt) {
-             deferredPrompt.prompt();
-             const { outcome } = await deferredPrompt.userChoice;
-             if (outcome === 'accepted') {
-                installBtn.style.display = 'none';
-             }
-             deferredPrompt = null;
-          }
-       });
+       installBtn.onclick = () => triggerInstall(installBtn);
+    }
+    if(menuInstallBtn) {
+       menuInstallBtn.style.display = 'block';
+       menuInstallBtn.onclick = () => triggerInstall(menuInstallBtn);
     }
   });
 
   window.addEventListener('appinstalled', () => {
      const installBtn = document.getElementById('installAppBtn');
+     const menuInstallBtn = document.getElementById('menuInstallBtn');
      const manualMsg = document.getElementById('installManualMsg');
      if(installBtn) installBtn.style.display = 'none';
+     if(menuInstallBtn) menuInstallBtn.style.display = 'none';
      if(manualMsg) manualMsg.style.display = 'none';
      deferredPrompt = null;
   });
