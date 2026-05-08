@@ -13,8 +13,10 @@
     e.preventDefault();
     deferredPrompt = e;
     const installBtn = document.getElementById('installAppBtn');
+    const manualMsg = document.getElementById('installManualMsg');
     if(installBtn) {
        installBtn.style.display = 'flex';
+       if(manualMsg) manualMsg.style.display = 'none';
        installBtn.addEventListener('click', async () => {
           if (deferredPrompt) {
              deferredPrompt.prompt();
@@ -30,7 +32,9 @@
 
   window.addEventListener('appinstalled', () => {
      const installBtn = document.getElementById('installAppBtn');
+     const manualMsg = document.getElementById('installManualMsg');
      if(installBtn) installBtn.style.display = 'none';
+     if(manualMsg) manualMsg.style.display = 'none';
      deferredPrompt = null;
   });
 
