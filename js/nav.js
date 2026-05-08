@@ -80,6 +80,14 @@ window.MT = window.MT || {};
                         menu.classList.remove('open');
                         menu.style.setProperty('display', 'none', 'important');
                     } else {
+                        // Position dynamically near the toggle
+                        const rect = toggle.getBoundingClientRect();
+                        menu.style.position = 'fixed';
+                        menu.style.top = `${rect.bottom + 8}px`;
+                        menu.style.right = '18px';
+                        menu.style.left = 'auto';
+                        menu.style.zIndex = '200000'; // Higher than everything
+                        
                         menu.classList.add('open');
                         menu.style.setProperty('display', 'block', 'important');
                     }
