@@ -94,13 +94,17 @@
   function initNav() {
     ensureMenuElementsInBody();
 
-    /* ===== CLICK HANDLERS ===== */
-    document.querySelectorAll('[data-view]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    /* ===== EVENT DELEGATION FOR ALL DATA-VIEW BUTTONS ===== */
+    document.body.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-view]');
+      if (btn) {
         const view = btn.dataset.view;
-        if (!view) return;
-        showView(view);
-      });
+        if (view) {
+            console.log('[NAV] Clicked view:', view);
+            showView(view);
+            closeMainMenu();
+        }
+      }
     });
 
     if (menuToggle) {
@@ -117,16 +121,22 @@
       }
     });
 
-    /* ===== START STATE ===== */
-    // Only trigger if we aren't already on a view (e.g. from a deep link)
+    /* ===== INITIAL SYNC ===== */
     const activeView = document.querySelector('.view.active');
-    if (!activeView) {
-        showView('entry');
-    } else {
-        // Sync nav buttons for the hardcoded active view
+    if (activeView) {
         const currentName = activeView.id.replace('view-', '');
-        showView(currentName);
+        syncNavButtons(currentName);
     }
+  }
+
+  function syncNavButtons(cleanName) {
+    document.querySelectorAll('[data-view]').forEach(item => {
+      if (item.dataset.view === cleanName) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
   }
 
     /* ===== FAB (+) — PRIMARY ACTION ===== */
@@ -231,14 +241,8 @@
       }
     }
 
-    // 3. Global Nav Sync (Top + Bottom + Menu)
-    document.querySelectorAll('[data-view]').forEach(item => {
-      if (item.dataset.view === cleanName) {
-        item.classList.add('active');
-      } else {
-        item.classList.remove('active');
-      }
-    });
+    // 3. Global Nav Sync
+    syncNavButtons(cleanName);
 
     window.dispatchEvent(new CustomEvent('mt:view-changed', { detail: { viewName: cleanName } }));
   }
