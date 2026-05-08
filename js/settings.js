@@ -530,7 +530,8 @@
         { target: 'finance-accounts', icon: '🏦', label: 'Balances' },
         { target: 'finance-subscriptions', icon: '📅', label: 'Subs' },
         { target: 'finance-statement', icon: '📄', label: 'Statement' },
-        { target: 'finance-petrol',   icon: '⛽', label: 'Petrol Log' }
+        { target: 'finance-petrol',   icon: '⛽', label: 'Petrol Log' },
+        { target: 'finance-goals',    icon: '🎯', label: 'Goals' }
       ],
       applyFn: applyFinanceTabOrder
     });
@@ -542,7 +543,6 @@
       storageKey: 'mt_settings_tab_order',
       defaults: [
         { target: 'stab-general',  icon: '⚙️', label: 'General' },
-        { target: 'stab-payments', icon: '💳', label: 'Payments' },
         { target: 'stab-data',     icon: '📦', label: 'Data & Sync' },
         { target: 'stab-user',     icon: '👤', label: 'User Profile' }
       ],

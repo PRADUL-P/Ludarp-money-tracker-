@@ -250,6 +250,34 @@
         const bankTotal = window.MT?.accounts?.getTotalBalance ? window.MT.accounts.getTotalBalance(currentMonth) : 0;
         const netWorth = bankTotal + totalOweMe - totalIOwe;
         DOM.trueBalanceValueEl.textContent = currencyFmt(netWorth);
+
+        // --- SAFE TO SPEND ---
+        const safeEl = document.getElementById('safeToSpendValue');
+        if (safeEl) {
+            let lockedAmount = 0;
+            const today = (window.MT?.db?.todayISO ? window.MT.db.todayISO() : new Date().toISOString()).slice(0, 10);
+            
+            try {
+                const subs = JSON.parse(localStorage.getItem('mt_recurring_v1') || '[]');
+                subs.forEach(s => {
+                    if (s.active) {
+                        const isPaidThisMonth = s.lastApplied && s.lastApplied.slice(0,7) === today.slice(0,7);
+                        if (!isPaidThisMonth) lockedAmount += Number(s.amount || 0);
+                    }
+                });
+            } catch(e) {}
+            
+            try {
+                const goals = JSON.parse(localStorage.getItem('mt_goals_v1') || '[]');
+                goals.forEach(g => {
+                    lockedAmount += Number(g.currentAmount || 0);
+                });
+            } catch(e) {}
+            
+            const safeSpend = netWorth - lockedAmount;
+            safeEl.textContent = currencyFmt(safeSpend);
+            safeEl.style.color = safeSpend >= 0 ? 'var(--success)' : 'var(--danger)';
+        }
     }
 
     // Advanced Insight: Avg Daily Spend

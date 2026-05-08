@@ -1,6 +1,6 @@
-# 📊 LUDARP Money Tracker — Version 5.0 (Titanium)
+# 📊 LUDARP Money Tracker — Version 6.0 (Titanium+)
 
-[![v5.0 Release](https://img.shields.io/badge/Release-v5.0_Titanium-f43f5e?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
+[![v6.0 Release](https://img.shields.io/badge/Release-v6.0_Titanium+-f43f5e?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Offline First](https://img.shields.io/badge/PWA-Technologically_Offline-38bdf8?style=for-the-badge&logo=pwa)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Privacy Protected](https://img.shields.io/badge/Privacy-100%25_On_Device-34d399?style=for-the-badge&logo=shield)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 
@@ -12,6 +12,22 @@
 ## 🚀 Live Application
 
 👉 [https://pradul-p.github.io/Ludarp-money-tracker-/](https://pradul-p.github.io/Ludarp-money-tracker-/)
+
+---
+
+## 🚀 Major v6.0 Ultimate Release Features
+*   🎯 **Goals & Savings Planner**: Create financial targets with custom icons. Features an interactive progress bar that fills up as you save money towards your goals.
+*   📄 **Beautiful PDF Report Generator**: Export your financial statements to perfectly paginated PDF reports offline, dynamically styled with your custom accent theme.
+*   ✨ **Safe-to-Spend (Guilt-Free) Calculator**: A smart widget that calculates exactly how much money you can safely spend by automatically subtracting upcoming bills and reserved goals from your True Balance.
+*   ⚙️ **Streamlined UI Settings**: Consolidated Payments & Recurring tab directly into General Settings for a cleaner aesthetic.
+*   📲 **Native App Installation**: Integrated PWA Prompt directly on the About Page, enabling true Native installation on any OS.
+
+### 🔮 v6.0 Upcoming Roadmap (In Development)
+*   *Cash Flow Sankey Diagram*: Visual mapping of Income -> Accounts -> Spending.
+*   *Receipt Photo Vault*: Attach high-res bill photos directly to transactions via IndexedDB.
+*   *Envelope Budgeting System*: Visual budget envelopes that empty as you spend.
+*   *LUDARP Wrapped*: An animated year-in-review financial summary.
+*   *Hashtag Analytics*: Add custom `#tags` to track micro-events across categories.
 
 ---
 

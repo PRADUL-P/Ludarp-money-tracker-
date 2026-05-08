@@ -1903,6 +1903,7 @@ input[type="checkbox"]:focus {
 @media (max-width: 640px) {
   body {
     padding: 12px;
+    padding-bottom: 90px; /* Prevent bottom nav overlap */
   }
 
   .brand-title {
@@ -1946,6 +1947,9 @@ input[type="checkbox"]:focus {
 @media (max-width: 520px) {
   .main-nav {
     display: none;
+  }
+  .features-list-rich {
+    grid-template-columns: 1fr !important;
   }
 }
 

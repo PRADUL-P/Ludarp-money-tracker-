@@ -225,8 +225,9 @@
               <div class="daily-label">Selected date</div>
               <div id="selectedDateLabel" class="selected-date-text"></div>
             </div>
-            <div class="date-input-wrap">
+            <div class="date-input-wrap" style="display:flex; gap:8px; align-items:center;">
               <input id="date" type="date" />
+              <input id="time" type="time" title="Time (Optional)" style="width: auto; padding: 0 4px;" />
             </div>
           </div>
 
@@ -556,6 +557,11 @@
             <div id="trueBalanceSub" style="font-size:11px; color:var(--muted); margin-top:6px; transform:translateZ(5px);">
               Accounts + Owed To You - You Owe
             </div>
+            <div id="safeToSpendBlock" style="margin-top:15px; padding-top:12px; border-top:1px dashed rgba(255,255,255,0.1); transform:translateZ(5px);">
+              <div style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">✨ Safe to Spend (Guilt-Free)</div>
+              <div id="safeToSpendValue" class="blur-target" style="font-size:20px; font-weight:800; color:var(--success);">₹0.00</div>
+              <div style="font-size:10px; color:var(--muted); margin-top:2px;">After upcoming subscriptions & goals</div>
+            </div>
           </div>
           
 
@@ -807,11 +813,14 @@
               </select>
             </div>
 
-            <div class="filter-item export-wrap" style="align-items: flex-end; display: flex; gap: 5px;">
+            <div class="filter-item export-wrap" style="align-items: flex-end; display: flex; gap: 5px; flex-wrap: wrap;">
               <button id="summaryExportBtn" class="btn-primary" style="margin-bottom:8px; flex: 1;">
                 <svg width="14" height="14" aria-hidden="true">
                   <use href="#icon-export"></use>
                 </svg> Export
+              </button>
+              <button id="summaryPdfBtn" class="btn-primary" style="margin-bottom:8px; flex: 1; background: #e11d48; color: white;" onclick="if(window.PDFGenerator && window.PDFGenerator.generatePDF) window.PDFGenerator.generatePDF()">
+                📄 PDF
               </button>
               <button id="summaryWaBtn" class="btn-primary" onclick="if(window.SummaryModule && window.SummaryModule.shareWhatsAppReport) window.SummaryModule.shareWhatsAppReport()" style="margin-bottom:8px; flex: 1; background: #25D366; color: white;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -871,6 +880,9 @@
           <button class="tab-btn" data-target="finance-petrol"
             style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">⛽
             Petrol Log</button>
+          <button class="tab-btn" data-target="finance-goals"
+            style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">🎯
+            Goals</button>
         </div>
 
         <section id="finance-accounts" class="tab-content active">
@@ -982,6 +994,17 @@
           </section>
         </section>
 
+        <!-- 🎯 GOALS TAB -->
+        <section id="finance-goals" class="tab-content" style="display:none;">
+          <section class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+              <div class="section-title" style="margin:0;">🎯 Financial Goals</div>
+              <button id="addGoalBtn" class="btn-primary" style="padding:6px 12px; font-size:12px;">+ New Goal</button>
+            </div>
+            <div id="goalsContainer" class="list" style="display:flex; flex-direction:column; gap:12px;"></div>
+          </section>
+        </section>
+
 
       </section>
 
@@ -991,7 +1014,6 @@
         <!-- Settings Tab Bar -->
         <div class="settings-tab-bar">
           <button class="settings-tab active" data-stab="stab-general">⚙️ General</button>
-          <button class="settings-tab" data-stab="stab-payments">💳 Payments & Recurring</button>
           <button class="settings-tab" data-stab="stab-data">📦 Data & Sync</button>
           <button class="settings-tab" data-stab="stab-user">👤 User Profile</button>
         </div>
@@ -1152,7 +1174,7 @@
                     style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                     ⚙️ Settings Tabs
                   </div>
-                  <div class="info" style="margin-bottom:8px; font-size:11px;">General · Payments · Data &amp; Sync ·
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">General · Data &amp; Sync ·
                     User Profile</div>
                   <div id="settingsTabOrderList"></div>
                   <button id="resetSettingsTabOrderBtn" class="btn-secondary"
@@ -1177,11 +1199,6 @@
               </div>
             </div>
           </section>
-
-        </div>
-
-        <!-- ======= TAB: PAYMENTS ======= -->
-        <div id="stab-payments" class="settings-tab-panel">
 
           <!-- UPI / Cards / Banks -->
           <section class="card settings-section">
@@ -1233,7 +1250,6 @@
             </div>
           </section>
 
-          </section>
         </div>
 
         <!-- ======= TAB: DATA ======= -->
@@ -1441,8 +1457,15 @@
             cloud prying, no ads, just pure management.
           </p>
 
+          <div style="margin-bottom: 20px;">
+            <button id="installAppBtn" class="btn-primary" style="display:none; width:100%; justify-content:center; gap:8px;">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+               Install LUDARP App
+            </button>
+          </div>
+
           <div class="features-list-rich"
-            style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;">
+            style="display:grid; gap:12px; margin-top:10px;">
 
             <!-- SMART DASHBOARD -->
             <div class="card mini-card" style="background:rgba(56,189,248,0.05); margin:0; cursor:pointer;"
@@ -1600,12 +1623,47 @@
             </p>
           </div>
 
-          <!-- WHAT'S NEW IN V5.1 -->
+          <!-- WHAT'S NEW IN V6.0 -->
+          <div
+            style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(225,29,72,0.06), rgba(244,63,94,0.06)); border:1px solid rgba(225,29,72,0.25);">
+            <div
+              style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--danger);">
+              <span>🚀</span> Version 6.0 Titanium+ Release
+            </div>
+            <ul
+              style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
+              <li><strong>🎯 Goals & Savings Planner:</strong> Create financial targets with custom icons and interactive progress bars that fill up as you save money towards your goals.</li>
+              <li><strong>📄 Beautiful PDF Report Generator:</strong> Export your financial statements to perfectly paginated PDF reports offline, dynamically styled with your custom accent theme.</li>
+              <li><strong>✨ Safe-to-Spend (Guilt-Free) Calculator:</strong> A smart widget that calculates exactly how much money you can safely spend by automatically subtracting upcoming bills and reserved goals from your True Balance.</li>
+              <li><strong>⚙️ Streamlined UI Settings:</strong> Consolidated Payments & Recurring tab directly into General Settings for a cleaner, unified aesthetic.</li>
+              <li><strong>📲 Native App Installation:</strong> Integrated PWA Prompt directly on the About Page, enabling true Native installation on any OS.</li>
+            </ul>
+          </div>
+
+          <!-- V6.0 ROADMAP -->
           <div
             style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(167,139,250,0.06)); border:1px solid rgba(99,102,241,0.25);">
             <div
               style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--accent);">
-              <span>🚀</span> Version 5.6 Release
+              <span>🔮</span> Version 6.0 Upcoming Roadmap
+            </div>
+            <ul
+              style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
+              <li><strong>What-If Scenario Simulator:</strong> Predict future net worth by testing hypothetical spending cuts.</li>
+              <li><strong>Global Undo Time-Machine:</strong> A master log to instantly roll back accidental database changes.</li>
+              <li><strong>Splitwise Bill Splitter:</strong> Seamlessly split group dinners and generate 'They Owe' entries instantly.</li>
+              <li><strong>Salary Auto-Distributor:</strong> One-click routing of monthly salary into goals and envelopes.</li>
+              <li><strong>Cash Flow Sankey Diagram:</strong> Highly visual mapping of money movement from income to accounts to categories.</li>
+              <li><strong>LUDARP Wrapped:</strong> Animated, Spotify-style year-in-review financial presentation.</li>
+            </ul>
+          </div>
+
+          <!-- WHAT'S NEW IN V5.6 -->
+          <div
+            style="margin-top:24px; padding:18px; border-radius:15px; background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+            <div
+              style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--text);">
+              <span>⚙️</span> Version 5.6 Release
             </div>
             <ul
               style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
@@ -1648,15 +1706,15 @@
 
           <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--card-border); text-align:center;">
             <div style="font-weight:700; margin-bottom:10px;">Need Custom Updates?</div>
-            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker%20v5.6."
+            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker%20v6.0."
               class="btn-primary"
               style="display:inline-flex; align-items:center; gap:10px; text-decoration:none; background:#25d366; border:none; padding:12px 24px; border-radius:10px; font-weight:700;">
               💬 Chat on WhatsApp
             </a>
           </div>
 
-          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 5.6 • Premium
-            Edition • Professional Finance Master</p>
+          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 6.0 • Titanium+ Edition
+            • Professional Finance Master</p>
         </section>
       </section>
     </main>
@@ -2372,6 +2430,8 @@
       
     });
   </script>
+  <script src="js/goals.js" defer></script>
+  <script src="js/pdf-generator.js" defer></script>
 </body>
 
 </html>

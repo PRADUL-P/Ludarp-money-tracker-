@@ -11,6 +11,7 @@
 
   // DOM refs
   const dateInput = document.getElementById('date');
+  const timeInput = document.getElementById('time');
   const selectedDateLabel = document.getElementById('selectedDateLabel');
   const sumExpenseEl = document.getElementById('sumExpense');
   const sumIncomeEl = document.getElementById('sumIncome');
@@ -50,6 +51,7 @@
     const monthPicker = document.getElementById('monthPicker');
     if (monthPicker) monthPicker.value = `${y}-${m}`;
     if (dateInput) dateInput.value = db.todayISO();
+    if (timeInput) timeInput.value = ''; // Ensure time is cleared
     updateSelectedDateLabel();
     if (dateInput) dateInput.addEventListener('change', () => { updateSelectedDateLabel(); renderEntries(); });
   }
@@ -179,6 +181,7 @@
   form && form.addEventListener('submit', (e) => {
     e.preventDefault();
     const dateStr = dateInput.value;
+    const timeStr = timeInput ? timeInput.value : '';
     if (!dateStr) { statusEl.textContent = 'Choose a date'; return; }
     const type = typeEl.value;
     const amountValue = parseFloat(amountEl.value) || 0;
@@ -225,6 +228,7 @@
     let entry = {
       id: currentEdit ? currentEdit.id : Date.now(),
       dateStr,
+      timeStr,
       type,
       description,
       category,
@@ -486,6 +490,7 @@
       const title = document.createElement('div'); title.className = 'entry-title'; title.textContent = (entry.description || '').toUpperCase();
       let metaText = `${entry.type} • ${entry.category || 'No category'} • ${entry.payMethod}${entry.paySubType ? (' • ' + entry.paySubType) : ''}`;
       if (entry.mappedBank) metaText += ` • ${entry.mappedBank}`;
+      if (entry.timeStr) metaText = `⏰ ${entry.timeStr} • ${metaText}`;
       const meta = document.createElement('div'); meta.className = 'entry-meta'; meta.textContent = metaText;
       main.appendChild(title); main.appendChild(meta);
       if (entry.note) { const n = document.createElement('div'); n.className = 'entry-note'; n.textContent = entry.note; main.appendChild(n); }
@@ -558,6 +563,7 @@
     // Navigate to entry view first
     window.MT && window.MT.nav && window.MT.nav.showView && window.MT.nav.showView('entry');
     dateInput.value = dateStr; updateSelectedDateLabel();
+    if (timeInput) timeInput.value = entry.timeStr || '';
 
     // --- Set type pill ---
     const entryType = entry.type || 'Expense';
