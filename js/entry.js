@@ -51,7 +51,14 @@
     const monthPicker = document.getElementById('monthPicker');
     if (monthPicker) monthPicker.value = `${y}-${m}`;
     if (dateInput) dateInput.value = db.todayISO();
-    if (timeInput) timeInput.value = ''; // Ensure time is cleared
+    
+    // Auto-fill current time
+    if (timeInput) {
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        timeInput.value = `${hh}:${mm}`;
+    }
+
     updateSelectedDateLabel();
     if (dateInput) dateInput.addEventListener('change', () => { updateSelectedDateLabel(); renderEntries(); });
   }
@@ -425,10 +432,22 @@
       ui.showToast('Saved');
     }
 
-    form.reset(); if (splitOptions) splitOptions.style.display = 'none'; if (customSplitsDiv) customSplitsDiv.style.display = 'none'; if (myShareWrap) myShareWrap.style.display = 'none';
+    form.reset(); 
+    if (splitOptions) splitOptions.style.display = 'none'; 
+    if (customSplitsDiv) customSplitsDiv.style.display = 'none'; 
+    if (myShareWrap) myShareWrap.style.display = 'none';
     if (document.getElementById('fuelPanel')) document.getElementById('fuelPanel').style.display = 'none';
     if (document.getElementById('travelPresets')) document.getElementById('travelPresets').style.display = 'none';
     if (document.getElementById('tripDateWrap')) document.getElementById('tripDateWrap').style.display = 'none';
+
+    // Reset date and time to NOW after submit
+    if (dateInput) dateInput.value = db.todayISO();
+    if (timeInput) {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        timeInput.value = `${hh}:${mm}`;
+    }
 
     updatePaySubTypeOptions(); updateTransferUI();
     renderCategoryPills(); renderEntries();
@@ -437,8 +456,23 @@
   });
 
   clearBtn && clearBtn.addEventListener('click', () => {
-    form.reset(); if (splitOptions) splitOptions.style.display = 'none'; if (customSplitsDiv) customSplitsDiv.style.display = 'none'; if (myShareWrap) myShareWrap.style.display = 'none';
-    if (statusEl) statusEl.textContent = ''; currentEdit = null; submitBtn.textContent = 'Save entry';
+    form.reset(); 
+    if (splitOptions) splitOptions.style.display = 'none'; 
+    if (customSplitsDiv) customSplitsDiv.style.display = 'none'; 
+    if (myShareWrap) myShareWrap.style.display = 'none';
+    if (statusEl) statusEl.textContent = ''; 
+    currentEdit = null; 
+    submitBtn.textContent = 'Save entry';
+    
+    // Reset date and time to NOW
+    if (dateInput) dateInput.value = db.todayISO();
+    if (timeInput) {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        timeInput.value = `${hh}:${mm}`;
+    }
+
     if (typeof window.cancelQuickDue === 'function') window.cancelQuickDue();
   });
 

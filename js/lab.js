@@ -1,11 +1,13 @@
 'use strict';
 
 (function () {
-    const hub = document.getElementById('labHub');
-    const subviews = document.querySelectorAll('.lab-subview');
+    function getHub() { return document.getElementById('labHub'); }
+    function getSubviews() { return document.querySelectorAll('.lab-subview'); }
 
     function showSubview(id) {
-        hub.style.display = 'none';
+        const hub = getHub();
+        const subviews = getSubviews();
+        if (hub) hub.style.display = 'none';
         subviews.forEach(sv => sv.style.display = 'none');
         const target = document.getElementById(`lab-${id}`);
         if (target) {
@@ -17,7 +19,9 @@
     }
 
     function backToHub() {
-        hub.style.display = 'block';
+        const hub = getHub();
+        const subviews = getSubviews();
+        if (hub) hub.style.display = 'block';
         subviews.forEach(sv => sv.style.display = 'none');
     }
 

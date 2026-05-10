@@ -182,7 +182,7 @@
       <div class="header-top">
 
         <!-- LEFT: MENU + BRAND -->
-        <div class="brand-left">
+        <div class="brand-left" data-view="entry" style="cursor:pointer;">
 
           <!-- MENU BUTTON (moved here) -->
           <button id="menuToggle" class="icon-button menu-left" title="Menu" aria-label="Menu">
@@ -1846,6 +1846,11 @@
   <!-- Floating bottom nav -->
   <div class="floating-nav-wrap">
     <nav class="floating-nav" id="floatingNav">
+      <!-- ENTRY -->
+      <button class="fn-item" data-view="entry" title="Home">
+        <span class="fn-icon">🏠</span>
+        <span class="fn-label">Entry</span>
+      </button>
 
       <!-- SUMMARY / INSIGHTS -->
       <button class="fn-item" data-view="summary" title="Insights">
@@ -1862,7 +1867,7 @@
 
       <!-- ADD TRANSACTION (PRIMARY ACTION) -->
       <div class="fab-outer">
-        <button id="fabAdd" class="fab" title="Add transaction">
+        <button id="fabAdd" class="fab" data-view="entry" title="Add transaction">
           +
         </button>
       </div>
