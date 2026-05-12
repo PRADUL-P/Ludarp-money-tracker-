@@ -41,12 +41,26 @@
   });
 
   // Handle Refresh / Update Logic
-  const handleUpdate = () => {
-    if (navigator.serviceWorker) {
-        navigator.serviceWorker.getRegistration().then(reg => {
-            if (reg) reg.update();
-        });
+  const handleUpdate = async () => {
+    window.MT?.ui?.showToast('Cleaning cache and updating...', 'warning');
+    
+    // 1. Unregister all service workers
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (let registration of registrations) {
+        await registration.unregister();
+      }
     }
+
+    // 2. Clear all caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      for (let cacheName of cacheNames) {
+        await caches.delete(cacheName);
+      }
+    }
+
+    // 3. Hard reload
     window.location.reload(true);
   };
 

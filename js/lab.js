@@ -7,11 +7,11 @@
     function showSubview(id) {
         const hub = getHub();
         const subviews = getSubviews();
-        if (hub) hub.style.display = 'none';
-        subviews.forEach(sv => sv.style.display = 'none');
+        if (hub) hub.style.setProperty('display', 'none', 'important');
+        subviews.forEach(sv => sv.style.setProperty('display', 'none', 'important'));
         const target = document.getElementById(`lab-${id}`);
         if (target) {
-            target.style.display = 'block';
+            target.style.setProperty('display', 'block', 'important');
             if (id === 'simulator') initSimulator();
             if (id === 'sankey') initSankey();
             if (id === 'wrapped') initWrapped();
@@ -21,8 +21,8 @@
     function backToHub() {
         const hub = getHub();
         const subviews = getSubviews();
-        if (hub) hub.style.display = 'block';
-        subviews.forEach(sv => sv.style.display = 'none');
+        if (hub) hub.style.setProperty('display', 'block', 'important');
+        subviews.forEach(sv => sv.style.setProperty('display', 'none', 'important'));
     }
 
     // --- WHAT-IF SIMULATOR ---
@@ -68,9 +68,9 @@
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
                     <span>${cat} (Avg: ${window.MT.db.currencyFmt(avg)}/mo)</span>
-                    <span id="val-${cat}" style="color:var(--accent); font-weight:700;">0% cut</span>
+                    <span id="val-${cat}" style="color:var(--accent-1); font-weight:700;">0% cut</span>
                 </div>
-                <input type="range" class="sim-slider" data-cat="${cat}" data-avg="${avg}" min="0" max="100" value="0" style="width:100%;" />
+                <input type="range" class="sim-slider" data-cat="${cat}" data-avg="${avg}" min="0" max="100" value="0" style="width:100%; height:6px; accent-color:var(--accent-1);" />
             `;
             container.appendChild(div);
         });

@@ -306,6 +306,9 @@
                 if (target) target.style.display = 'block';
                 if (btn.dataset.target === 'finance-statement') renderStatement();
                 if (btn.dataset.target === 'finance-petrol') renderPetrolLog();
+                
+                // Dispatch event for other modules (like recurring.js) to respond
+                window.dispatchEvent(new CustomEvent('mt:tab-changed', { detail: { tabId: btn.dataset.target } }));
             });
         });
         // Style active tab initially

@@ -433,7 +433,14 @@
   function loadNavOrder() {
     try {
       const saved = localStorage.getItem(NAV_ORDER_KEY);
-      return saved ? JSON.parse(saved) : [...DEFAULT_NAV];
+      let order = saved ? JSON.parse(saved) : [...DEFAULT_NAV];
+      // Cleanup: Ensure 'lab' is not in the bottom nav (v6.1 choice)
+      if (order.find(item => item.view === 'lab')) {
+        order = order.filter(item => item.view !== 'lab');
+        localStorage.setItem(NAV_ORDER_KEY, JSON.stringify(order));
+      }
+      
+      return order;
     } catch { return [...DEFAULT_NAV]; }
   }
 

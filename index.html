@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <!-- SEO & Primary Meta Tags -->
-  <title>LUDARP Money Tracker v6.0 | Secure Private Expense Manager</title>
+  <title>LUDARP Money Tracker v6.1 | Secure Private Expense Manager</title>
   <meta name="title" content="LUDARP Money Tracker Premium | Secure Private Expense Manager" />
   <meta name="description"
     content="Manage your finances with LUDARP Money Tracker. A secure, offline-first PWA for tracking expenses, income, splits, and petrol logs without cloud privacy risks." />
@@ -1493,7 +1493,7 @@
       <section id="view-about" class="view">
         <section class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 class="section-title" style="margin:0;">LUDARP v6.0 Official</h2>
+            <h2 class="section-title" style="margin:0;">LUDARP v6.1 Stable</h2>
             <span class="badge" style="background:var(--accent); color:white;">LATEST</span>
           </div>
           <div class="subtitle" style="margin-bottom:20px;">
@@ -1688,7 +1688,7 @@
             </p>
           </div>
 
-          <!-- WHAT'S NEW IN V6.0 -->
+          <!-- WHAT'S NEW IN V6.1 -->
           <div
             style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(167,139,250,0.06)); border:1px solid rgba(99,102,241,0.25);">
             <div
@@ -1763,19 +1763,20 @@
 
           <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--card-border); text-align:center;">
             <div style="font-weight:700; margin-bottom:10px;">Need Custom Updates?</div>
-            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker%20v6.0."
+            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker%20v6.1."
               class="btn-primary"
               style="display:inline-flex; align-items:center; gap:10px; text-decoration:none; background:#25d366; border:none; padding:12px 24px; border-radius:10px; font-weight:700;">
               💬 Chat on WhatsApp
             </a>
           </div>
 
-          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 6.0 • Titanium+ Edition
+          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 6.1 • Titanium+ Edition
             • Professional Finance Master</p>
         </section>
-      <!-- V6.0 LAB VIEW -->
+      </section>
+      <!-- V6.1 LAB VIEW -->
       <section id="view-lab" class="view">
-        <div class="section-title">🧪 LUDARP v6.0 Titanium+ Lab</div>
+        <div class="section-title">🧪 LUDARP v6.1 Titanium+ Lab</div>
         <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Experimental high-end features for advanced finance tracking.</p>
 
         <!-- Main Lab Hub -->
@@ -1884,12 +1885,6 @@
         <span class="fn-label">Settings</span>
       </button>
 
-      <!-- LAB -->
-      <button class="fn-item" data-view="lab" title="v6.0 Lab">
-        <span class="fn-icon">🧪</span>
-        <span class="fn-label">Lab</span>
-      </button>
-
     </nav>
   </div>
 
@@ -1994,6 +1989,24 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       z-index: 10;
       border: 1px solid var(--accent);
+    }
+
+    /* ---- LAB TITLES ---- */
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .lab-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .lab-card:hover {
+      transform: translateY(-5px);
+      background: rgba(255,255,255,0.08) !important;
+      border-color: var(--accent-1);
     }
   </style>
 
@@ -2576,25 +2589,24 @@
   <script>
     // --- ONE-TIME UPDATE MESSAGE ---
     (function() {
-      const CURRENT_VER = '6.0';
+      const CURRENT_VER = '6.1';
       const lastShown = localStorage.getItem('ludarp_update_shown');
       if (lastShown !== CURRENT_VER) {
         setTimeout(() => {
           if (window.MT && window.MT.ui && window.MT.ui.showModal) {
             window.MT.ui.showModal(
-              '🚀 LUDARP v6.0 Official Release!',
+              '🚀 LUDARP v6.1: Minor Bug Fixes',
               `
               <div style="text-align:center; margin-bottom:15px;">
                 <div style="font-size:40px;">🛡️</div>
-                <h3 style="margin:10px 0;">Version 6.0 is officially here!</h3>
-                <p style="font-size:12px; color:var(--accent);">The most stable and powerful LUDARP ever.</p>
+                <h3 style="margin:10px 0;">Version 6.1 is officially here!</h3>
+                <p style="font-size:12px; color:var(--accent);">Enhanced stability and mobile navigation.</p>
               </div>
               <ul style="padding-left:18px; margin-bottom:15px; font-size:13px; line-height:1.6;">
-                <li>🧪 <strong>Lab Access:</strong> Use the Simulator, Cash Flow Map, and Wrapped.</li>
-                <li>🔄 <strong>Global Undo:</strong> Never worry about accidental deletions again.</li>
-                <li>🛠️ <strong>Nav Stability:</strong> 100% reliable page switching and menu visibility.</li>
-                <li>✨ <strong>Direct Install:</strong> New premium PWA installation shortcuts.</li>
-                <li>📦 <strong>Framework v6:</strong> Ready for Splitwise and Salary Auto-Distributor.</li>
+                <li>🚀 <strong>Hard Refresh:</strong> Clear cache directly from About page.</li>
+                <li>📱 <strong>Mobile Entry:</strong> Middle FAB button is now more responsive.</li>
+                <li>🧪 <strong>Lab Menu:</strong> Lab features now available in the top menu.</li>
+                <li>✨ <strong>UI Polish:</strong> Minor glitches resolved for a smoother experience.</li>
               </ul>
               <p style="font-size:11px; color:var(--muted); text-align:center;">Privacy First. Offline Always. Secure on this device.</p>
               `
@@ -2611,6 +2623,8 @@
     <button data-view="dues">🤝 Dues &amp; Payments</button>
     <button data-view="about">About</button>
     <button data-view="entry">Home</button>
+    <button data-view="lab">🧪 Lab Features</button>
+
     <button data-view="summary">Summary</button>
     <button data-view="accounts">Accounts & Statement</button>
     <button id="exportMenuBtn" data-view="backup">Export/Backup</button>

@@ -784,6 +784,7 @@
         const meta = document.createElement('div'); meta.className = 'entry-meta'; meta.style.color = 'var(--muted)';
         let metaText = `${e.type || ''} • ${(e.category || 'No category')} • ${e.payMethod || ''}` + (e.paySubType ? (' • ' + e.paySubType) : '');
         if (e.mappedBank) metaText += ` • ${e.mappedBank}`;
+        if (e.timeStr) metaText = `⏰ ${e.timeStr} • ${metaText}`;
         meta.textContent = metaText;
         left.appendChild(title); left.appendChild(meta);
         if (e.note) { const n = document.createElement('div'); n.className = 'entry-note'; n.textContent = e.note; left.appendChild(n); }

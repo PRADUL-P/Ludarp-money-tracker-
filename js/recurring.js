@@ -138,6 +138,10 @@
     const todayStr = todayISO();
 
     let html = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <div style="font-size:12px; color:var(--muted);">Manage your monthly/yearly bills</div>
+        <button class="btn-primary" style="padding:6px 12px; font-size:11px;" onclick="document.getElementById('addRecSection').scrollIntoView({behavior:'smooth'})">+ New Subscription</button>
+      </div>
       <div class="recurring-list" id="recurringList">
         ${list.length === 0 ? `
           <div class="recurring-empty">
@@ -193,7 +197,7 @@
     }).join('')}
       </div>
 
-      <div style="margin-top:20px;">
+      <div style="margin-top:20px;" id="addRecSection">
         <div class="section-title">Add Recurring Transaction</div>
         <div class="recurring-add-form" style="margin-top:12px;">
           <div>

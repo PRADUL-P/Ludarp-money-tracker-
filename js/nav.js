@@ -66,6 +66,19 @@ window.MT = window.MT || {};
             if (btn) {
                 const v = btn.dataset.view;
                 console.log('[NAV] Click detected for view:', v);
+                
+                // Special case for middle FAB: if already on entry, just reset/clear form
+                if (btn.id === 'fabAdd' && document.getElementById('view-entry').classList.contains('active')) {
+                    console.log('[NAV] FAB clicked on entry view - clearing form');
+                    if (window.MT.entry && window.MT.entry.startEdit) {
+                        // Using startEdit with empty values or just triggering clear
+                        const clearBtn = document.getElementById('clear-btn');
+                        if (clearBtn) clearBtn.click();
+                        window.MT.ui?.showToast('Form Cleared', 'success');
+                    }
+                    return;
+                }
+
                 if (v) showView(v);
             }
             

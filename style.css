@@ -1211,6 +1211,9 @@ input[type="checkbox"]:focus {
   pointer-events: auto !important;
   z-index: 10003;
   position: relative;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .fab:hover {

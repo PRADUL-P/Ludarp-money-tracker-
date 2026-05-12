@@ -1,6 +1,6 @@
-# 📊 LUDARP Money Tracker — Version 6.0 (Official Release)
+# 📊 LUDARP Money Tracker — Version 6.1 (Stable Release)
 
-[![v6.0 Release](https://img.shields.io/badge/Release-v6.0_Official-38bdf8?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
+[![v6.1 Release](https://img.shields.io/badge/Release-v6.1_Stable-10b981?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Offline First](https://img.shields.io/badge/PWA-Technologically_Offline-38bdf8?style=for-the-badge&logo=pwa)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Privacy Protected](https://img.shields.io/badge/Privacy-100%25_On_Device-34d399?style=for-the-badge&logo=shield)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 
@@ -12,6 +12,15 @@
 ## 🚀 Live Application
 
 👉 [https://pradul-p.github.io/Ludarp-money-tracker-/](https://pradul-p.github.io/Ludarp-money-tracker-/)
+
+---
+
+## ✨ New v6.1 Stable Enhancements
+*   📱 **Responsive Mobile FAB**: Rebuilt the middle "Entry" icon with improved touch-hit areas and capture-phase delegation for 100% reliability on mobile.
+*   ⏰ **Time Visibility**: Transactions now display entry time in both the Home and Summary views for better precision.
+*   🔄 **True Hard Refresh**: The "Update" button now forcefully clears Service Worker caches and unregisters old workers to ensure immediate updates.
+*   🧪 **Lab Accessibility**: Added "Lab Features" directly to the main menu for faster navigation to experimental tools.
+*   📅 **Subscription Sync**: Improved the Finance tab switching logic to ensure Subscription data renders correctly upon opening.
 
 ---
 
