@@ -18,6 +18,10 @@
             if (id === 'rule') initRule();
             if (id === 'newspaper') initNewspaper();
             if (id === 'privacy') initPrivacy();
+            if (id === 'waitlist') initWaitList();
+            if (id === 'runway') initRunway();
+            if (id === 'timeismoney') initTimeIsMoney();
+            if (id === 'velocity') initVelocity();
         }
     }
 
@@ -35,7 +39,6 @@
         const tipEl = document.getElementById('simTip');
         const store = window.MT.db.loadStore();
         
-        // Look back up to 90 days to get realistic averages
         const today = new Date();
         const ninetyDaysAgo = new Date(today - 90 * 24 * 60 * 60 * 1000);
         const catAverages = {};
@@ -50,18 +53,15 @@
             }
         });
 
-        // Normalize to monthly average
         Object.keys(catAverages).forEach(c => {
-            catAverages[c] = catAverages[c] / 3; // 90 days = 3 months
+            catAverages[c] = catAverages[c] / 3;
         });
 
         container.innerHTML = '';
         const activeCats = Object.keys(catAverages).sort((a,b) => catAverages[b] - catAverages[a]).slice(0, 6);
         
         if (activeCats.length === 0) {
-            container.innerHTML = '<div class="info" style="text-align:center; padding:20px;">No expense data found in the last 90 days. Start logging to use the simulator!</div>';
-            resultEl.textContent = '₹0.00';
-            tipEl.textContent = 'Add some expenses to see your potential savings.';
+            container.innerHTML = '<div class="info" style="text-align:center; padding:20px;">No data.</div>';
             return;
         }
 
@@ -73,7 +73,7 @@
                     <span>${cat} (Avg: ${window.MT.db.currencyFmt(avg)}/mo)</span>
                     <span id="val-${cat}" style="color:var(--accent-1); font-weight:700;">0% cut</span>
                 </div>
-                <input type="range" class="sim-slider" data-cat="${cat}" data-avg="${avg}" min="0" max="100" value="0" style="width:100%; height:6px; accent-color:var(--accent-1);" />
+                <input type="range" class="sim-slider" data-cat="${cat}" data-avg="${avg}" min="0" max="100" value="0" style="width:100%;" />
             `;
             container.appendChild(div);
         });
@@ -89,27 +89,17 @@
                 if(valDisp) valDisp.textContent = `${cutPercent}% cut`;
                 totalMonthlySaving += (avg * cutPercent) / 100;
             });
-
             const yearly = totalMonthlySaving * 12;
             resultEl.textContent = window.MT.db.currencyFmt(yearly);
-            
-            if (yearly > 0) {
-                tipEl.textContent = `By cutting these expenses, you'll save ${window.MT.db.currencyFmt(yearly)} in just one year!`;
-            } else {
-                tipEl.textContent = `Slide the bars to see how much you could save!`;
-            }
         };
-
         sliders.forEach(s => s.oninput = updateSim);
         updateSim();
     }
 
-    // --- CASH FLOW MAP (Last 30 Days) ---
+    // --- CASH FLOW MAP ---
     function initSankey() {
         const container = document.getElementById('sankeyContainer');
         const store = window.MT.db.loadStore();
-        
-        // Use last 30 days instead of just current month (better for start-of-month)
         const today = new Date();
         const thirtyDaysAgo = new Date(today - 30 * 24 * 60 * 60 * 1000);
         let income = 0, expense = 0;
@@ -127,40 +117,25 @@
             }
         });
 
-        if (income === 0 && expense === 0) {
-            container.innerHTML = '<div class="info" style="text-align:center; padding:40px;">No cash flow detected in the last 30 days.</div>';
-            return;
-        }
-
         const max = Math.max(income, expense, 1);
         const sortedCats = Object.entries(catTotals).sort((a,b) => b[1] - a[1]).slice(0, 6);
 
         container.innerHTML = `
             <div style="margin-bottom:20px;">
-                <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
-                    <span>Monthly Income</span>
-                    <span>${window.MT.db.currencyFmt(income)}</span>
-                </div>
-                <div style="height:20px; background:var(--success); width:${Math.max(2, (income/max)*100)}%; border-radius:10px; opacity:0.8; transition: width 0.5s ease;"></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span>Income</span><span>${window.MT.db.currencyFmt(income)}</span></div>
+                <div style="height:20px; background:var(--success); width:${(income/max)*100}%; border-radius:10px;"></div>
             </div>
             <div style="margin-bottom:20px;">
-                <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
-                    <span>Monthly Expenses</span>
-                    <span>${window.MT.db.currencyFmt(expense)}</span>
-                </div>
-                <div style="height:20px; background:var(--danger); width:${Math.max(2, (expense/max)*100)}%; border-radius:10px; opacity:0.8; transition: width 0.5s ease;"></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span>Expenses</span><span>${window.MT.db.currencyFmt(expense)}</span></div>
+                <div style="height:20px; background:var(--danger); width:${(expense/max)*100}%; border-radius:10px;"></div>
             </div>
-            <div style="margin-top:20px; padding-top:20px; border-top:1px dashed var(--card-border);">
-                <div style="font-size:12px; font-weight:800; margin-bottom:15px; color:var(--accent);">Where your money went (Last 30 Days):</div>
-                ${sortedCats.length > 0 ? sortedCats.map(([cat, amt]) => `
+            <div style="margin-top:20px;">
+                ${sortedCats.map(([cat, amt]) => `
                     <div style="margin-bottom:12px;">
-                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
-                            <span style="color:var(--text-secondary);">${cat}</span>
-                            <span style="font-weight:700;">${window.MT.db.currencyFmt(amt)}</span>
-                        </div>
-                        <div style="height:6px; background:linear-gradient(90deg, var(--accent-1), var(--accent-2)); width:${(amt/expense)*100}%; border-radius:3px; opacity:0.6;"></div>
+                        <div style="display:flex; justify-content:space-between; font-size:11px;"><span>${cat}</span><span>${window.MT.db.currencyFmt(amt)}</span></div>
+                        <div style="height:6px; background:var(--accent-1); width:${(amt/expense)*100}%; border-radius:3px;"></div>
                     </div>
-                `).join('') : '<div class="info">No categorized expenses found.</div>'}
+                `).join('')}
             </div>
         `;
     }
@@ -169,7 +144,6 @@
     function initWrapped() {
         const container = document.getElementById('wrappedContainer');
         const store = window.MT.db.loadStore();
-        
         let totalExp = 0, topCat = '', topCatAmt = 0;
         const cats = {};
         let count = 0;
@@ -185,64 +159,39 @@
         });
 
         const sorted = Object.entries(cats).sort((a,b) => b[1] - a[1]);
-        if (sorted.length > 0) {
-            topCat = sorted[0][0];
-            topCatAmt = sorted[0][1];
-        }
+        if (sorted.length > 0) { topCat = sorted[0][0]; topCatAmt = sorted[0][1]; }
 
-        const slides = count > 0 ? [
-            `<h1>Hi ${window.MT.db.loadUser()?.name || 'Friend'}!</h1><p style="opacity:0.7;">Ready to see your LUDARP journey so far?</p>`,
-            `<h3 style="color:var(--accent-1); letter-spacing:1px; text-transform:uppercase; font-size:12px;">You've been busy...</h3><h1 style="font-size:64px;">${count}</h1><p style="opacity:0.7;">Total transactions logged!</p>`,
-            `<h3 style="color:var(--danger); letter-spacing:1px; text-transform:uppercase; font-size:12px;">Total Movement</h3><h1 style="font-size:42px;">${window.MT.db.currencyFmt(totalExp)}</h1><p style="opacity:0.7;">successfully tracked and managed.</p>`,
-            `<h3 style="color:var(--accent-3); letter-spacing:1px; text-transform:uppercase; font-size:12px;">Your #1 Category</h3><h1 style="font-size:42px;">${topCat}</h1><p style="opacity:0.7;">You dedicated ${window.MT.db.currencyFmt(topCatAmt)} to this.</p>`,
-            `<h1 style="background:linear-gradient(135deg, #fff, #8fa3c0); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Financial Legend.</h1><p style="opacity:0.7;">Keep tracking. Stay sharp. Stay LUDARP.</p>`
-        ] : [
-            `<h1>Welcome to Wrapped!</h1><p>It looks like you haven't logged many transactions yet.</p>`,
-            `<p>Start tracking your daily expenses to see your personalized <strong>Financial Story</strong> here!</p>`
+        const slides = [
+            `<h1>Hi!</h1><p>Ready for your journey?</p>`,
+            `<h1>${count}</h1><p>Transactions logged!</p>`,
+            `<h1>${window.MT.db.currencyFmt(totalExp)}</h1><p>Managed successfully.</p>`,
+            `<h1>${topCat}</h1><p>Top category at ${window.MT.db.currencyFmt(topCatAmt)}.</p>`,
+            `<h1>Stay LUDARP.</h1>`
         ];
 
         let currentSlide = 0;
         const showSlide = () => {
-            container.style.opacity = '0';
-            container.style.transform = 'translateY(10px)';
-            setTimeout(() => {
-                container.innerHTML = `
-                    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;">
-                        ${slides[currentSlide]}
-                    </div>
-                    <button class="btn-primary" style="width:100%; padding:15px; margin-top:30px; border-radius:15px;" id="nextWrapped">
-                        ${currentSlide === slides.length - 1 ? 'Back to Hub' : 'Next Story →'}
-                    </button>
-                `;
-                container.style.opacity = '1';
-                container.style.transform = 'translateY(0)';
-                document.getElementById('nextWrapped').onclick = () => {
-                    currentSlide++;
-                    if (currentSlide < slides.length) showSlide();
-                    else backToHub();
-                };
-            }, 300);
+            container.innerHTML = `
+                <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">${slides[currentSlide]}</div>
+                <button class="btn-primary" style="width:100%;" id="nextWrapped">${currentSlide === slides.length - 1 ? 'Finish' : 'Next →'}</button>
+            `;
+            document.getElementById('nextWrapped').onclick = () => {
+                currentSlide++;
+                if (currentSlide < slides.length) showSlide();
+                else backToHub();
+            };
         };
-        container.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
         showSlide();
     }
 
-    window.MT = window.MT || {};
-    };
-    
     // --- 📊 50/30/20 RULE ---
     function initRule() {
         const container = document.getElementById('ruleContainer');
         const store = window.MT.db.loadStore();
-        
-        // Use current month
         const now = new Date();
         const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-        
         let needs = 0, wants = 0, savings = 0;
-        const s = window.MT.db.loadStore();
         
-        // Define categories for each bucket
         const bucketMap = {
             needs: ['Rent', 'Grocery', 'Bills', 'Petrol', 'Travel', 'Medical', 'Insurance'],
             wants: ['Dining', 'Food', 'Movies', 'Shopping', 'Others', 'Luxury', 'Entertainment'],
@@ -255,8 +204,8 @@
                     const cat = e.category || '';
                     if (bucketMap.needs.includes(cat)) needs += e.amount;
                     else if (bucketMap.wants.includes(cat)) wants += e.amount;
-                    else if (bucketMap.savings.includes(cat) || e.type === 'Income' && cat === 'Savings') savings += e.amount;
-                    else if (e.type === 'Expense') wants += e.amount; // Default to wants
+                    else if (bucketMap.savings.includes(cat) || (e.type === 'Income' && cat === 'Savings')) savings += e.amount;
+                    else if (e.type === 'Expense') wants += e.amount;
                 });
             }
         });
@@ -268,46 +217,16 @@
 
         container.innerHTML = `
             <div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span style="font-weight:700;">🏠 Needs (Target: 50%)</span>
-                    <span style="${pNeeds > 50 ? 'color:var(--danger);' : 'color:var(--success);'} font-weight:800;">${pNeeds.toFixed(1)}%</span>
-                </div>
-                <div style="height:12px; background:var(--bg2); border-radius:6px; overflow:hidden;">
-                    <div style="height:100%; width:${pNeeds}%; background:var(--accent-1); transition:width 1s ease;"></div>
-                </div>
-                <p style="font-size:10px; color:var(--muted); margin-top:4px;">${window.MT.db.currencyFmt(needs)} spent on essentials.</p>
+                <div style="display:flex; justify-content:space-between;"><span>Needs (50%)</span><span>${pNeeds.toFixed(1)}%</span></div>
+                <div style="height:10px; background:var(--bg2);"><div style="height:100%; width:${pNeeds}%; background:var(--accent-1);"></div></div>
             </div>
-            
             <div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span style="font-weight:700;">🍿 Wants (Target: 30%)</span>
-                    <span style="${pWants > 30 ? 'color:var(--danger);' : 'color:var(--success);'} font-weight:800;">${pWants.toFixed(1)}%</span>
-                </div>
-                <div style="height:12px; background:var(--bg2); border-radius:6px; overflow:hidden;">
-                    <div style="height:100%; width:${pWants}%; background:var(--accent-2); transition:width 1s ease;"></div>
-                </div>
-                <p style="font-size:10px; color:var(--muted); margin-top:4px;">${window.MT.db.currencyFmt(wants)} spent on lifestyle.</p>
+                <div style="display:flex; justify-content:space-between;"><span>Wants (30%)</span><span>${pWants.toFixed(1)}%</span></div>
+                <div style="height:10px; background:var(--bg2);"><div style="height:100%; width:${pWants}%; background:var(--accent-2);"></div></div>
             </div>
-
             <div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span style="font-weight:700;">💰 Savings (Target: 20%)</span>
-                    <span style="${pSavings < 20 ? 'color:var(--danger);' : 'color:var(--success);'} font-weight:800;">${pSavings.toFixed(1)}%</span>
-                </div>
-                <div style="height:12px; background:var(--bg2); border-radius:6px; overflow:hidden;">
-                    <div style="height:100%; width:${pSavings}%; background:var(--accent-3); transition:width 1s ease;"></div>
-                </div>
-                <p style="font-size:10px; color:var(--muted); margin-top:4px;">${window.MT.db.currencyFmt(savings)} moved to future assets.</p>
-            </div>
-
-            <div style="margin-top:20px; padding:15px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px dashed var(--card-border);">
-                <div style="font-weight:800; font-size:12px; margin-bottom:5px;">LUDARP Insight:</div>
-                <div style="font-size:11px; color:var(--text-secondary); line-height:1.4;">
-                    ${pNeeds > 55 ? 'Your fixed costs are high. Consider auditing your Rent or Subscription bills.' : 
-                      pWants > 35 ? 'Your lifestyle spending is eating into your future. Try the 24-hour wait-list!' : 
-                      pSavings < 15 ? 'Your savings are in the "Danger Zone". Aim to automate 10% more next month.' : 
-                      'You are maintaining a perfect financial balance. Keep this up!'}
-                </div>
+                <div style="display:flex; justify-content:space-between;"><span>Savings (20%)</span><span>${pSavings.toFixed(1)}%</span></div>
+                <div style="height:10px; background:var(--bg2);"><div style="height:100%; width:${pSavings}%; background:var(--accent-3);"></div></div>
             </div>
         `;
     }
@@ -316,7 +235,6 @@
     function initNewspaper() {
         const container = document.getElementById('newspaperContainer');
         const store = window.MT.db.loadStore();
-        
         const now = new Date();
         const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
         let weekExp = 0, count = 0;
@@ -326,8 +244,7 @@
             if (new Date(date) >= sevenDaysAgo) {
                 store.days[date].forEach(e => {
                     if (e.type === 'Expense') {
-                        weekExp += e.amount;
-                        count++;
+                        weekExp += e.amount; count++;
                         cats[e.category] = (cats[e.category] || 0) + e.amount;
                     }
                 });
@@ -336,44 +253,14 @@
 
         const sorted = Object.entries(cats).sort((a,b) => b[1] - a[1]);
         const topCat = sorted.length > 0 ? sorted[0][0] : 'None';
-        const topAmt = sorted.length > 0 ? sorted[0][1] : 0;
 
         container.innerHTML = `
-            <div style="text-align:center; border-bottom:3px double #333; padding-bottom:10px; margin-bottom:20px;">
-                <div style="font-size:32px; font-weight:900; letter-spacing:-1px; text-transform:uppercase;">The LUDARP Times</div>
-                <div style="font-size:11px; display:flex; justify-content:space-between; margin-top:5px; border-top:1px solid #333; padding-top:4px;">
-                    <span>VOL. I ... NO. ${Math.floor(Math.random()*100)}</span>
-                    <span style="font-weight:bold;">${now.toLocaleDateString(undefined, {weekday:'long', month:'long', day:'numeric', year:'numeric'})}</span>
-                    <span>PRICE: FREE</span>
-                </div>
+            <div style="text-align:center; border-bottom:2px solid #333; margin-bottom:15px;">
+                <h1 style="margin:0;">THE LUDARP TIMES</h1>
+                <p>${now.toDateString()}</p>
             </div>
-            
-            <div style="margin-bottom:20px;">
-                <h2 style="font-size:24px; margin:0 0 10px 0; line-height:1.1;">LUDARP TRACKER REVEALS ${window.MT.db.currencyFmt(weekExp).toUpperCase()} TOTAL MOVEMENT THIS WEEK</h2>
-                <div style="font-size:13px; line-height:1.6; columns: 1;">
-                    <p>In a stunning display of financial awareness, the user has recorded <strong>${count}</strong> transactions over the last seven days. The data suggests a steady but disciplined flow of capital.</p>
-                    <p style="margin-top:10px;">Our lead analysts report that <strong>${topCat}</strong> was the primary driver of expenditure, accounting for <strong>${window.MT.db.currencyFmt(topAmt)}</strong>. This specific sector continues to dominate the weekly report.</p>
-                </div>
-            </div>
-
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; border-top:1px solid #ddd; padding-top:15px;">
-                <div>
-                    <h4 style="margin:0 0 5px 0; text-transform:uppercase; font-size:11px;">Top Headlines</h4>
-                    <ul style="font-size:11px; padding-left:15px; margin:0;">
-                        <li>Cash flow remains positive.</li>
-                        <li>No suspicious bills detected.</li>
-                        <li>Savings targets are being met.</li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 style="margin:0 0 5px 0; text-transform:uppercase; font-size:11px;">Weather Forecast</h4>
-                    <p style="font-size:11px; margin:0;">Financial skies are <strong>CLEAR</strong>. High visibility for next month's goals.</p>
-                </div>
-            </div>
-
-            <div style="margin-top:25px; text-align:center; font-style:italic; font-size:10px; border-top:1px solid #eee; padding-top:10px;">
-                "Transparency is the soul of LUDARP."
-            </div>
+            <h2>WEEKLY TOTAL: ${window.MT.db.currencyFmt(weekExp)}</h2>
+            <p>${count} transactions recorded. <strong>${topCat}</strong> was the main expense.</p>
         `;
     }
 
@@ -381,46 +268,104 @@
     function initPrivacy() {
         const container = document.getElementById('privacyOptions');
         const store = window.MT.db.loadStore();
-        const settings = store.settings || {};
-        const privacyRules = settings.privacyRules || [];
-
+        const rules = (store.settings || {}).privacyRules || [];
         const allCats = new Set(['Salary', 'Investment', 'Savings']);
         Object.keys(store.days).forEach(d => {
             store.days[d].forEach(e => { if(e.category) allCats.add(e.category); });
         });
 
-        container.innerHTML = '';
-        Array.from(allCats).sort().forEach(cat => {
-            const div = document.createElement('div');
-            div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px;';
-            const isChecked = privacyRules.includes(cat);
-            div.innerHTML = `
-                <span style="font-size:13px;">${cat}</span>
-                <input type="checkbox" class="privacy-toggle" data-cat="${cat}" ${isChecked ? 'checked' : ''} style="width:20px; height:20px; accent-color:var(--accent-1);" />
-            `;
-            container.appendChild(div);
-        });
+        container.innerHTML = Array.from(allCats).sort().map(cat => `
+            <div style="display:flex; justify-content:space-between; padding:8px;">
+                <span>${cat}</span>
+                <input type="checkbox" class="privacy-toggle" data-cat="${cat}" ${rules.includes(cat) ? 'checked' : ''} />
+            </div>
+        `).join('');
 
         window.MT.lab.savePrivacy = () => {
-            const checks = container.querySelectorAll('.privacy-toggle');
-            const rules = [];
-            checks.forEach(c => { if(c.checked) rules.push(c.getAttribute('data-cat')); });
-            
+            const newRules = Array.from(container.querySelectorAll('.privacy-toggle:checked')).map(c => c.getAttribute('data-cat'));
             const s = window.MT.db.loadStore();
             s.settings = s.settings || {};
-            s.settings.privacyRules = rules;
+            s.settings.privacyRules = newRules;
             window.MT.db.saveStore(s);
-            window.MT.ui.showToast('Privacy rules saved');
-            
-            // Re-render other views to apply blur
+            window.MT.ui.showToast('Saved');
             if (window.MT.summary) window.MT.summary.renderHistoryList();
             if (window.MT.entry) window.MT.entry.renderEntries();
         };
     }
 
-    window.MT.lab = {
-        show: showSubview,
-        back: backToHub
-    };
+    // --- ⏳ WAIT-LIST ---
+    function initWaitList() {
+        const container = document.getElementById('waitContainer');
+        const s = window.MT.db.loadStore();
+        const list = s.waitlist || [];
 
+        window.MT.lab.addWait = () => {
+            const item = document.getElementById('waitItem').value;
+            const price = parseFloat(document.getElementById('waitPrice').value) || 0;
+            if (!item || price <= 0) return;
+            const s2 = window.MT.db.loadStore();
+            s2.waitlist = [...(s2.waitlist || []), { id: Date.now(), item, price, date: new Date().toISOString() }];
+            window.MT.db.saveStore(s2);
+            initWaitList();
+        };
+
+        container.innerHTML = list.map(i => {
+            const hoursLeft = Math.max(0, 24 - (new Date() - new Date(i.date)) / 3600000);
+            return `<div class="card" style="padding:10px;">${i.item} - ${window.MT.db.currencyFmt(i.price)} (${hoursLeft.toFixed(1)}h)</div>`;
+        }).join('');
+    }
+
+    // --- 🚀 RUNWAY ---
+    function initRunway() {
+        const clock = document.getElementById('runwayClock');
+        const details = document.getElementById('runwayDetails');
+        const s = window.MT.db.loadStore();
+        let totalCash = 0;
+        if (window.MT.accounts) totalCash = window.MT.accounts.getTotalBalance();
+
+        let totalExp = 0;
+        const ninety = new Date(new Date() - 90 * 86400000);
+        Object.keys(s.days).forEach(d => {
+            if (new Date(d) >= ninety) s.days[d].forEach(e => { if(e.type === 'Expense') totalExp += e.amount; });
+        });
+        const runway = totalCash / (totalExp / 3 || 1);
+        clock.textContent = runway.toFixed(1);
+        details.innerHTML = `Cash: ${window.MT.db.currencyFmt(totalCash)} | Avg Exp: ${window.MT.db.currencyFmt(totalExp/3)}`;
+    }
+
+    // --- ⏱️ TIME IS MONEY ---
+    function initTimeIsMoney() {
+        const container = document.getElementById('timeIsMoneyContainer');
+        const rate = parseFloat(document.getElementById('hourlyRate').value) || 1;
+        const s = window.MT.db.loadStore();
+        const all = [];
+        Object.keys(s.days).forEach(d => s.days[d].forEach(e => { if(e.type === 'Expense') all.push(e); }));
+        all.sort((a,b) => b.id - a.id);
+        container.innerHTML = all.slice(0, 10).map(e => `
+            <div class="card" style="padding:10px; display:flex; justify-content:space-between;">
+                <span>${e.description}</span>
+                <span>${(e.amount/rate).toFixed(1)} hrs</span>
+            </div>
+        `).join('');
+        window.MT.lab.updateTimeIsMoney = initTimeIsMoney;
+    }
+
+    // --- ⚡ VELOCITY ---
+    function initVelocity() {
+        const chart = document.getElementById('velocityChart');
+        const stats = document.getElementById('velocityStats');
+        const s = window.MT.db.loadStore();
+        const totals = [];
+        for(let i=29; i>=0; i--) {
+            const d = new Date(new Date() - i*86400000).toISOString().slice(0,10);
+            let sum = 0; (s.days[d]||[]).forEach(e => { if(e.type==='Expense') sum += e.amount; });
+            totals.push(sum);
+        }
+        const max = Math.max(...totals, 1);
+        chart.innerHTML = totals.map(t => `<div style="flex:1; background:var(--accent-1); height:${(t/max)*100}%;"></div>`).join('');
+        const avg = totals.reduce((a,b)=>a+b,0)/30;
+        stats.innerHTML = `Avg Daily Velocity: ${window.MT.db.currencyFmt(avg)}`;
+    }
+
+    window.MT.lab = { show: showSubview, back: backToHub };
 })();
