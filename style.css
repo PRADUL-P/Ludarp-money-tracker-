@@ -2732,4 +2732,13 @@ textarea:focus-visible {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.privacy-blur {
+    filter: blur(8px);
+    transition: filter 0.3s ease;
+    cursor: pointer;
+}
+.privacy-blur:active {
+    filter: blur(0);
+}
 

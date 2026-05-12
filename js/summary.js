@@ -1019,6 +1019,11 @@
         } else {
           amt.textContent = (e.type === 'Income' ? '+' : '-') + currencyFmt(e.amount || 0);
         }
+
+        // Privacy Blur
+        const privacyRules = (window.MT.db.loadStore().settings || {}).privacyRules || [];
+        if (privacyRules.includes(e.category)) amt.classList.add('privacy-blur');
+
         const actions = document.createElement('div');
         actions.style.display = 'flex'; actions.style.gap = '4px';
 

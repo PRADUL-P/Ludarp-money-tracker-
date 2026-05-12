@@ -564,7 +564,11 @@
       }
 
       const right = document.createElement('div'); right.className = 'entry-right';
-      const amt = document.createElement('div'); amt.className = 'entry-amount ' + (entry.type === 'Income' ? 'income' : (entry.type === 'Transfer' ? '' : 'expense')); amt.textContent = (entry.type === 'Income' ? '+' : '-') + db.currencyFmt(entry.amount);
+      const amt = document.createElement('div'); amt.className = 'entry-amount ' + (entry.type === 'Income' ? 'income' : (entry.type === 'Transfer' ? '' : 'expense')); 
+      amt.textContent = (entry.type === 'Income' ? '+' : '-') + db.currencyFmt(entry.amount);
+      
+      const privacyRules = (db.loadStore().settings || {}).privacyRules || [];
+      if (privacyRules.includes(entry.category)) amt.classList.add('privacy-blur');
       const actions = document.createElement('div'); actions.className = 'entry-actions';
       const editBtn = document.createElement('button'); editBtn.className = 'btn-small';
       editBtn.innerHTML = `<svg width="16" height="16" aria-hidden="true"><use href="#icon-edit"></use></svg> Edit`;

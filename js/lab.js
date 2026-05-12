@@ -15,6 +15,9 @@
             if (id === 'simulator') initSimulator();
             if (id === 'sankey') initSankey();
             if (id === 'wrapped') initWrapped();
+            if (id === 'rule') initRule();
+            if (id === 'newspaper') initNewspaper();
+            if (id === 'privacy') initPrivacy();
         }
     }
 
@@ -225,6 +228,196 @@
     }
 
     window.MT = window.MT || {};
+    };
+    
+    // --- 📊 50/30/20 RULE ---
+    function initRule() {
+        const container = document.getElementById('ruleContainer');
+        const store = window.MT.db.loadStore();
+        
+        // Use current month
+        const now = new Date();
+        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        
+        let needs = 0, wants = 0, savings = 0;
+        const s = window.MT.db.loadStore();
+        
+        // Define categories for each bucket
+        const bucketMap = {
+            needs: ['Rent', 'Grocery', 'Bills', 'Petrol', 'Travel', 'Medical', 'Insurance'],
+            wants: ['Dining', 'Food', 'Movies', 'Shopping', 'Others', 'Luxury', 'Entertainment'],
+            savings: ['Savings', 'Investment', 'Dues', 'Debt']
+        };
+
+        Object.keys(store.days).forEach(date => {
+            if (date.startsWith(monthKey)) {
+                store.days[date].forEach(e => {
+                    const cat = e.category || '';
+                    if (bucketMap.needs.includes(cat)) needs += e.amount;
+                    else if (bucketMap.wants.includes(cat)) wants += e.amount;
+                    else if (bucketMap.savings.includes(cat) || e.type === 'Income' && cat === 'Savings') savings += e.amount;
+                    else if (e.type === 'Expense') wants += e.amount; // Default to wants
+                });
+            }
+        });
+
+        const total = needs + wants + savings || 1;
+        const pNeeds = (needs / total) * 100;
+        const pWants = (wants / total) * 100;
+        const pSavings = (savings / total) * 100;
+
+        container.innerHTML = `
+            <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-weight:700;">🏠 Needs (Target: 50%)</span>
+                    <span style="${pNeeds > 50 ? 'color:var(--danger);' : 'color:var(--success);'} font-weight:800;">${pNeeds.toFixed(1)}%</span>
+                </div>
+                <div style="height:12px; background:var(--bg2); border-radius:6px; overflow:hidden;">
+                    <div style="height:100%; width:${pNeeds}%; background:var(--accent-1); transition:width 1s ease;"></div>
+                </div>
+                <p style="font-size:10px; color:var(--muted); margin-top:4px;">${window.MT.db.currencyFmt(needs)} spent on essentials.</p>
+            </div>
+            
+            <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-weight:700;">🍿 Wants (Target: 30%)</span>
+                    <span style="${pWants > 30 ? 'color:var(--danger);' : 'color:var(--success);'} font-weight:800;">${pWants.toFixed(1)}%</span>
+                </div>
+                <div style="height:12px; background:var(--bg2); border-radius:6px; overflow:hidden;">
+                    <div style="height:100%; width:${pWants}%; background:var(--accent-2); transition:width 1s ease;"></div>
+                </div>
+                <p style="font-size:10px; color:var(--muted); margin-top:4px;">${window.MT.db.currencyFmt(wants)} spent on lifestyle.</p>
+            </div>
+
+            <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-weight:700;">💰 Savings (Target: 20%)</span>
+                    <span style="${pSavings < 20 ? 'color:var(--danger);' : 'color:var(--success);'} font-weight:800;">${pSavings.toFixed(1)}%</span>
+                </div>
+                <div style="height:12px; background:var(--bg2); border-radius:6px; overflow:hidden;">
+                    <div style="height:100%; width:${pSavings}%; background:var(--accent-3); transition:width 1s ease;"></div>
+                </div>
+                <p style="font-size:10px; color:var(--muted); margin-top:4px;">${window.MT.db.currencyFmt(savings)} moved to future assets.</p>
+            </div>
+
+            <div style="margin-top:20px; padding:15px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px dashed var(--card-border);">
+                <div style="font-weight:800; font-size:12px; margin-bottom:5px;">LUDARP Insight:</div>
+                <div style="font-size:11px; color:var(--text-secondary); line-height:1.4;">
+                    ${pNeeds > 55 ? 'Your fixed costs are high. Consider auditing your Rent or Subscription bills.' : 
+                      pWants > 35 ? 'Your lifestyle spending is eating into your future. Try the 24-hour wait-list!' : 
+                      pSavings < 15 ? 'Your savings are in the "Danger Zone". Aim to automate 10% more next month.' : 
+                      'You are maintaining a perfect financial balance. Keep this up!'}
+                </div>
+            </div>
+        `;
+    }
+
+    // --- 🗞️ WEEKLY NEWSPAPER ---
+    function initNewspaper() {
+        const container = document.getElementById('newspaperContainer');
+        const store = window.MT.db.loadStore();
+        
+        const now = new Date();
+        const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+        let weekExp = 0, count = 0;
+        const cats = {};
+
+        Object.keys(store.days).forEach(date => {
+            if (new Date(date) >= sevenDaysAgo) {
+                store.days[date].forEach(e => {
+                    if (e.type === 'Expense') {
+                        weekExp += e.amount;
+                        count++;
+                        cats[e.category] = (cats[e.category] || 0) + e.amount;
+                    }
+                });
+            }
+        });
+
+        const sorted = Object.entries(cats).sort((a,b) => b[1] - a[1]);
+        const topCat = sorted.length > 0 ? sorted[0][0] : 'None';
+        const topAmt = sorted.length > 0 ? sorted[0][1] : 0;
+
+        container.innerHTML = `
+            <div style="text-align:center; border-bottom:3px double #333; padding-bottom:10px; margin-bottom:20px;">
+                <div style="font-size:32px; font-weight:900; letter-spacing:-1px; text-transform:uppercase;">The LUDARP Times</div>
+                <div style="font-size:11px; display:flex; justify-content:space-between; margin-top:5px; border-top:1px solid #333; padding-top:4px;">
+                    <span>VOL. I ... NO. ${Math.floor(Math.random()*100)}</span>
+                    <span style="font-weight:bold;">${now.toLocaleDateString(undefined, {weekday:'long', month:'long', day:'numeric', year:'numeric'})}</span>
+                    <span>PRICE: FREE</span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom:20px;">
+                <h2 style="font-size:24px; margin:0 0 10px 0; line-height:1.1;">LUDARP TRACKER REVEALS ${window.MT.db.currencyFmt(weekExp).toUpperCase()} TOTAL MOVEMENT THIS WEEK</h2>
+                <div style="font-size:13px; line-height:1.6; columns: 1;">
+                    <p>In a stunning display of financial awareness, the user has recorded <strong>${count}</strong> transactions over the last seven days. The data suggests a steady but disciplined flow of capital.</p>
+                    <p style="margin-top:10px;">Our lead analysts report that <strong>${topCat}</strong> was the primary driver of expenditure, accounting for <strong>${window.MT.db.currencyFmt(topAmt)}</strong>. This specific sector continues to dominate the weekly report.</p>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; border-top:1px solid #ddd; padding-top:15px;">
+                <div>
+                    <h4 style="margin:0 0 5px 0; text-transform:uppercase; font-size:11px;">Top Headlines</h4>
+                    <ul style="font-size:11px; padding-left:15px; margin:0;">
+                        <li>Cash flow remains positive.</li>
+                        <li>No suspicious bills detected.</li>
+                        <li>Savings targets are being met.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin:0 0 5px 0; text-transform:uppercase; font-size:11px;">Weather Forecast</h4>
+                    <p style="font-size:11px; margin:0;">Financial skies are <strong>CLEAR</strong>. High visibility for next month's goals.</p>
+                </div>
+            </div>
+
+            <div style="margin-top:25px; text-align:center; font-style:italic; font-size:10px; border-top:1px solid #eee; padding-top:10px;">
+                "Transparency is the soul of LUDARP."
+            </div>
+        `;
+    }
+
+    // --- 🌓 PRIVACY CURTAIN ---
+    function initPrivacy() {
+        const container = document.getElementById('privacyOptions');
+        const store = window.MT.db.loadStore();
+        const settings = store.settings || {};
+        const privacyRules = settings.privacyRules || [];
+
+        const allCats = new Set(['Salary', 'Investment', 'Savings']);
+        Object.keys(store.days).forEach(d => {
+            store.days[d].forEach(e => { if(e.category) allCats.add(e.category); });
+        });
+
+        container.innerHTML = '';
+        Array.from(allCats).sort().forEach(cat => {
+            const div = document.createElement('div');
+            div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px;';
+            const isChecked = privacyRules.includes(cat);
+            div.innerHTML = `
+                <span style="font-size:13px;">${cat}</span>
+                <input type="checkbox" class="privacy-toggle" data-cat="${cat}" ${isChecked ? 'checked' : ''} style="width:20px; height:20px; accent-color:var(--accent-1);" />
+            `;
+            container.appendChild(div);
+        });
+
+        window.MT.lab.savePrivacy = () => {
+            const checks = container.querySelectorAll('.privacy-toggle');
+            const rules = [];
+            checks.forEach(c => { if(c.checked) rules.push(c.getAttribute('data-cat')); });
+            
+            const s = window.MT.db.loadStore();
+            s.settings = s.settings || {};
+            s.settings.privacyRules = rules;
+            window.MT.db.saveStore(s);
+            window.MT.ui.showToast('Privacy rules saved');
+            
+            // Re-render other views to apply blur
+            if (window.MT.summary) window.MT.summary.renderHistoryList();
+            if (window.MT.entry) window.MT.entry.renderEntries();
+        };
+    }
+
     window.MT.lab = {
         show: showSubview,
         back: backToHub
