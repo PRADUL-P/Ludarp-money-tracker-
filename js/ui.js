@@ -188,11 +188,12 @@
           </div>
           <div style="font-size: 14px; margin-bottom: 15px; color: var(--text); font-weight: 600;">Welcome to LUDARP v${version} Stable Release! Here's what's new:</div>
           <ul style="margin-left: 18px; display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; list-style-type: '⚡ ';">
+            <li><strong>Dedicated Bank Account Sync:</strong> Your Google Sheet now has a dedicated "Bank" column that automatically syncs the exact bank name (like SBI, HDFC, or Cash) next to your UPI App/Method!</li>
             <li><strong>Bi-directional Google Sheet Sync:</strong> Checked/unchecked split bills and settlements now dynamically sync additions and deletions in real-time, preventing double entries!</li>
-            <li><strong>Self-Healing Spreadsheet Columns:</strong> The Google Apps Script now automatically detects and inserts the missing "Account" (bank name) column without losing your data!</li>
+            <li><strong>Self-Healing Spreadsheet Columns:</strong> The Google Apps Script now automatically detects and inserts BOTH the missing "Account" and "Bank" columns without losing any of your existing data!</li>
             <li><strong>Real-time Finance Dropdowns:</strong> Newly added bank accounts in Settings instantly populate in your Finance Opening Balance dropdowns without needing a page refresh!</li>
             <li><strong>Card Balance mapping fix:</strong> Corrected card transaction bank account mapping in balance calculation, ensuring card purchases perfectly update mapped bank balances in real-time.</li>
-            <li><strong>In-app Apps Script Modal:</strong> Access and copy the upgraded Google Sheets synchronizer script directly in-app via a beautiful, copyable code modal.</li>
+            <li><strong>In-app Apps Script Modal:</strong> Access and copy the upgraded 13-column Google Sheets synchronizer script directly in-app via a beautiful, copyable code modal.</li>
           </ul>
         `;
         

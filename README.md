@@ -1,6 +1,6 @@
-# 📊 LUDARP Money Tracker — Version 6.1.4 (Stable Release)
+# 📊 LUDARP Money Tracker — Version 6.1.5 (Stable Release)
 
-[![v6.1.4 Release](https://img.shields.io/badge/Release-v6.1.4_Stable-10b981?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
+[![v6.1.5 Release](https://img.shields.io/badge/Release-v6.1.5_Stable-10b981?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Offline First](https://img.shields.io/badge/PWA-Technologically_Offline-38bdf8?style=for-the-badge&logo=pwa)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Privacy Protected](https://img.shields.io/badge/Privacy-100%25_On_Device-34d399?style=for-the-badge&logo=shield)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 
@@ -15,7 +15,11 @@
 
 ---
 
-## ✨ New v6.1.4 Stable Enhancements
+## ✨ New v6.1.5 Stable Enhancements
+*   🏦 **Dedicated Bank Account Column**: Upgraded Google Sheets integration with a new 13-column layout that syncs the exact mapped bank name (e.g. SBI, HDFC, or Cash) next to the payment app/type.
+*   🛡️ **Double Self-Healing Columns**: Upgraded the Apps Script to automatically insert BOTH missing "Account" and "Bank" columns in existing sheets without data loss.
+*   🚀 **One-Time Upgrade Release Notes popup**: Integrated a premium, one-time popup that displays key new features and celebrates updates with dynamic confetti!
+*   🏷️ **Dynamic version synchronization**: Standardized index.html version parameters and global configurations to update all version displays dynamically.
 *   🏦 **Real-time Finance Dropdowns**: Fixed a synchronization issue where newly added bank accounts in Settings were not dynamically populated in the Finance/Accounts initial balance selector until page refresh.
 *   💳 **Card Balance mapping fix**: Corrected card transaction bank account mapping in `accounts.js` balance calculation, ensuring card purchases now perfectly update mapped bank ledger balances in real-time.
 *   📊 **Google Sheets Template integration**: Embedded a pre-configured Google Sheets template directly in the in-app setup guide with a helpful warning note to copy before setup.
