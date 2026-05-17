@@ -111,6 +111,7 @@
                     amount: entry.amount,
                     payMethod: entry.payMethod || '',
                     account: entry.paySubType || entry.mappedBank || 'Cash',
+                    bank: entry.mappedBank || (entry.payMethod === 'Bank' ? entry.paySubType : '') || (entry.payMethod === 'Cash' ? 'Cash' : ''),
                     module: entry.module || 'Entry',
                     person: entry.duePerson || entry.splitRefPerson || (entry.split && entry.split.enabled ? entry.split.participants.map(p => p.name).join(', ') : ''),
                     note: entry.note || ''
@@ -210,6 +211,7 @@
                                 amount: entry.amount,
                                 payMethod: entry.payMethod || '',
                                 account: entry.paySubType || entry.mappedBank || 'Cash',
+                                bank: entry.mappedBank || (entry.payMethod === 'Bank' ? entry.paySubType : '') || (entry.payMethod === 'Cash' ? 'Cash' : ''),
                                 module: entry.module || 'Entry',
                                 person: entry.duePerson || entry.splitRefPerson || (entry.split && entry.split.enabled ? entry.split.participants.map(p => p.name).join(', ') : ''),
                                 note: entry.note || ''
@@ -228,7 +230,7 @@
         }
 
         function showAppsScriptModal() {
-            const codeText = `// Upgraded 12-Column Google Sheets Script with Deletion Sync
+            const codeText = `// Upgraded 13-Column Google Sheets Script with Deletion Sync & Self-Healing Bank/Account Columns
 function doGet(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var data = sheet.getDataRange().getValues();
@@ -241,14 +243,14 @@ function doPost(e) {
   var sheet = ss.getSheets()[0];
   
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['Date', 'Module', 'Type', 'Category', 'Description', 'Amount', 'Method', 'Account', 'ID', 'Status', 'Person', 'Note']);
-    sheet.getRange(1, 1, 1, 12).setFontWeight('bold');
+    sheet.appendRow(['Date', 'Module', 'Type', 'Category', 'Description', 'Amount', 'Method', 'Account', 'Bank', 'ID', 'Status', 'Person', 'Note']);
+    sheet.getRange(1, 1, 1, 13).setFontWeight('bold');
   }
   
   var data = sheet.getDataRange().getValues();
   var headers = data[0] || [];
   
-  // Automatically insert the 'Account' column if it is missing (self-healing!)
+  // 1. Automatically insert the 'Account' column if it is missing (self-healing!)
   var accountColIdx = headers.indexOf('Account');
   if (accountColIdx === -1 && headers.length > 0) {
     var methodColIdx = headers.indexOf('Method');
@@ -261,14 +263,28 @@ function doPost(e) {
     headers = data[0] || [];
     accountColIdx = headers.indexOf('Account');
   }
+
+  // 2. Automatically insert the 'Bank' column if it is missing (self-healing!)
+  var bankColIdx = headers.indexOf('Bank');
+  if (bankColIdx === -1 && headers.length > 0) {
+    var accColIdx = headers.indexOf('Account');
+    var insertAtCol = (accColIdx !== -1) ? (accColIdx + 2) : 9; // 1-based column position
+    sheet.insertColumnBefore(insertAtCol);
+    sheet.getRange(1, insertAtCol).setValue('Bank').setFontWeight('bold');
+    
+    // Reload headers and data
+    data = sheet.getDataRange().getValues();
+    headers = data[0] || [];
+    bankColIdx = headers.indexOf('Bank');
+  }
   
   var idColIdx = headers.indexOf('ID');
-  if (idColIdx === -1) idColIdx = 8; // Fallback to column 9 (0-indexed 8)
+  if (idColIdx === -1) idColIdx = 9; // Fallback to column 10 (0-indexed 9)
   
   var statusColIdx = headers.indexOf('Status');
-  if (statusColIdx === -1) statusColIdx = 9; // Fallback to column 10 (0-indexed 9)
+  if (statusColIdx === -1) statusColIdx = 10; // Fallback to column 11 (0-indexed 10)
   
-  // 1. Handle deletion
+  // 3. Handle deletion
   if (entry.action === 'delete' && entry.id) {
     for (var i = data.length - 1; i > 0; i--) {
       if (String(data[i][idColIdx]).trim() == String(entry.id).trim()) {
@@ -279,7 +295,7 @@ function doPost(e) {
     return ContentService.createTextOutput('Success (Not found)').setMimeType(ContentService.MimeType.TEXT);
   }
   
-  // 2. Handle due settlement status update
+  // 4. Handle due settlement status update
   if (entry.module === 'Due Settlement' && entry.dueId) {
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][idColIdx]).trim() == String(entry.dueId).trim()) {
@@ -292,7 +308,7 @@ function doPost(e) {
   var idToSave = entry.module === 'Due' ? entry.dueId : (entry.id || '');
   var status = entry.module === 'Due' ? 'Pending' : '';
   
-  // 3. Handle edit/update
+  // 5. Handle edit/update
   if (idToSave) {
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][idColIdx]).trim() == String(idToSave).trim()) {
@@ -310,6 +326,10 @@ function doPost(e) {
           rowData.push(entry.account || 'Cash');
         }
         
+        if (bankColIdx !== -1) {
+          rowData.push(entry.bank || '');
+        }
+        
         rowData.push(idToSave, status, entry.person || '', entry.note || '');
         sheet.getRange(i + 1, 1, 1, rowData.length).setValues([rowData]);
         return ContentService.createTextOutput('Success - Updated').setMimeType(ContentService.MimeType.TEXT);
@@ -317,7 +337,7 @@ function doPost(e) {
     }
   }
   
-  // 4. Append new entry
+  // 6. Append new entry
   var newRow = [
     entry.date, 
     entry.module || 'Entry', 
@@ -329,6 +349,9 @@ function doPost(e) {
   ];
   if (accountColIdx !== -1) {
     newRow.push(entry.account || 'Cash');
+  }
+  if (bankColIdx !== -1) {
+    newRow.push(entry.bank || '');
   }
   newRow.push(idToSave, status, entry.person || '', entry.note || '');
   
