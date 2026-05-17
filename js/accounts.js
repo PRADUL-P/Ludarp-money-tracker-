@@ -61,7 +61,7 @@
       return entry.transfer.from === bankName || entry.transfer.to === bankName;
     }
 
-    if ((entry.payMethod === 'Bank' || entry.payMethod === 'Card') && entry.paySubType) {
+    if (entry.payMethod === 'Bank' && entry.paySubType) {
       return !bankName ? true : entry.paySubType === bankName;
     }
 
@@ -357,6 +357,9 @@
 })();
 // 🔥 LIVE update Accounts page when settings change (banks added/removed)
 document.addEventListener('settingsUpdated', () => {
+  if (window.MT?.accounts?.populateAccountsBanks) {
+    window.MT.accounts.populateAccountsBanks();
+  }
   if (window.MT?.accounts?.renderBankBalances) {
     window.MT.accounts.renderBankBalances();
   }
