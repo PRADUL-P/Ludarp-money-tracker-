@@ -41,8 +41,37 @@
   const customSplitsDiv = document.getElementById('customSplits');
   const splitAmountsInput = document.getElementById('splitAmounts');
   const myShareWrap = document.getElementById('myShareWrap');
+  const splitSumCheck = document.getElementById('splitSumCheck');
 
   let currentEdit = null;
+
+  function updateSplitSumCheck() {
+    if (!splitSumCheck || !isGroupCheckbox || !isGroupCheckbox.checked) {
+      if (splitSumCheck) splitSumCheck.textContent = '';
+      return;
+    }
+    const amountValue = parseFloat(amountEl.value) || 0;
+    const participants = splitNamesInput.value.trim() ? splitNamesInput.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+    
+    if (splitModeSelect.value === 'equal') {
+      const totalPeople = participants.length + 1;
+      const per = +(amountValue / totalPeople).toFixed(2);
+      splitSumCheck.textContent = `Equal: You pay ₹${per}, Others pay ₹${per} each. Total: ₹${amountValue}`;
+      splitSumCheck.style.color = 'var(--text-secondary)';
+    } else if (splitModeSelect.value === 'custom') {
+      const raw = splitAmountsInput.value.trim();
+      const arr = raw ? raw.split(',').map(s => parseFloat(s.trim()) || 0) : [];
+      const sumOthers = arr.reduce((a, b) => a + b, 0);
+      const computedMyShare = parseFloat(myShareInput.value) || 0;
+      const total = sumOthers + computedMyShare;
+      splitSumCheck.textContent = `Custom: Friends total ₹${sumOthers.toFixed(2)}, You pay ₹${computedMyShare.toFixed(2)}. Total: ₹${total.toFixed(2)} (Bill: ₹${amountValue.toFixed(2)})`;
+      if (Math.abs(total - amountValue) > 0.05) {
+        splitSumCheck.style.color = 'var(--warning)';
+      } else {
+        splitSumCheck.style.color = 'var(--success)';
+      }
+    }
+  }
 
   function initDatePickers() {
     const now = new Date();
@@ -177,11 +206,67 @@
     } else {
         if (quickDueWrap) quickDueWrap.style.display = 'none';
     }
+    updateSplitSumCheck();
   });
   splitModeSelect && splitModeSelect.addEventListener('change', () => {
     const isCustom = splitModeSelect.value === 'custom';
     if (customSplitsDiv) customSplitsDiv.style.display = isCustom ? 'block' : 'none';
     if (myShareWrap) myShareWrap.style.display = isCustom ? 'block' : 'none';
+    updateSplitSumCheck();
+  });
+  amountEl && amountEl.addEventListener('input', () => {
+    if (splitModeSelect.value === 'custom' && isGroupCheckbox.checked) {
+      const amountValue = parseFloat(amountEl.value) || 0;
+      const raw = splitAmountsInput.value.trim();
+      const arr = raw ? raw.split(',').map(s => parseFloat(s.trim()) || 0) : [];
+      if (arr.length > 0) {
+        const sumOthers = arr.reduce((a, b) => a + b, 0);
+        myShareInput.value = (amountValue - sumOthers).toFixed(2);
+      }
+    }
+    updateSplitSumCheck();
+  });
+  myShareInput && myShareInput.addEventListener('input', () => {
+    if (splitModeSelect.value === 'custom' && isGroupCheckbox.checked) {
+      const amountValue = parseFloat(amountEl.value) || 0;
+      const myShare = parseFloat(myShareInput.value) || 0;
+      const participants = splitNamesInput.value.trim() ? splitNamesInput.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+      if (participants.length > 0) {
+        const remaining = amountValue - myShare;
+        const perFriend = +(remaining / participants.length).toFixed(2);
+        let arr = new Array(participants.length).fill(perFriend);
+        let diff = remaining - (perFriend * participants.length);
+        if (Math.abs(diff) > 0.01) arr[arr.length - 1] = +(perFriend + diff).toFixed(2);
+        splitAmountsInput.value = arr.join(', ');
+      }
+    }
+    updateSplitSumCheck();
+  });
+  splitAmountsInput && splitAmountsInput.addEventListener('input', () => {
+    if (splitModeSelect.value === 'custom' && isGroupCheckbox.checked) {
+      const amountValue = parseFloat(amountEl.value) || 0;
+      const raw = splitAmountsInput.value.trim();
+      const arr = raw ? raw.split(',').map(s => parseFloat(s.trim()) || 0) : [];
+      const sumOthers = arr.reduce((a, b) => a + b, 0);
+      myShareInput.value = (amountValue - sumOthers).toFixed(2);
+    }
+    updateSplitSumCheck();
+  });
+  splitNamesInput && splitNamesInput.addEventListener('input', () => {
+    if (splitModeSelect.value === 'custom' && isGroupCheckbox.checked) {
+      const amountValue = parseFloat(amountEl.value) || 0;
+      const myShare = parseFloat(myShareInput.value) || 0;
+      const participants = splitNamesInput.value.trim() ? splitNamesInput.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+      if (participants.length > 0) {
+        const remaining = amountValue - myShare;
+        const perFriend = +(remaining / participants.length).toFixed(2);
+        let arr = new Array(participants.length).fill(perFriend);
+        let diff = remaining - (perFriend * participants.length);
+        if (Math.abs(diff) > 0.01) arr[arr.length - 1] = +(perFriend + diff).toFixed(2);
+        splitAmountsInput.value = arr.join(', ');
+      }
+    }
+    updateSplitSumCheck();
   });
 
   // form submit
@@ -296,8 +381,7 @@
           const arr = raw.split(',').map(s => parseFloat(s.trim()) || 0);
           if (arr.length !== participants.length) { alert('Number of custom amounts must match participants'); return; }
           participantsSplit = participants.map((p, i) => ({ name: p, amount: +arr[i].toFixed(2), received: false }));
-          const sumOthers = arr.reduce((a, b) => a + b, 0);
-          myShare = +(amountValue - sumOthers).toFixed(2);
+          myShare = parseFloat(myShareInput.value) || 0;
           if (myShare < 0) { alert('Custom amounts exceed total. Fix amounts.'); return; }
         }
 
@@ -436,6 +520,7 @@
     if (splitOptions) splitOptions.style.display = 'none'; 
     if (customSplitsDiv) customSplitsDiv.style.display = 'none'; 
     if (myShareWrap) myShareWrap.style.display = 'none';
+    if (splitSumCheck) splitSumCheck.textContent = '';
     if (document.getElementById('fuelPanel')) document.getElementById('fuelPanel').style.display = 'none';
     if (document.getElementById('travelPresets')) document.getElementById('travelPresets').style.display = 'none';
     if (document.getElementById('tripDateWrap')) document.getElementById('tripDateWrap').style.display = 'none';
@@ -460,6 +545,7 @@
     if (splitOptions) splitOptions.style.display = 'none'; 
     if (customSplitsDiv) customSplitsDiv.style.display = 'none'; 
     if (myShareWrap) myShareWrap.style.display = 'none';
+    if (splitSumCheck) splitSumCheck.textContent = '';
     if (statusEl) statusEl.textContent = ''; 
     currentEdit = null; 
     submitBtn.textContent = 'Save entry';
@@ -626,6 +712,7 @@
       splitModeSelect.value = entry.split.mode || 'custom';
       if (entry.split.mode === 'equal') { customSplitsDiv.style.display = 'none'; myShareWrap.style.display = 'none'; }
       else { customSplitsDiv.style.display = 'block'; myShareWrap.style.display = 'block'; }
+      setTimeout(updateSplitSumCheck, 0);
       isGroupCheckbox.checked = true; splitOptions.style.display = 'block';
     } else {
       amountEl.value = entry.amount || '';
