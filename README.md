@@ -1,6 +1,6 @@
-# 📊 LUDARP Money Tracker — Version 6.1 (Stable Release)
+# 📊 LUDARP Money Tracker — Version 6.1.3 (Stable Release)
 
-[![v6.1 Release](https://img.shields.io/badge/Release-v6.1_Stable-10b981?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
+[![v6.1.3 Release](https://img.shields.io/badge/Release-v6.1.3_Stable-10b981?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Offline First](https://img.shields.io/badge/PWA-Technologically_Offline-38bdf8?style=for-the-badge&logo=pwa)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Privacy Protected](https://img.shields.io/badge/Privacy-100%25_On_Device-34d399?style=for-the-badge&logo=shield)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 
@@ -15,7 +15,10 @@
 
 ---
 
-## ✨ New v6.1 Stable Enhancements
+## ✨ New v6.1.3 Stable Enhancements
+*   📊 **Google Sheets Template integration**: Embedded a pre-configured Google Sheets template directly in the in-app setup guide with a helpful warning note to copy before setup.
+*   🔄 **True Bi-directional Deletion Sync**: Completely fixed Google Sheets deletion sync by resolving a local storage URL lookup bug. 
+*   ⚡ **Prevent Duplicate Records**: Corrected state unticking event-propagation so checking/unchecking split bills dynamically deletes and adds rows in Google Sheets in real-time, preventing double entries.
 *   📱 **Responsive Mobile FAB**: Rebuilt the middle "Entry" icon with improved touch-hit areas and capture-phase delegation for 100% reliability on mobile.
 *   ⏰ **Time Visibility**: Transactions now display entry time in both the Home and Summary views for better precision.
 *   🔄 **True Hard Refresh**: The "Update" button now forcefully clears Service Worker caches and unregisters old workers to ensure immediate updates.
