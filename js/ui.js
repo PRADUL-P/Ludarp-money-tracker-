@@ -161,11 +161,54 @@
     document.body.appendChild(backdrop);
   }
 
+  // --- DYNAMIC VERSION DISPLAY & AUTO-UPDATE POPUP SYSTEM ---
+  window.addEventListener('DOMContentLoaded', () => {
+    const version = window.LUDARP_VERSION || '6.1.4';
+    document.title = `LUDARP Money Tracker v${version} | Secure Private Expense Manager`;
+    
+    // Find all version display elements and set their text
+    document.querySelectorAll('.app-version-display').forEach(el => {
+      el.textContent = version;
+    });
+    
+    // Also scan About section header
+    const aboutTitle = document.querySelector('#view-about .section-title');
+    if (aboutTitle) {
+      aboutTitle.innerHTML = `LUDARP v${version} Stable`;
+    }
+
+    // Check if this is a fresh version upgrade to show the premium release notes modal!
+    const lastSeen = localStorage.getItem('ludarp_last_seen_version');
+    if (lastSeen !== version) {
+      setTimeout(() => {
+        const updateNotesHtml = `
+          <div style="text-align: center; margin-bottom: 18px;">
+            <div style="font-size: 42px; margin-bottom: 8px;">🚀</div>
+            <span style="background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">Update Successful</span>
+          </div>
+          <div style="font-size: 14px; margin-bottom: 15px; color: var(--text); font-weight: 600;">Welcome to LUDARP v${version} Stable Release! Here's what's new:</div>
+          <ul style="margin-left: 18px; display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; list-style-type: '⚡ ';">
+            <li><strong>Bi-directional Google Sheet Sync:</strong> Checked/unchecked split bills and settlements now dynamically sync additions and deletions in real-time, preventing double entries!</li>
+            <li><strong>Self-Healing Spreadsheet Columns:</strong> The Google Apps Script now automatically detects and inserts the missing "Account" (bank name) column without losing your data!</li>
+            <li><strong>Real-time Finance Dropdowns:</strong> Newly added bank accounts in Settings instantly populate in your Finance Opening Balance dropdowns without needing a page refresh!</li>
+            <li><strong>Card Balance mapping fix:</strong> Corrected card transaction bank account mapping in balance calculation, ensuring card purchases perfectly update mapped bank balances in real-time.</li>
+            <li><strong>In-app Apps Script Modal:</strong> Access and copy the upgraded Google Sheets synchronizer script directly in-app via a beautiful, copyable code modal.</li>
+          </ul>
+        `;
+        
+        showModal(`LUDARP v${version} Premium Upgrade`, updateNotesHtml);
+        localStorage.setItem('ludarp_last_seen_version', version);
+        
+        if (typeof launchConfetti === 'function') {
+          launchConfetti();
+        }
+      }, 800);
+    }
+  });
+
 })();
 
 /* ===============================
    BOTTOM NAV HANDLER
 ================================ */
-// Bottom nav listener removed—handled by nav.js initNav()
-
 
