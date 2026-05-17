@@ -248,14 +248,25 @@ function doPost(e) {
   var data = sheet.getDataRange().getValues();
   var headers = data[0] || [];
   
-  // Find ID, Status, and Account column indexes dynamically to be backwards-compatible!
+  // Automatically insert the 'Account' column if it is missing (self-healing!)
+  var accountColIdx = headers.indexOf('Account');
+  if (accountColIdx === -1 && headers.length > 0) {
+    var methodColIdx = headers.indexOf('Method');
+    var insertAtCol = (methodColIdx !== -1) ? (methodColIdx + 2) : 8; // 1-based column position
+    sheet.insertColumnBefore(insertAtCol);
+    sheet.getRange(1, insertAtCol).setValue('Account').setFontWeight('bold');
+    
+    // Reload headers and data
+    data = sheet.getDataRange().getValues();
+    headers = data[0] || [];
+    accountColIdx = headers.indexOf('Account');
+  }
+  
   var idColIdx = headers.indexOf('ID');
-  if (idColIdx === -1) idColIdx = (headers.length >= 12) ? 8 : 7;
+  if (idColIdx === -1) idColIdx = 8; // Fallback to column 9 (0-indexed 8)
   
   var statusColIdx = headers.indexOf('Status');
-  if (statusColIdx === -1) statusColIdx = (headers.length >= 12) ? 9 : 8;
-  
-  var accountColIdx = headers.indexOf('Account');
+  if (statusColIdx === -1) statusColIdx = 9; // Fallback to column 10 (0-indexed 9)
   
   // 1. Handle deletion
   if (entry.action === 'delete' && entry.id) {
@@ -295,7 +306,7 @@ function doPost(e) {
           entry.payMethod
         ];
         
-        if (headers.length >= 12) {
+        if (accountColIdx !== -1) {
           rowData.push(entry.account || 'Cash');
         }
         
@@ -316,7 +327,7 @@ function doPost(e) {
     entry.amount, 
     entry.payMethod
   ];
-  if (headers.length >= 12 || accountColIdx !== -1) {
+  if (accountColIdx !== -1) {
     newRow.push(entry.account || 'Cash');
   }
   newRow.push(idToSave, status, entry.person || '', entry.note || '');
