@@ -188,7 +188,7 @@
       filtered = filtered.filter(e => e.type !== 'Transfer');
     }
     if (document.getElementById('hideSettlements') && document.getElementById('hideSettlements').checked) {
-      filtered = filtered.filter(e => !e.isDueSettlement && !e.isLinkedDue);
+      filtered = filtered.filter(e => !e.isDueSettlement && !e.isLinkedDue && !e.isSplitSettlement);
     }
     
     // -- SEARCH FILTER --
@@ -208,7 +208,7 @@
     const monthlyTotals = {};
 
     filtered.forEach(e => {
-      let isSettlement = !!e.isDueSettlement;
+      let isSettlement = !!e.isDueSettlement || !!e.isSplitSettlement;
       
       if (e.type === 'Income') {
            if (!isSettlement) totalInc += Number(e.amount || 0);
@@ -789,7 +789,7 @@
         left.appendChild(title); left.appendChild(meta);
         if (e.note) { const n = document.createElement('div'); n.className = 'entry-note'; n.textContent = e.note; left.appendChild(n); }
         
-        if (e.isDueSettlement) {
+        if (e.isDueSettlement || e.isSplitSettlement) {
            const sdiv = document.createElement('div'); sdiv.className = 'entry-note';
            sdiv.innerHTML = `<span class="badge" style="background:var(--accent); color:#fff; font-size:9px; padding:2px 6px;">✓ SETTLEMENT</span> <small style="opacity:0.6;">Payment record for due</small>`;
            left.appendChild(sdiv);
@@ -851,12 +851,37 @@
                       }
                     }
                     if (!matchFound) {
-                      const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id);
-                      if (idxItem >= 0 && day[idxItem].split) {
-                        day[idxItem].split.participants[pidx].received = true;
-                        if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
-                        if (typeof renderSummary === 'function') renderSummary();
-                      }
+                      const prow2 = cb.closest('div') || left;
+                      showSummarySettlePanel(e.id, prow2.parentElement || left, (bank, date) => {
+                        const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id);
+                        if (idxItem >= 0 && day[idxItem].split) {
+                          day[idxItem].split.participants[pidx].received = true;
+                          // Add Income entry
+                          const settlementEntry = {
+                            id: Date.now() + Math.random(),
+                            dateStr: date,
+                            type: 'Income',
+                            description: `Settled Split: ${e.description} (${p.name})`,
+                            category: 'Split settlement',
+                            payMethod: 'Bank',
+                            paySubType: bank,
+                            amount: p.amount,
+                            note: `Settled split with ${p.name} via ${bank}`,
+                            createdAt: new Date().toISOString(),
+                            split: null,
+                            isSplitSettlement: true,
+                            splitRefId: e.id,
+                            splitRefPerson: p.name,
+                            module: 'Split Settlement'
+                          };
+                          if (!s.days[date]) s.days[date] = [];
+                          s.days[date].push(settlementEntry);
+                          if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
+                          window.dispatchEvent(new CustomEvent('mt:entry-added', { detail: settlementEntry }));
+                          if (typeof renderSummary === 'function') renderSummary();
+                        }
+                      });
+                      cb.checked = false;
                     }
                   } else {
                     // Uncheck = undo
@@ -868,6 +893,17 @@
                     const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id);
                     if (idxItem >= 0 && day[idxItem].split) {
                       day[idxItem].split.participants[pidx].received = false;
+                      // Remove matching Income entry
+                      for (const dKey in s.days) {
+                         const toDelete = s.days[dKey].filter(entry => entry.isSplitSettlement && entry.splitRefId === e.id && entry.splitRefPerson === p.name);
+                         toDelete.forEach(entry => {
+                            window.dispatchEvent(new CustomEvent('mt:entry-deleted', { detail: { id: entry.id } }));
+                         });
+                         s.days[dKey] = s.days[dKey].filter(entry => {
+                            return !(entry.isSplitSettlement && entry.splitRefId === e.id && entry.splitRefPerson === p.name);
+                         });
+                         if (s.days[dKey].length === 0) delete s.days[dKey];
+                      }
                       if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
                       if (typeof renderSummary === 'function') renderSummary();
                     }
@@ -892,22 +928,47 @@
                      if (dMatch) unpaidMatches.push(dMatch.id);
                    });
                  }
-                 if (unpaidMatches.length > 0) {
-                   allChk.checked = false; // revert until confirmed
-                   showSummarySettlePanel('all', allRow, (bank, date) => {
+                 allChk.checked = false; // revert until confirmed
+                 showSummarySettlePanel('all', allRow, (bank, date) => {
+                   if (unpaidMatches.length > 0) {
                      unpaidMatches.forEach(dId => window.MT.dues.markPaid(dId, date, bank));
                      if (typeof renderSummary === 'function') renderSummary();
                      if (window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
-                   });
-                 } else {
-                   // Fallback: mark locally
-                   const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id);
-                   if (idxItem >= 0 && day[idxItem].split) {
-                     day[idxItem].split.participants.forEach(p => p.received = true);
-                     if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
-                     if (typeof renderSummary === 'function') renderSummary();
+                   } else {
+                     // Fallback: mark locally
+                     const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id);
+                     if (idxItem >= 0 && day[idxItem].split) {
+                       day[idxItem].split.participants.forEach(p => {
+                         if (!p.received) {
+                           p.received = true;
+                           const settlementEntry = {
+                             id: Date.now() + Math.random(),
+                             dateStr: date,
+                             type: 'Income',
+                             description: `Settled Split: ${e.description} (${p.name})`,
+                             category: 'Split settlement',
+                             payMethod: 'Bank',
+                             paySubType: bank,
+                             amount: p.amount,
+                             note: `Settled split with ${p.name} via ${bank}`,
+                             createdAt: new Date().toISOString(),
+                             split: null,
+                             isSplitSettlement: true,
+                             splitRefId: e.id,
+                             splitRefPerson: p.name,
+                             module: 'Split Settlement'
+                           };
+                           if (!s.days[date]) s.days[date] = [];
+                           s.days[date].push(settlementEntry);
+                           window.dispatchEvent(new CustomEvent('mt:entry-added', { detail: settlementEntry }));
+                         }
+                       });
+                       if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
+                       if (typeof renderSummary === 'function') renderSummary();
+                     }
                    }
-                 }
+                   allChk.checked = true; // set checked after confirm
+                 });
                } else {
                  // Uncheck all = undo all
                  if (window.MT && window.MT.dues && window.MT.dues.loadDues) {
@@ -916,11 +977,25 @@
                      const dMatch = dList.find(d => d.date === e.dateStr && (d.person||'').trim() === (p.name||'').trim() && Math.abs(d.amount - p.amount) < 0.01 && d.paid);
                      if (dMatch) window.MT.dues.undoPaid(dMatch.id, true);
                    });
-                   if (typeof renderSummary === 'function') renderSummary();
-                   if (window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
                  }
+                 // Fallback undo
+                 const s = loadStoreSafe(); const day = s.days[e.dateStr] || []; const idxItem = day.findIndex(x => x.id === e.id);
+                 if (idxItem >= 0 && day[idxItem].split) {
+                   day[idxItem].split.participants.forEach(p => p.received = false);
+                   for (const dKey in s.days) {
+                       const toDelete = s.days[dKey].filter(entry => entry.isSplitSettlement && entry.splitRefId === e.id);
+                       toDelete.forEach(entry => {
+                          window.dispatchEvent(new CustomEvent('mt:entry-deleted', { detail: { id: entry.id } }));
+                       });
+                       s.days[dKey] = s.days[dKey].filter(entry => !(entry.isSplitSettlement && entry.splitRefId === e.id));
+                      if (s.days[dKey].length === 0) delete s.days[dKey];
+                   }
+                   if (window.MT && window.MT.db && window.MT.db.saveStore) window.MT.db.saveStore(s);
+                 }
+                 if (typeof renderSummary === 'function') renderSummary();
+                 if (window.MT.entry && window.MT.entry.renderEntries) window.MT.entry.renderEntries();
                }
-          });
+           });
           allRow.appendChild(allChk);
           const allLbl = document.createElement('span'); allLbl.style.marginLeft = '8px'; allLbl.textContent = 'Mark all received';
           allRow.appendChild(allLbl);

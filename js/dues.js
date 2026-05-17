@@ -431,10 +431,10 @@
     if (window.MT.db) {
        const store = window.MT.db.loadStore();
        if (!store.days[date]) store.days[date] = [];
-       store.days[date].push({
+       const newEntry = {
           id: `due_history_${Date.now()}`,
           dateStr: date,
-          type: 'Expense',
+          type: activeTab === 'i_owe' ? 'Income' : 'Expense',
           description: desc,
           category: activeTab === 'i_owe' ? 'Debt' : 'Loan',
           payMethod: 'Cash',
@@ -446,9 +446,12 @@
           duePerson: person,
           isQuickDue: true,
           quickDueType: activeTab,
-          dueId: dueId
-       });
+          dueId: dueId,
+          module: 'Due'
+       };
+       store.days[date].push(newEntry);
        window.MT.db.saveStore(store);
+       window.dispatchEvent(new CustomEvent('mt:entry-added', { detail: newEntry }));
        window.dispatchEvent(new Event('mt:entries-changed'));
     }
 
@@ -510,7 +513,7 @@
         );
         if (!alreadyExists) {
           if (!store.days[customDate]) store.days[customDate] = [];
-          store.days[customDate].push({
+          const newEntry = {
             id: Date.now() + Math.random(),
             dateStr: customDate,
             type: actionLabel === 'Received' ? 'Income' : 'Expense',
@@ -523,8 +526,12 @@
             createdAt: new Date().toISOString(),
             split: null,
             isDueSettlement: true,
-            dueId: id
-          });
+            dueId: id,
+            duePerson: due.person,
+            module: 'Due Settlement'
+          };
+          store.days[customDate].push(newEntry);
+          window.dispatchEvent(new CustomEvent('mt:entry-added', { detail: newEntry }));
         }
 
         const descMatch = due.description?.startsWith('Split: ') ? due.description.substring(7) : due.description;
@@ -622,6 +629,10 @@
       const store = db.loadStore();
       if (paidDate && store.days[paidDate]) {
         const descMatchStr = `Settled: ${due.description} (${due.person})`;
+        const toDelete = store.days[paidDate].filter(e => e.isDueSettlement && e.description.startsWith(descMatchStr) && Math.abs(e.amount - due.amount) < 0.01);
+        toDelete.forEach(entry => {
+            window.dispatchEvent(new CustomEvent('mt:entry-deleted', { detail: { id: entry.id } }));
+        });
         store.days[paidDate] = store.days[paidDate].filter(e => {
             return !(e.isDueSettlement && e.description.startsWith(descMatchStr) && Math.abs(e.amount - due.amount) < 0.01);
         });

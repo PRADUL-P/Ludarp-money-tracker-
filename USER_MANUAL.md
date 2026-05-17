@@ -12,16 +12,56 @@ To sync your transactions to a private Google Sheet automatically, follow these 
 
 ```javascript
 function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var data = sheet.getDataRange().getValues();
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
   var entry = JSON.parse(e.postData.contents);
-  // Date, Type, Category, Description, Amount, Payment Method
-  sheet.appendRow([entry.date, entry.type, entry.category, entry.description, entry.amount, entry.payMethod]);
+  var sheet = ss.getSheets()[0];
+  
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Date', 'Module', 'Type', 'Category', 'Description', 'Amount', 'Payment Method', 'ID', 'Status', 'Person', 'Note']);
+    sheet.getRange(1, 1, 1, 11).setFontWeight("bold");
+  }
+  
+  if (entry.action === 'delete' && entry.id) {
+    var data = sheet.getDataRange().getValues();
+    for (var i = data.length - 1; i > 0; i--) {
+      if (data[i][7] == entry.id) {
+        sheet.deleteRow(i + 1);
+        return ContentService.createTextOutput("Success - Deleted").setMimeType(ContentService.MimeType.TEXT);
+      }
+    }
+    return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+  }
+  
+  if (entry.module === 'Due Settlement' && entry.dueId) {
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][7] === entry.dueId) {
+        sheet.getRange(i + 1, 9).setValue('Settled on ' + entry.date);
+        return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+      }
+    }
+  }
+  
+  var idToSave = entry.module === 'Due' ? entry.dueId : (entry.id || '');
+  var status = entry.module === 'Due' ? 'Pending' : '';
+  
+  if (idToSave) {
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][7] == idToSave) {
+        sheet.getRange(i + 1, 1, 1, 11).setValues([[entry.date, entry.module || 'Entry', entry.type, entry.category, entry.description, entry.amount, entry.payMethod, idToSave, status, entry.person || '', entry.note || '']]);
+        return ContentService.createTextOutput("Success - Updated").setMimeType(ContentService.MimeType.TEXT);
+      }
+    }
+  }
+  
+  sheet.appendRow([entry.date, entry.module || 'Entry', entry.type, entry.category, entry.description, entry.amount, entry.payMethod, idToSave, status, entry.person || '', entry.note || '']);
   return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
 }
 ```

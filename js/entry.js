@@ -631,9 +631,9 @@
         const pList = document.createElement('div'); pList.className = 'entry-note';
         pList.innerHTML = entry.split.participants.map(p => `<span style="${p.received ? 'color: var(--success);' : ''}">${p.name}${p.received ? ' ✓' : ''}</span> (${db.currencyFmt(p.amount)})`).join(' · ');
         main.appendChild(pList);
-      } else if (entry.isSettled || entry.isDueSettlement) {
+      } else if (entry.isSettled || entry.isDueSettlement || entry.isSplitSettlement) {
         const sdiv = document.createElement('div'); sdiv.className = 'entry-note';
-        if (entry.isDueSettlement) {
+        if (entry.isDueSettlement || entry.isSplitSettlement) {
            sdiv.innerHTML = `<span class="badge" style="background:var(--accent); color:#fff;">✓ SETTLEMENT</span> <small>Payment record for due</small>`;
         } else {
            sdiv.innerHTML = `<span class="badge badge-success">✓ SETTLED</span> <small>${entry.type === 'Income' ? 'Received from' : 'Paid to'} ${entry.settledBy || 'Person'}</small>`;
@@ -820,6 +820,16 @@
            });
            if (window.MT.dues.saveDues) window.MT.dues.saveDues(filtered);
         }
+        
+        // Remove child split settlement entries from transaction history and sync to sheet!
+        for (const dKey in s.days) {
+           const toDelete = s.days[dKey].filter(x => x.isSplitSettlement && x.splitRefId === entry.id);
+           toDelete.forEach(child => {
+              window.dispatchEvent(new CustomEvent('mt:entry-deleted', { detail: { id: child.id } }));
+           });
+           s.days[dKey] = s.days[dKey].filter(x => !(x.isSplitSettlement && x.splitRefId === entry.id));
+           if (s.days[dKey].length === 0) delete s.days[dKey];
+        }
       } else if (entry.isDueSettlement) {
         const dues = window.MT.dues.loadDues ? window.MT.dues.loadDues() : [];
         const findMatch = () => {
@@ -832,6 +842,24 @@
           dues[dIdx].paidDate = null;
           if (window.MT.dues.saveDues) window.MT.dues.saveDues(dues);
         }
+      } else if (entry.isSplitSettlement) {
+         const s = db.loadStore();
+         const refId = entry.splitRefId;
+         const refPerson = entry.splitRefPerson;
+         let found = false;
+         for (const dKey in s.days) {
+            const originalEntry = s.days[dKey].find(x => x.id === refId);
+            if (originalEntry && originalEntry.split) {
+               const p = originalEntry.split.participants.find(x => x.name === refPerson);
+               if (p) { p.received = false; found = true; }
+               originalEntry.isSettled = false;
+               break;
+            }
+         }
+         if (found) {
+            db.saveStore(s);
+            if (typeof renderSummary === 'function') renderSummary();
+         }
       }
     }
     // --- END DUES SYNC ---
@@ -840,6 +868,7 @@
     if (s.days[dateStr].length === 0) delete s.days[dateStr];
     db.saveStore(s);
     renderEntries(); window.dispatchEvent(new Event('mt:entries-changed'));
+    window.dispatchEvent(new CustomEvent('mt:entry-deleted', { detail: { id: id } }));
   }
 
   function updateDescriptionDatalist() {

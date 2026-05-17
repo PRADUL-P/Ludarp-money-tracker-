@@ -110,6 +110,10 @@
     };
     store.days[today].push(entry);
     db.saveStore(store);
+    
+    // Dispatch event to trigger Google Sheets sync
+    const entryForSync = { ...entry, module: 'Subscription' };
+    window.dispatchEvent(new CustomEvent('mt:entry-added', { detail: entryForSync }));
 
     // Update lastApplied to the due date we just settled (or today if it was completely missing)
     rule.lastApplied = due <= today ? due : today;
