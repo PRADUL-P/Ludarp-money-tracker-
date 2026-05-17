@@ -94,6 +94,31 @@
         localStorage.setItem(STORAGE_KEY, url);
     }
 
+    // --- GOOGLE SHEETS SYNCED STATE TRACKING ---
+    const SYNCED_IDS_KEY = 'mt_synced_entry_ids';
+
+    function getSyncedIds() {
+        try {
+            return JSON.parse(localStorage.getItem(SYNCED_IDS_KEY)) || {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function markAsSynced(entryId) {
+        if (!entryId) return;
+        const synced = getSyncedIds();
+        synced[entryId] = true;
+        localStorage.setItem(SYNCED_IDS_KEY, JSON.stringify(synced));
+    }
+
+    function markAsUnsynced(entryId) {
+        if (!entryId) return;
+        const synced = getSyncedIds();
+        delete synced[entryId];
+        localStorage.setItem(SYNCED_IDS_KEY, JSON.stringify(synced));
+    }
+
     async function syncToSheet(entry) {
         const url = loadURL();
         if (!url) return;
@@ -119,6 +144,7 @@
             });
             if (response.ok) {
                 console.log('Synced to Google Sheets successfully.');
+                markAsSynced(entry.id || entry.dueId);
             } else {
                 console.error('Failed to sync to Google Sheets.');
             }
@@ -141,6 +167,7 @@
             });
             if (response.ok) {
                 console.log('Deleted from Google Sheets successfully.');
+                markAsUnsynced(entryId);
             } else {
                 console.error('Failed to delete from Google Sheets.');
             }
@@ -188,16 +215,36 @@
 
                 if (allEntries.length === 0) return alert('No local entries to sync!');
 
-                const confirmSync = confirm(`Are you sure you want to sync all ${allEntries.length} local entries to your Google Sheet?`);
-                if (!confirmSync) return;
+                const synced = getSyncedIds();
+                const unsyncedEntries = allEntries.filter(e => !synced[e.id || e.dueId]);
+
+                let toSync = allEntries;
+                if (unsyncedEntries.length === 0) {
+                    const choice = confirm(`All ${allEntries.length} entries are already marked as synced!\n\nDo you want to Force Sync ALL entries from the beginning anyway?`);
+                    if (!choice) return;
+                    toSync = allEntries;
+                } else if (unsyncedEntries.length < allEntries.length) {
+                    const choice = confirm(`Found ${unsyncedEntries.length} unsynced entries (out of ${allEntries.length} total).\n\nClick "OK" to Resume and sync ONLY the ${unsyncedEntries.length} unsynced entries.\n\nClick "Cancel" to Force Sync ALL ${allEntries.length} entries from the first.`);
+                    if (choice) {
+                        toSync = unsyncedEntries;
+                    } else {
+                        const forceAll = confirm(`Proceed with Force Syncing ALL ${allEntries.length} entries from the first? (Warning: This may cause duplicates in your Google Sheet.)`);
+                        if (!forceAll) return;
+                        toSync = allEntries;
+                    }
+                } else {
+                    const confirmSync = confirm(`Are you sure you want to sync all ${allEntries.length} local entries to your Google Sheet?`);
+                    if (!confirmSync) return;
+                    toSync = allEntries;
+                }
 
                 syncAllBtn.disabled = true;
                 syncAllBtn.textContent = 'Syncing...';
 
                 let successCount = 0;
-                for (let i = 0; i < allEntries.length; i++) {
-                    const entry = allEntries[i];
-                    syncAllBtn.textContent = `Syncing (${i + 1}/${allEntries.length})...`;
+                for (let i = 0; i < toSync.length; i++) {
+                    const entry = toSync[i];
+                    syncAllBtn.textContent = `Syncing (${i + 1}/${toSync.length})...`;
                     try {
                         const response = await fetch(url, {
                             method: 'POST',
@@ -217,7 +264,10 @@
                                 note: entry.note || ''
                             })
                         });
-                        if (response.ok) successCount++;
+                        if (response.ok) {
+                            successCount++;
+                            markAsSynced(entry.id || entry.dueId);
+                        }
                     } catch (err) {
                         console.error('Error syncing entry:', entry, err);
                     }
@@ -225,7 +275,7 @@
 
                 syncAllBtn.disabled = false;
                 syncAllBtn.textContent = '📤 Sync All Existing Data';
-                alert(`Successfully synced ${successCount} out of ${allEntries.length} entries to your Google Sheet!`);
+                alert(`Successfully synced ${successCount} out of ${toSync.length} entries to your Google Sheet!`);
             };
         }
 

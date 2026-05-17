@@ -1,6 +1,6 @@
-# 📊 LUDARP Money Tracker — Version 6.1.5 (Stable Release)
+# 📊 LUDARP Money Tracker — Version 6.1.6 (Stable Release)
 
-[![v6.1.5 Release](https://img.shields.io/badge/Release-v6.1.5_Stable-10b981?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
+[![v6.1.6 Release](https://img.shields.io/badge/Release-v6.1.6_Stable-10b981?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Offline First](https://img.shields.io/badge/PWA-Technologically_Offline-38bdf8?style=for-the-badge&logo=pwa)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Privacy Protected](https://img.shields.io/badge/Privacy-100%25_On_Device-34d399?style=for-the-badge&logo=shield)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 
@@ -15,7 +15,8 @@
 
 ---
 
-## ✨ New v6.1.5 Stable Enhancements
+## ✨ New v6.1.6 Stable Enhancements
+*   🔄 **Smart Sync Resume & Deduplication**: Added intelligent synced-state tracking using local indices. If a bulk sync is stopped/paused halfway, you can seamlessly **Resume** and upload *only* the remaining unsynced entries, or **Force Sync All** from the first. Completely prevents duplicates!
 *   🏦 **Dedicated Bank Account Column**: Upgraded Google Sheets integration with a new 13-column layout that syncs the exact mapped bank name (e.g. SBI, HDFC, or Cash) next to the payment app/type.
 *   🛡️ **Double Self-Healing Columns**: Upgraded the Apps Script to automatically insert BOTH missing "Account" and "Bank" columns in existing sheets without data loss.
 *   🚀 **One-Time Upgrade Release Notes popup**: Integrated a premium, one-time popup that displays key new features and celebrates updates with dynamic confetti!

@@ -188,6 +188,7 @@
           </div>
           <div style="font-size: 14px; margin-bottom: 15px; color: var(--text); font-weight: 600;">Welcome to LUDARP v${version} Stable Release! Here's what's new:</div>
           <ul style="margin-left: 18px; display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; list-style-type: '⚡ ';">
+            <li><strong>Smart Sync Resume & Deduplication:</strong> Upgraded Bulk Sync with smart state tracking! If a sync is stopped/paused, you can seamlessly **Resume** and upload *only* the new/unsynced entries, or **Force Sync All** from the beginning. No more duplicates!</li>
             <li><strong>Dedicated Bank Account Sync:</strong> Your Google Sheet now has a dedicated "Bank" column that automatically syncs the exact bank name (like SBI, HDFC, or Cash) next to your UPI App/Method!</li>
             <li><strong>Bi-directional Google Sheet Sync:</strong> Checked/unchecked split bills and settlements now dynamically sync additions and deletions in real-time, preventing double entries!</li>
             <li><strong>Self-Healing Spreadsheet Columns:</strong> The Google Apps Script now automatically detects and inserts BOTH the missing "Account" and "Bank" columns without losing any of your existing data!</li>
