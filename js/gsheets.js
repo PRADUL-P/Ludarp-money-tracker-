@@ -178,14 +178,19 @@
 
     function initUI() {
         const urlInput = document.getElementById('gsheetUrl');
+        const spreadsheetUrlInput = document.getElementById('gsheetSpreadsheetUrl');
         const saveBtn = document.getElementById('saveGsheetBtn');
         const setupBtn = document.getElementById('gsheetSetupBtn');
         const instructions = document.getElementById('gsheetInstructions');
         const syncAllBtn = document.getElementById('syncAllGsheetBtn');
+        const openSheetBtn = document.getElementById('openGsheetBtn');
 
         if (!urlInput) return;
 
         urlInput.value = loadURL();
+        if (spreadsheetUrlInput) {
+            spreadsheetUrlInput.value = localStorage.getItem('mt_gsheet_spreadsheet_url') || '';
+        }
 
         if (setupBtn && instructions) {
             setupBtn.onclick = () => {
@@ -197,8 +202,22 @@
 
         saveBtn.onclick = () => {
             saveURL(urlInput.value);
-            window.MT.ui?.showToast('Google Sheet URL saved');
+            if (spreadsheetUrlInput) {
+                localStorage.setItem('mt_gsheet_spreadsheet_url', spreadsheetUrlInput.value.trim());
+            }
+            window.MT.ui?.showToast('Google Sheet Settings saved');
         };
+
+        if (openSheetBtn) {
+            openSheetBtn.onclick = () => {
+                const url = localStorage.getItem('mt_gsheet_spreadsheet_url') || '';
+                if (url) {
+                    window.open(url, '_blank');
+                } else {
+                    alert('Please enter your Google Sheet URL in the field above and click Save first!');
+                }
+            };
+        }
 
         if (syncAllBtn) {
             syncAllBtn.onclick = async () => {

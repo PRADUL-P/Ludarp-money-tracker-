@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ludarp-moneytracker-v36';
+const CACHE_NAME = 'ludarp-moneytracker-v37';
 const ASSETS = [
   './',
   './index.html',
@@ -20,6 +20,17 @@ const ASSETS = [
   './js/dues.js',
   './js/exporter.js',
   './js/gsheets.js',
+  './js/calc.js',
+  './js/notifications.js',
+  './js/voice.js',
+  './js/statement.js',
+  './js/customselect.js',
+  './js/goals.js',
+  './js/pdf-generator.js',
+  './js/whatsnew.js',
+  './js/undolog.js',
+  './js/salary-dist.js',
+  './js/lab.js',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
 ];

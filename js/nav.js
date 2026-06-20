@@ -33,6 +33,20 @@ window.MT = window.MT || {};
                     t.style.display = (t.id === defaultTab) ? 'block' : 'none';
                     if (t.id === defaultTab) t.classList.add('active');
                 });
+
+                // Update header tab button styling and class
+                const buttons = target.querySelectorAll('.tab-btn');
+                buttons.forEach(btn => {
+                    if (btn.dataset.target === defaultTab) {
+                        btn.classList.add('active');
+                        btn.style.background = 'var(--accent)';
+                        btn.style.color = '#fff';
+                    } else {
+                        btn.classList.remove('active');
+                        btn.style.background = 'none';
+                        btn.style.color = 'var(--text-secondary)';
+                    }
+                });
             }
 
             // --- Lab Back to Hub ---
@@ -110,10 +124,33 @@ window.MT = window.MT || {};
 
         // Swipe support
         let startX = 0;
-        document.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+        let startY = 0;
+        let cancelSwipe = false;
+        document.addEventListener('touchstart', e => {
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            
+            // Ignore swipe if touch target originates inside a due item to prevent conflicts
+            if (touch.target && touch.target.closest && touch.target.closest('.due-item')) {
+                cancelSwipe = true;
+            } else {
+                cancelSwipe = false;
+            }
+        }, {passive:true});
+
         document.addEventListener('touchend', e => {
-            if (!startX) return;
-            const dx = e.changedTouches[0].clientX - startX;
+            if (cancelSwipe || !startX) return;
+            const touch = e.changedTouches[0];
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+            
+            // Track vertical coordinates. Cancel swipe if vertical movement is dominant or excessive.
+            if (Math.abs(dy) > Math.abs(dx) || Math.abs(dy) > 30) {
+                startX = 0;
+                startY = 0;
+                return;
+            }
             if (Math.abs(dx) < 80) return;
             
             const active = document.querySelector('section.view.active');
@@ -124,6 +161,7 @@ window.MT = window.MT || {};
             if (dx < 0 && idx < views.length - 1) showView(views[idx + 1]);
             if (dx > 0 && idx > 0) showView(views[idx - 1]);
             startX = 0;
+            startY = 0;
         }, {passive:true});
 
         // Initial Sync

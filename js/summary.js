@@ -121,7 +121,7 @@
     });
 
     DOM.summaryExportBtn?.addEventListener('click', () => {
-      ExporterModule?.openExportModal();
+      ExporterModule?.exportAllJSON();
     });
 
     DOM.summarySearchInput?.addEventListener('input', renderSummary);
@@ -211,7 +211,8 @@
       let isSettlement = !!e.isDueSettlement || !!e.isSplitSettlement;
       
       if (e.type === 'Income') {
-           if (!isSettlement) totalInc += Number(e.amount || 0);
+           let effectiveAmount = e.isLinkedDue ? 0 : Number(e.amount || 0);
+           if (!isSettlement) totalInc += effectiveAmount;
       }
       else if (e.type === 'Transfer') { }
       else {

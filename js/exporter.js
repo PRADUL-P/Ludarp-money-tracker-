@@ -33,6 +33,76 @@
     return new Date().toISOString().slice(0, 10);
   }
 
+  function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++; // skip next quote
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current);
+    return result;
+  }
+
+  function normalizeDate(d) {
+    if (!d) return '';
+    let dateObj;
+    if (typeof d === 'number' || (!isNaN(d) && !isNaN(parseFloat(d)) && String(d).trim().length > 0 && !String(d).includes('-') && !String(d).includes('/'))) {
+      const serial = parseFloat(d);
+      dateObj = new Date(1899, 11, 30);
+      dateObj.setDate(dateObj.getDate() + Math.floor(serial));
+    } else {
+      const s = String(d).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      
+      dateObj = new Date(s);
+      if (isNaN(dateObj.getTime())) {
+        const parts = s.split(/[-/]/);
+        if (parts.length === 3) {
+          let day, month, year;
+          if (parts[2].length === 4) {
+            year = parseInt(parts[2], 10);
+            const p0 = parseInt(parts[0], 10);
+            const p1 = parseInt(parts[1], 10);
+            if (p0 > 12) {
+              day = p0; month = p1;
+            } else if (p1 > 12) {
+              day = p1; month = p0;
+            } else {
+              day = p0; month = p1; // default to DD/MM/YYYY
+            }
+            dateObj = new Date(year, month - 1, day);
+          } else if (parts[0].length === 4) {
+            year = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10);
+            day = parseInt(parts[2], 10);
+            dateObj = new Date(year, month - 1, day);
+          }
+        }
+      }
+    }
+    if (dateObj && !isNaN(dateObj.getTime())) {
+      const yyyy = dateObj.getFullYear();
+      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const dd = String(dateObj.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    return '';
+  }
+
   /* =========================
      FLATTEN transactions for CSV / XLSX
      ========================= */
@@ -294,18 +364,18 @@
     try {
       const text = await file.text();
       const lines = text.trim().split('\n');
-      const header = lines[0].replace(/"/g, '').split(',').map(h => h.trim());
+      const header = parseCSVLine(lines[0]).map(h => h.trim());
 
       if (!confirm('Import CSV data? This MERGES with existing transactions.')) return;
 
       const s = loadStoreSafe();
       lines.slice(1).forEach(line => {
         if (!line.trim()) return;
-        const cols = line.match(/(".*?"|[^,]+)/g) || [];
+        const cols = parseCSVLine(line);
         const row = {};
-        header.forEach((h, i) => { row[h] = (cols[i] || '').replace(/^"|"$/g, '').trim(); });
+        header.forEach((h, i) => { row[h] = (cols[i] || '').trim(); });
 
-        const date = row.date;
+        const date = normalizeDate(row.date);
         if (!date) return;
         s.days[date] = s.days[date] || [];
         s.days[date].push({
@@ -350,12 +420,12 @@
         // Transactions sheet (has 'date' & 'amount')
         if ('date' in first && 'amount' in first) {
           rows.forEach(r => {
-            const date = r.date;
+            const date = normalizeDate(r.date);
             if (!date) return;
             s.days[date] = s.days[date] || [];
             s.days[date].push({
               id: Date.now() + Math.random(),
-              dateStr: String(date),
+              dateStr: date,
               type: r.type || 'Expense',
               description: r.description || '',
               category: r.category || '',

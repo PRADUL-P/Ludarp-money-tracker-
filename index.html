@@ -1373,11 +1373,16 @@
             <div id="gsheetPanel" class="settings-panel">
               <div style="padding:10px;">
                 <label>Google Apps Script Web App URL</label>
-                <input type="url" id="gsheetUrl" placeholder="https://script.google.com/macros/s/.../exec" />
-                <div style="margin-top:8px; display:flex; gap:8px;">
+                <input type="url" id="gsheetUrl" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:8px;" />
+                <label>Google Sheet URL (Optional)</label>
+                <input type="url" id="gsheetSpreadsheetUrl" placeholder="https://docs.google.com/spreadsheets/d/.../edit" style="margin-bottom:8px;" />
+                <div style="margin-top:4px; display:flex; gap:8px;">
                   <button id="saveGsheetBtn" class="btn-primary" style="flex:1;">Save Sync URL</button>
                   <button id="gsheetSetupBtn" class="btn-secondary" style="flex:1;">Help</button>
                 </div>
+                <button id="openGsheetBtn" class="btn-secondary" style="width:100%; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                  🟢 Open Google Sheet
+                </button>
                 
                 <div id="gsheetInstructions" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.02); border:1px dashed var(--card-border); border-radius:8px; font-size:12px; line-height:1.5;">
                   <div style="font-weight:800; color:var(--accent); margin-bottom:8px; font-size:13px;">📊 Google Sheets Setup Guide</div>
@@ -1839,6 +1844,10 @@
                     <div style="font-size:24px; margin-bottom:8px;">⚡</div>
                     <div style="font-weight:700; font-size:13px;">Money Pulse</div>
                 </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('privacy')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">🌓</div>
+                    <div style="font-weight:700; font-size:13px;">Privacy Curtain</div>
+                </div>
             </div>
         </div>
 
@@ -1909,6 +1918,9 @@
                 <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Protect sensitive amounts in public views.</p>
                 <div id="privacyOptions" style="display:flex; flex-direction:column; gap:15px;">
                     <!-- Rendered by JS -->
+                </div>
+                <div style="margin-top:20px;">
+                    <button class="btn-primary" onclick="window.MT.lab.savePrivacy()" style="width:100%;">Save Settings</button>
                 </div>
             </div>
         </div>
@@ -2034,30 +2046,29 @@
 
   <script src="js/db.js" defer></script>
   <script src="js/security.js" defer></script>
-  <script src="js/ui.js?v=6.1.6" defer></script>
+  <script src="js/ui.js?v=6.1.7" defer></script>
   <script src="js/colors.js" defer></script>
   <script src="js/nav.js" defer></script>
   <script src="js/calc.js" defer></script>
 
-  <script src="js/entry.js?v=6.1.6" defer></script>
-  <script src="js/summary.js?v=6.1.6" defer></script>
-  <script src="js/accounts.js?v=6.1.6" defer></script>
-  <script src="js/settings.js?v=6.1.6" defer></script>
+  <script src="js/entry.js?v=6.1.7" defer></script>
+  <script src="js/summary.js?v=6.1.7" defer></script>
+  <script src="js/accounts.js?v=6.1.7" defer></script>
+  <script src="js/settings.js?v=6.1.7" defer></script>
   <!-- optional helpers / stubs (keep even if empty) -->
   <script src="js/pwa.js" defer></script>
   <script src="js/automation.js" defer></script>
   <script src="js/budget.js" defer></script>
   <script src="js/recurring.js" defer></script>
-  <script src="js/dues.js?v=6.1.6" defer></script>
+  <script src="js/dues.js?v=6.1.7" defer></script>
   <script src="js/notifications.js" defer></script>
   <script src="js/voice.js" defer></script>
   <script src="js/statement.js" defer></script>
-  <script src="js/gsheets.js?v=6.1.6" defer></script>
+  <script src="js/gsheets.js?v=6.1.7" defer></script>
   <!-- Versioning & Navigation Core -->
-  <script>window.LUDARP_VERSION = '6.1.6';</script>
+  <script>window.LUDARP_VERSION = '6.1.7';</script>
 
-  <!-- custom select (if you moved it out of inline HTML) -->
-  <script src="js/customselect.js" defer></script>
+
 
   <!-- LUDARP V5.0 CATEGORY 4: LIQUID WAVE BLUR SVG FILTER -->
   <svg style="display:none;">
@@ -2113,7 +2124,7 @@
     }
 
     /* ---- CINEMATIC SCROLL LIST ---- */
-    .cinematic-list .entry-card {
+    .cinematic-list .entry {
       transition: filter 0.2s ease-out, transform 0.2s ease-out, opacity 0.2s ease-out;
       will-change: filter, transform, opacity;
     }
@@ -2215,7 +2226,7 @@
       // 3. CINEMATIC DEPTH LISTS
       const applyCinematicBlur = () => {
         if (!document.getElementById('view-entry')?.classList.contains('active')) return;
-        const cards = document.querySelectorAll('#entriesList .entry-card');
+        const cards = document.querySelectorAll('#entriesList .entry');
         const center = window.innerHeight / 2;
         
         cards.forEach(card => {

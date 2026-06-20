@@ -367,5 +367,7 @@
         stats.innerHTML = `Avg Daily Velocity: ${window.MT.db.currencyFmt(avg)}`;
     }
 
-    window.MT.lab = { show: showSubview, back: backToHub };
+    window.MT.lab = window.MT.lab || {};
+    window.MT.lab.show = showSubview;
+    window.MT.lab.back = backToHub;
 })();

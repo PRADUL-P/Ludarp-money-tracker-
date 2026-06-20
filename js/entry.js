@@ -164,7 +164,7 @@
           if (method === 'UPI' && !s2.settings.upiApps.includes(t)) s2.settings.upiApps.push(t);
           if (method === 'Card' && !s2.settings.cards.includes(t)) s2.settings.cards.push(t);
           if (method === 'Bank' && !s2.settings.banks.includes(t)) s2.settings.banks.push(t);
-          db.saveStore(s2); renderSettingsUI(); updatePaySubTypeOptions();
+          db.saveStore(s2); window.MT.settings?.renderSettingsUI?.(); updatePaySubTypeOptions();
           paySubTypeSelect.value = t;
         } else {
           paySubTypeSelect.value = list[0] || '';
@@ -525,8 +525,8 @@
     if (document.getElementById('travelPresets')) document.getElementById('travelPresets').style.display = 'none';
     if (document.getElementById('tripDateWrap')) document.getElementById('tripDateWrap').style.display = 'none';
 
-    // Reset date and time to NOW after submit
-    if (dateInput) dateInput.value = db.todayISO();
+    // Preserve selected date after submit
+    if (dateInput) dateInput.value = dateStr;
     if (timeInput) {
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, '0');

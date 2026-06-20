@@ -1,6 +1,6 @@
-# 📊 LUDARP Money Tracker — Version 6.1.6 (Stable Release)
+# 📊 LUDARP Money Tracker — Version 6.1.7 (Stable Release)
 
-[![v6.1.6 Release](https://img.shields.io/badge/Release-v6.1.6_Stable-10b981?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
+[![v6.1.7 Release](https://img.shields.io/badge/Release-v6.1.7_Stable-10b981?style=for-the-badge&logo=rocket)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Offline First](https://img.shields.io/badge/PWA-Technologically_Offline-38bdf8?style=for-the-badge&logo=pwa)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 [![Privacy Protected](https://img.shields.io/badge/Privacy-100%25_On_Device-34d399?style=for-the-badge&logo=shield)](https://github.com/PRADUL-P/Ludarp-money-tracker-)
 
@@ -14,6 +14,20 @@
 👉 [https://pradul-p.github.io/Ludarp-money-tracker-/](https://pradul-p.github.io/Ludarp-money-tracker-/)
 
 ---
+
+## ✨ New v6.1.7 Stable Enhancements
+*   🛠️ **Custom payment sub-type ReferenceError Fix**: Resolved the `ReferenceError` crash when adding a custom UPI, card, or bank account name in the transaction form.
+*   📊 **Summary Export Button Fix**: Bound the Summary screen backup button to trigger a full JSON backup via `exportAllJSON()`, replacing the non-existent modal call.
+*   📥 **Robust CSV Parser**: Implemented a custom state-machine CSV line splitter to correctly handle double quotes, empty fields, and commas in descriptions, resolving imported data shifting and corruption.
+*   📅 **Excel & CSV Date Normalizer**: Created a comprehensive date normalization helper to map Excel serial numbers (since epoch 1899-12-30) and various localized text formats (e.g. `DD/MM/YYYY`) into standard `YYYY-MM-DD` ISO dates.
+*   🔍 **Dues Search Focus Preservation**: Corrected focus and selection cursor loss when filtering dues by capturing the active input before redraw and restoring it after `root.innerHTML` render.
+*   📱 **Diagonal Scroll & Gestures Swipe Protection**: Added vertical coordinate tracking to suppress global navigation swipes when scrolling vertically, and disabled swipes originating inside dues list cards to prevent Tinder settle/share gestures from switching tabs.
+*   🏦 **Sub-tab State & Button Alignment**: Linked CSS classes and active HSL background styles to Accounts sub-tab headers, preventing tab visual desynchronization when navigating back to Finance.
+*   🧪 **Privacy Curtain & Lab Export fixes**: Added a dedicated card for Privacy Curtain to the LUDARP Lab Hub dashboard and integrated a "Save Settings" button inside the privacy settings subview. Fixed the App Lab export pattern to prevent reassigning `window.MT.lab` and losing the save listener.
+*   🎬 **Cinematic Scroll selectors update**: Re-targeted scroll depth blur CSS transitions and JS query selectors to use `.entry` instead of `.entry-card` (matching the transaction list DOM class).
+*   📅 **Keep Selected Date on Entry**: Modified the transaction form submission to preserve the currently selected date rather than resetting it to today's date, enabling faster batch logging of previous day entries.
+*   📊 **Accurate Income reporting**: Upgraded monthly analytics to exclude initial `i_owe` linked dues from earned income calculation, ensuring reports reflect exact revenue metrics.
+*   🔌 **Google Sheets Sync URL & Open Shortcut**: Added an input field for the private Google Sheets Spreadsheet URL and a dedicated "🟢 Open Google Sheet" button to settings, allowing users to launch their sync target sheet directly.
 
 ## ✨ New v6.1.6 Stable Enhancements
 *   🔄 **Smart Sync Resume & Deduplication**: Added intelligent synced-state tracking using local indices. If a bulk sync is stopped/paused halfway, you can seamlessly **Resume** and upload *only* the remaining unsynced entries, or **Force Sync All** from the first. Completely prevents duplicates!

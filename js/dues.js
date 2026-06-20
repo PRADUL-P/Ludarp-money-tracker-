@@ -53,6 +53,10 @@
     const root = document.getElementById('view-dues');
     if (!root) return;
 
+    const activeId = document.activeElement ? document.activeElement.id : null;
+    const start = document.activeElement && typeof document.activeElement.selectionStart === 'number' ? document.activeElement.selectionStart : null;
+    const end = document.activeElement && typeof document.activeElement.selectionEnd === 'number' ? document.activeElement.selectionEnd : null;
+
     const all = loadDues();
     const currency = sym();
 
@@ -373,6 +377,16 @@
         <div id="dueStatus" class="modal-status"></div>
       </section>
     `;
+
+    if (activeId) {
+      const el = document.getElementById(activeId);
+      if (el) {
+        el.focus();
+        if (start !== null && end !== null) {
+          try { el.setSelectionRange(start, end); } catch (e) {}
+        }
+      }
+    }
   }
 
   /* ---- Known people autocomplete ---- */
