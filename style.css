@@ -2340,6 +2340,24 @@ textarea:focus-visible {
   margin-top: 2px;
 }
 
+.due-item-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-iowe {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--danger);
+}
+
+.badge-theyowe {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--success);
+}
+
 .due-meta-dot {
   opacity: 0.4;
 }
