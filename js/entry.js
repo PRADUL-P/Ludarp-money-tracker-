@@ -534,8 +534,10 @@
         timeInput.value = `${hh}:${mm}`;
     }
 
-    updatePaySubTypeOptions(); updateTransferUI();
-    renderCategoryPills(); renderEntries();
+    // Save sticky defaults
+    localStorage.setItem('mt_sticky_paymethod', payMethod);
+    localStorage.setItem('mt_sticky_paysubtype', paySubType);
+
     window.dispatchEvent(new Event('mt:entries-changed'));
     window.dispatchEvent(new CustomEvent('mt:entry-added', { detail: entry }));
   });
@@ -899,7 +901,23 @@
   window.addEventListener('mt:auth-entered', () => {
     initDatePickers();
     renderCategoryPills();
+
+    // Load sticky defaults
+    const stickyPayMethod = localStorage.getItem('mt_sticky_paymethod');
+    const stickyPaySubType = localStorage.getItem('mt_sticky_paysubtype');
+    if (stickyPayMethod && payMethodSelect) {
+        payMethodSelect.value = stickyPayMethod;
+    }
+    
     updatePaySubTypeOptions();
+    
+    if (stickyPaySubType && paySubTypeSelect) {
+        const optionExists = Array.from(paySubTypeSelect.options).some(opt => opt.value === stickyPaySubType);
+        if (optionExists) {
+            paySubTypeSelect.value = stickyPaySubType;
+        }
+    }
+
     updateTransferUI();
     renderEntries();
     updateDescriptionDatalist();
@@ -951,6 +969,118 @@
         }
       });
     }
+
+    // --- SMART PASTE INTERFACE ---
+     const quickPasteBtn = document.getElementById('quickPasteBtn');
+     const smartPasteModal = document.getElementById('smartPasteModal');
+     const smartPasteCancel = document.getElementById('smartPasteCancel');
+     const smartPasteApply = document.getElementById('smartPasteApply');
+     const pasteTextInput = document.getElementById('pasteTextInput');
+     const tryClipboardBtn = document.getElementById('tryClipboardBtn');
+     const parsePreviewCard = document.getElementById('parsePreviewCard');
+
+     let parsedResult = null;
+
+     if (quickPasteBtn && smartPasteModal) {
+       quickPasteBtn.addEventListener('click', () => {
+         smartPasteModal.style.display = 'flex';
+         pasteTextInput.value = '';
+         pasteTextInput.focus();
+         parsePreviewCard.style.display = 'none';
+         smartPasteApply.disabled = true;
+         
+         if (navigator.clipboard && navigator.clipboard.readText) {
+           tryClipboardBtn.style.display = 'inline-block';
+         } else {
+           tryClipboardBtn.style.display = 'none';
+         }
+       });
+     }
+
+     if (smartPasteCancel && smartPasteModal) {
+       smartPasteCancel.addEventListener('click', () => {
+         smartPasteModal.style.display = 'none';
+       });
+     }
+
+     if (tryClipboardBtn && pasteTextInput) {
+       tryClipboardBtn.addEventListener('click', async () => {
+         try {
+           const text = await navigator.clipboard.readText();
+           if (text) {
+             pasteTextInput.value = text;
+             pasteTextInput.dispatchEvent(new Event('input'));
+           } else {
+             ui.showToast('Clipboard is empty');
+           }
+         } catch (err) {
+           console.error('Failed to read clipboard:', err);
+           ui.showToast('Clipboard access blocked. Paste manually.');
+         }
+       });
+     }
+
+     if (pasteTextInput) {
+       pasteTextInput.addEventListener('input', () => {
+         const text = pasteTextInput.value.trim();
+         if (!text) {
+           parsePreviewCard.style.display = 'none';
+           smartPasteApply.disabled = true;
+           return;
+         }
+
+         parsedResult = window.MT.parser?.parseText(text);
+         if (parsedResult && (parsedResult.amount || parsedResult.description)) {
+           parsePreviewCard.style.display = 'block';
+           smartPasteApply.disabled = false;
+
+           document.getElementById('parsedAmount').textContent = parsedResult.amount ? `${db.loadCustom().currency || '₹'}${parsedResult.amount}` : '-';
+           document.getElementById('parsedDesc').textContent = parsedResult.description || '-';
+           document.getElementById('parsedType').textContent = parsedResult.type || 'Expense';
+           document.getElementById('parsedMethod').textContent = parsedResult.payMethod || '-';
+           document.getElementById('parsedSubType').textContent = parsedResult.paySubType || 'None';
+         } else {
+           parsePreviewCard.style.display = 'none';
+           smartPasteApply.disabled = true;
+         }
+       });
+     }
+
+     if (smartPasteApply && smartPasteModal) {
+       smartPasteApply.addEventListener('click', () => {
+         if (!parsedResult) return;
+
+         if (parsedResult.amount) amountEl.value = parsedResult.amount;
+         if (parsedResult.description) descriptionEl.value = parsedResult.description;
+         
+         if (parsedResult.type) {
+           typeEl.value = parsedResult.type;
+           document.querySelectorAll('#type-pills button').forEach(b => {
+             b.classList.toggle('active', b.dataset.value === parsedResult.type);
+           });
+         }
+
+         if (parsedResult.payMethod) {
+           payMethodSelect.value = parsedResult.payMethod;
+           updatePaySubTypeOptions();
+
+           if (parsedResult.paySubType && paySubTypeSelect) {
+             const optionExists = Array.from(paySubTypeSelect.options).some(opt => opt.value === parsedResult.paySubType);
+             if (optionExists) {
+               paySubTypeSelect.value = parsedResult.paySubType;
+             }
+           }
+         }
+
+         if (parsedResult.description) {
+            const triggerAi = document.getElementById('aiCategorizeBtn');
+            if (triggerAi) triggerAi.click();
+         }
+
+         smartPasteModal.style.display = 'none';
+         ui.showToast('SMS details applied!', 'success');
+       });
+     }
   });
 
   window.addEventListener('mt:entries-changed', () => {

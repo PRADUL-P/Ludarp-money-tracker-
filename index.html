@@ -176,6 +176,53 @@
     </div>
   </div>
 
+  <!-- SMART CLIPBOARD/SMS PARSER MODAL -->
+  <div id="smartPasteModal" class="auth-screen" style="display:none; z-index:10001; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px);">
+    <div class="card" style="max-width:450px; width:92%; padding:25px; border-radius:24px; max-height: 90vh; overflow-y: auto;">
+        <div style="font-size:40px; margin-bottom:15px; text-align:center;">📋</div>
+        <h3 style="text-align:center; margin-bottom:10px;">Smart SMS / Text Parser</h3>
+        <p style="font-size:12px; opacity:0.7; text-align:center; margin-bottom:20px;">
+          Paste your bank transaction SMS or copy-paste text below. We'll automatically extract the amount, description, type, and payment details.
+        </p>
+        
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <textarea id="pasteTextInput" placeholder="Paste transaction text/SMS here... (e.g. 'Debited Rs. 250 at Swiggy from A/c XX123')" style="width:100%; height:120px; padding:12px; border-radius:12px; border:1px solid var(--card-border); background:var(--bg); color:var(--text); font-size:13px; resize:none; font-family:inherit;"></textarea>
+            
+            <button id="tryClipboardBtn" type="button" class="btn-secondary" style="font-size:11px; padding:6px 12px; border-radius:8px; align-self: flex-end; margin-top:-5px; display:none;">
+              📋 Paste from Clipboard
+            </button>
+
+            <!-- Preview Card -->
+            <div id="parsePreviewCard" style="display:none; padding:15px; border-radius:12px; border:1px solid var(--accent-1); background:rgba(37,99,235,0.05); margin-top:10px;">
+                <div style="font-size:12px; font-weight:700; color:var(--accent-1); margin-bottom:10px; display:flex; align-items:center; gap:5px;">
+                    <span>✨</span> PARSED PREVIEW
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 2fr; gap:8px; font-size:13px;">
+                    <div style="color:var(--text-secondary);">Amount:</div>
+                    <div id="parsedAmount" style="font-weight:700;">-</div>
+
+                    <div style="color:var(--text-secondary);">What for:</div>
+                    <div id="parsedDesc" style="font-weight:600;">-</div>
+
+                    <div style="color:var(--text-secondary);">Type:</div>
+                    <div id="parsedType" style="font-weight:600;">-</div>
+
+                    <div style="color:var(--text-secondary);">Method:</div>
+                    <div id="parsedMethod" style="font-weight:600;">-</div>
+
+                    <div style="color:var(--text-secondary);">Account:</div>
+                    <div id="parsedSubType" style="font-weight:600;">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:20px; padding-top:15px; border-top:1px solid var(--card-border); display:flex; gap:10px;">
+            <button id="smartPasteCancel" class="btn-secondary" style="flex:1;">Cancel</button>
+            <button id="smartPasteApply" class="btn-primary" style="flex:1; background:var(--accent-1);" disabled>Apply to Form</button>
+        </div>
+    </div>
+  </div>
+
   <!-- APP -->
   <div id="appRoot" class="appRoot" style="display:none;">
     <header class="app-header card" role="banner">
@@ -265,11 +312,15 @@
 
           <hr style="border: none; border-top: 1px solid var(--card-border); margin: 0 0 20px 0;" />
 
-          <div class="add-transaction-header" style="justify-content:space-between;">
+          <div class="add-transaction-header" style="justify-content:space-between; gap: 8px;">
             <h2>Add Transaction</h2>
             <!-- OCR BUTTON -->
-            <button id="ocrBtn" type="button" class="btn-primary" style="background:var(--accent); font-size:12px; border-radius:30px; height:32px; flex: 1; max-width: 140px; padding: 0 10px;">
-              🧾 Auto-Scan Bill
+            <button id="ocrBtn" type="button" class="btn-primary" style="background:var(--accent); font-size:12px; border-radius:30px; height:32px; flex: 1; max-width: 130px; padding: 0 5px;">
+              🧾 Auto-Scan
+            </button>
+            <!-- QUICK PASTE BUTTON -->
+            <button id="quickPasteBtn" type="button" class="btn-primary" style="background:var(--accent-2); font-size:12px; border-radius:30px; height:32px; flex: 1; max-width: 130px; padding: 0 5px;">
+              📋 Smart Paste
             </button>
             <input type="file" id="ocrFileInput" accept="image/*" capture="environment" style="display:none;" />
           </div>
@@ -2050,7 +2101,7 @@
   <script src="js/colors.js" defer></script>
   <script src="js/nav.js" defer></script>
   <script src="js/calc.js" defer></script>
-
+  <script src="js/parser.js" defer></script>
   <script src="js/entry.js?v=6.1.7" defer></script>
   <script src="js/summary.js?v=6.1.7" defer></script>
   <script src="js/accounts.js?v=6.1.7" defer></script>
@@ -2066,7 +2117,7 @@
   <script src="js/statement.js" defer></script>
   <script src="js/gsheets.js?v=6.1.7" defer></script>
   <!-- Versioning & Navigation Core -->
-  <script>window.LUDARP_VERSION = '6.1.7';</script>
+  <script>window.LUDARP_VERSION = '6.2.0';</script>
 
 
 

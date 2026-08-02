@@ -1,9 +1,12 @@
-const CACHE_NAME = 'ludarp-moneytracker-v37';
+const CACHE_NAME = 'ludarp-moneytracker-v38';
 const ASSETS = [
   './',
   './index.html',
   './style.css?v=2',
   './manifest.webmanifest',
+  './logo.png',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
   './js/db.js',
   './js/security.js',
   './js/ui.js',
@@ -20,11 +23,11 @@ const ASSETS = [
   './js/dues.js',
   './js/exporter.js',
   './js/gsheets.js',
+  './js/parser.js',
   './js/calc.js',
   './js/notifications.js',
   './js/voice.js',
   './js/statement.js',
-  './js/customselect.js',
   './js/goals.js',
   './js/pdf-generator.js',
   './js/whatsnew.js',
@@ -32,7 +35,12 @@ const ASSETS = [
   './js/salary-dist.js',
   './js/lab.js',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+  'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js'
 ];
 
 // INSTALL: Cache all core assets

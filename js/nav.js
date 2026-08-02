@@ -164,10 +164,24 @@ window.MT = window.MT || {};
             startY = 0;
         }, {passive:true});
 
-        // Initial Sync
-        const active = document.querySelector('section.view.active');
-        if (active) showView(active.id.replace('view-', ''));
-        else showView('entry');
+        // Initial Sync with PWA shortcuts URL query parameter parsing
+        const params = new URLSearchParams(window.location.search);
+        const actionParam = params.get('action');
+        const viewParam = params.get('view');
+
+        if (actionParam === 'add_expense') {
+            showView('entry');
+            setTimeout(() => {
+                const clearBtn = document.getElementById('clear-btn');
+                if (clearBtn) clearBtn.click();
+            }, 150);
+        } else if (viewParam === 'dues') {
+            showView('dues');
+        } else {
+            const active = document.querySelector('section.view.active');
+            if (active) showView(active.id.replace('view-', ''));
+            else showView('entry');
+        }
     }
 
     // Export

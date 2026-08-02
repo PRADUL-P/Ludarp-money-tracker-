@@ -2,7 +2,7 @@
 
 (function () {
     function showWhatsNew() {
-        const hasSeen = localStorage.getItem('ludarp_v6_whatsnew_seen');
+        const hasSeen = localStorage.getItem('ludarp_v6_2_whatsnew_seen');
         if (hasSeen) return;
 
         const overlay = document.createElement('div');
@@ -38,37 +38,37 @@
         `;
 
         modal.innerHTML = `
-            <div style="font-size: 50px; margin-bottom: 20px;">🚀</div>
-            <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 10px; background: linear-gradient(to right, #f43f5e, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">LUDARP v6.0 Titanium+</h2>
-            <p style="font-size: 14px; opacity: 0.8; margin-bottom: 25px;">The ultimate financial operating system has arrived with major new upgrades!</p>
+            <div style="font-size: 50px; margin-bottom: 20px;">⚡</div>
+            <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 10px; background: linear-gradient(to right, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">LUDARP v6.2.0 Autonomic</h2>
+            <p style="font-size: 14px; opacity: 0.8; margin-bottom: 25px;">Powerful new logging automation and offline capabilities have arrived!</p>
             
             <div style="text-align: left; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 15px; margin-bottom: 25px;">
                 <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start;">
-                    <span style="font-size: 20px;">🎯</span>
+                    <span style="font-size: 20px;">📋</span>
                     <div>
-                        <div style="font-weight: 700; font-size: 13px;">Goals & Savings Planner</div>
-                        <div style="font-size: 11px; opacity: 0.6;">Track your big dreams with visual progress.</div>
+                        <div style="font-weight: 700; font-size: 13px;">Smart SMS / Text Parser</div>
+                        <div style="font-size: 11px; opacity: 0.6;">Copy bank/UPI SMS notifications and paste them to instantly auto-populate transaction entries.</div>
                     </div>
                 </div>
                 <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start;">
-                    <span style="font-size: 20px;">📄</span>
+                    <span style="font-size: 20px;">🔄</span>
                     <div>
-                        <div style="font-weight: 700; font-size: 13px;">Premium PDF Generator</div>
-                        <div style="font-size: 11px; opacity: 0.6;">Professional offline statements in one tap.</div>
+                        <div style="font-weight: 700; font-size: 13px;">Offline Auto-Sync to Sheets</div>
+                        <div style="font-size: 11px; opacity: 0.6;">Log transactions while offline. The app queues updates and auto-syncs to Google Sheets as soon as connection is restored.</div>
                     </div>
                 </div>
                 <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start;">
-                    <span style="font-size: 20px;">✨</span>
+                    <span style="font-size: 20px;">📌</span>
                     <div>
-                        <div style="font-weight: 700; font-size: 13px;">Safe-to-Spend Widget</div>
-                        <div style="font-size: 11px; opacity: 0.6;">Know exactly how much is guilt-free to spend.</div>
+                        <div style="font-weight: 700; font-size: 13px;">Sticky Payment Defaults</div>
+                        <div style="font-size: 11px; opacity: 0.6;">Remembers your last used payment method and account bank, eliminating repetitive form selections.</div>
                     </div>
                 </div>
                 <div style="display: flex; gap: 12px; align-items: flex-start;">
-                    <span style="font-size: 20px;">📲</span>
+                    <span style="font-size: 20px;">📶</span>
                     <div>
-                        <div style="font-weight: 700; font-size: 13px;">One-Click App Install</div>
-                        <div style="font-size: 11px; opacity: 0.6;">Install LUDARP as a native app on any device.</div>
+                        <div style="font-weight: 700; font-size: 13px;">100% Offline Loading (Fixed)</div>
+                        <div style="font-size: 11px; opacity: 0.6;">Service worker cache and external scripts caching have been fully patched. The app loads offline without errors.</div>
                     </div>
                 </div>
             </div>
@@ -78,14 +78,14 @@
                 padding: 14px;
                 border-radius: 12px;
                 border: none;
-                background: #f43f5e;
+                background: linear-gradient(135deg, #10b981, #059669);
                 color: white;
                 font-weight: 800;
                 font-size: 15px;
                 cursor: pointer;
-                box-shadow: 0 4px 15px rgba(244, 63, 94, 0.3);
+                box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
                 transition: transform 0.2s;
-            ">Explore Version 6.0</button>
+            ">Explore Version 6.2.0</button>
         `;
 
         document.body.appendChild(overlay);
@@ -103,7 +103,7 @@
         }
 
         document.getElementById('closeWhatsNew').onclick = () => {
-            localStorage.setItem('ludarp_v6_whatsnew_seen', 'true');
+            localStorage.setItem('ludarp_v6_2_whatsnew_seen', 'true');
             overlay.style.opacity = '0';
             overlay.style.transition = 'opacity 0.3s ease';
             setTimeout(() => overlay.remove(), 300);

@@ -96,6 +96,7 @@
 
     // --- GOOGLE SHEETS SYNCED STATE TRACKING ---
     const SYNCED_IDS_KEY = 'mt_synced_entry_ids';
+    const PENDING_DELETES_KEY = 'mt_pending_deletions';
 
     function getSyncedIds() {
         try {
@@ -119,10 +120,126 @@
         localStorage.setItem(SYNCED_IDS_KEY, JSON.stringify(synced));
     }
 
+    function getPendingDeletes() {
+        try {
+            return JSON.parse(localStorage.getItem(PENDING_DELETES_KEY)) || [];
+        } catch (e) { return []; }
+    }
+
+    function savePendingDeletes(list) {
+        localStorage.setItem(PENDING_DELETES_KEY, JSON.stringify(list));
+    }
+
+    function addPendingDelete(id) {
+        if (!id) return;
+        const list = getPendingDeletes();
+        if (!list.includes(id)) {
+            list.push(id);
+            savePendingDeletes(list);
+        }
+    }
+
+    function removePendingDelete(id) {
+        if (!id) return;
+        let list = getPendingDeletes();
+        list = list.filter(item => item !== id);
+        savePendingDeletes(list);
+    }
+
+    let isSyncingPending = false;
+    async function autoSyncPending() {
+        if (isSyncingPending) return;
+        const url = loadURL();
+        if (!url) return;
+        if (!navigator.onLine) return;
+
+        isSyncingPending = true;
+        console.log('[Sync] Starting background auto-sync of pending changes...');
+
+        try {
+            // 1. Process pending deletions first
+            const pendingDeletes = getPendingDeletes();
+            if (pendingDeletes.length > 0) {
+                console.log(`[Sync] Found ${pendingDeletes.length} pending deletions to sync...`);
+                for (let i = pendingDeletes.length - 1; i >= 0; i--) {
+                    const id = pendingDeletes[i];
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            body: JSON.stringify({ action: 'delete', id: id })
+                        });
+                        if (response.ok) {
+                            console.log(`[Sync] Deleted entry ${id} from Google Sheets.`);
+                            removePendingDelete(id);
+                            markAsUnsynced(id);
+                        }
+                    } catch (e) {
+                        console.error(`[Sync] Failed to send deletion for ${id}:`, e);
+                        break; // Stop loop on network error
+                    }
+                }
+            }
+
+            // 2. Process pending upserts (additions/updates)
+            const s = window.MT.db.loadStore();
+            const allEntries = [];
+            for (const dateK in s.days) {
+                (s.days[dateK] || []).forEach(e => {
+                    allEntries.push(e);
+                });
+            }
+
+            const synced = getSyncedIds();
+            const unsyncedEntries = allEntries.filter(e => !synced[e.id || e.dueId]);
+
+            if (unsyncedEntries.length > 0) {
+                console.log(`[Sync] Found ${unsyncedEntries.length} unsynced entries to sync...`);
+                let successCount = 0;
+                for (const entry of unsyncedEntries) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                id: entry.id,
+                                dueId: entry.dueId,
+                                date: entry.dateStr || new Date().toISOString().slice(0, 10),
+                                type: entry.type,
+                                category: entry.category,
+                                description: entry.description,
+                                amount: entry.amount,
+                                payMethod: entry.payMethod || '',
+                                account: entry.paySubType || entry.mappedBank || 'Cash',
+                                bank: entry.mappedBank || (entry.payMethod === 'Bank' ? entry.paySubType : '') || (entry.payMethod === 'Cash' ? 'Cash' : ''),
+                                module: entry.module || 'Entry',
+                                person: entry.duePerson || entry.splitRefPerson || (entry.split && entry.split.enabled ? entry.split.participants.map(p => p.name).join(', ') : ''),
+                                note: entry.note || ''
+                            })
+                        });
+                        if (response.ok) {
+                            successCount++;
+                            markAsSynced(entry.id || entry.dueId);
+                        }
+                    } catch (err) {
+                        console.error('[Sync] Failed to sync entry:', entry, err);
+                        break; // Stop loop on network error
+                    }
+                }
+                if (successCount > 0) {
+                    window.MT.ui?.showToast(`🔄 Auto-synced ${successCount} entries to Google Sheets!`, 'success');
+                }
+            }
+        } catch (e) {
+            console.error('[Sync] Error during background auto-sync:', e);
+        } finally {
+            isSyncingPending = false;
+        }
+    }
+
     async function syncToSheet(entry) {
         const url = loadURL();
         if (!url) return;
 
+        // Try direct sync if online
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -146,10 +263,11 @@
                 console.log('Synced to Google Sheets successfully.');
                 markAsSynced(entry.id || entry.dueId);
             } else {
-                console.error('Failed to sync to Google Sheets.');
+                console.error('Failed to sync to Google Sheets (non-200). Will retry when online.');
             }
         } catch (e) {
-            console.error('Error syncing to Google Sheets:', e);
+            console.error('Network error. Transaction saved locally and will auto-sync when connection is restored:', e);
+            // It will be picked up by autoSyncPending since it is not marked as synced
         }
     }
 
@@ -168,11 +286,14 @@
             if (response.ok) {
                 console.log('Deleted from Google Sheets successfully.');
                 markAsUnsynced(entryId);
+                removePendingDelete(entryId);
             } else {
-                console.error('Failed to delete from Google Sheets.');
+                console.error('Failed to delete from Google Sheets. Queueing for retry.');
+                addPendingDelete(entryId);
             }
         } catch (e) {
-            console.error('Error syncing delete to Google Sheets:', e);
+            console.error('Network error during delete. Queueing deletion for retry:', e);
+            addPendingDelete(entryId);
         }
     }
 
@@ -597,14 +718,25 @@ function doPost(e) {
     window.MT = window.MT || {};
     window.MT.gsheets = {
         syncToSheet,
-        initUI
+        initUI,
+        autoSyncPending
     };
 
-    window.addEventListener('mt:auth-entered', initUI);
-    window.addEventListener('DOMContentLoaded', initUI);
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    function onInit() {
         initUI();
+        // Trigger auto-sync of any pending items on load/login
+        setTimeout(autoSyncPending, 2000);
     }
+
+    window.addEventListener('mt:auth-entered', onInit);
+    window.addEventListener('DOMContentLoaded', onInit);
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        onInit();
+    }
+    
+    // Auto-sync when browser goes online
+    window.addEventListener('online', autoSyncPending);
+
     // Listen for new entries to sync
     window.addEventListener('mt:entry-added', (e) => {
         syncToSheet(e.detail);
