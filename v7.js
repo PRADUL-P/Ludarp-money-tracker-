@@ -517,51 +517,102 @@
       list.forEach(t => { if (t.type === 'exp') dayTotalExp += Number(t.amount || 0); });
 
       return `
-        <div style="margin-bottom: 20px;">
-          <div style="font-weight: 800; font-size: 0.85rem; color: var(--cyan-bright); margin-bottom: 8px; display: flex; justify-content: space-between;">
+        <div style="margin-bottom: 24px;">
+          <div style="font-weight: 800; font-size: 0.88rem; color: var(--cyan-bright); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
             <span>📅 ${date}</span>
-            <span class="blur-target">Day Spent: ${formatMoney(dayTotalExp)}</span>
+            <span class="blur-target" style="background: rgba(6, 182, 212, 0.1); padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(6, 182, 212, 0.2);">Day Spent: ${formatMoney(dayTotalExp)}</span>
           </div>
-          <div class="tech-card">
+          <div class="tech-card" style="padding: 6px 12px;">
             ${list.map(tx => {
-        const accName = store.accounts[tx.accountId]?.name || tx.paymentType || tx.paymentMethod || 'GPay';
-        const duePerson = tx.duePerson || tx.person || dues.find(d => d.id === (tx.linkedDueId || tx.dueId))?.person;
-        const dueBadge = duePerson ? `<span style="color:#a78bfa; font-weight:800; background:rgba(167,139,250,0.15); padding:2px 6px; border-radius:4px; font-size:0.72rem;">🤝 Due: ${duePerson}</span>` : '';
-        const fuelBadge = (tx.fuel || tx.odometer || tx.fuelLitres || tx.currentKm) ? `<span style="color:var(--amber-warn); font-weight:800; background:rgba(234,179,8,0.15); padding:2px 6px; border-radius:4px; font-size:0.72rem;">⛽ Fuel</span>` : '';
+        const accName = store.accounts[tx.accountId]?.name || tx.paymentType || tx.paymentMethod || tx.account || 'GPay';
+        const typeLabel = tx.type === 'inc' ? 'Income' : tx.type === 'transfer' ? 'Transfer' : 'Expense';
+        const typeColor = tx.type === 'inc' ? 'var(--emerald-inc)' : tx.type === 'transfer' ? 'var(--cyan-bright)' : 'var(--rose-exp)';
+        const descText = tx.desc || tx.description || tx.note || tx.remarks || tx.category;
+
+        // Due details check
+        let dueObj = null;
+        const dueIdToFind = tx.linkedDueId || tx.dueId;
+        if (dueIdToFind) dueObj = dues.find(d => d.id === dueIdToFind);
+        const duePerson = dueObj?.person || tx.duePerson || tx.person;
+        const dueTypeVal = dueObj?.type || tx.dueType || (tx.type === 'inc' ? 'they_owe' : 'i_owe');
+        const dueAmountVal = dueObj?.amount || tx.dueAmount || tx.amount;
+        const dueStatusText = dueObj ? (dueObj.settled ? '✓ Settled' : '⏳ Pending') : (tx.isDueSettlement ? '🤝 Settlement' : '🟢 Active Due');
+
+        // Fuel details check
+        const f = tx.fuel || {};
+        const odo = f.currentKm || tx.odometer || tx.currentKm || tx.km;
+        const prevOdo = f.prevKm || tx.prevKm || 0;
+        const liters = f.liters || tx.fuelLitres || tx.liters || tx.fuel_liters;
+        const rate = f.price || tx.fuelRate || tx.rate || tx.price;
+        const dist = odo && prevOdo && odo > prevOdo ? odo - prevOdo : 0;
+        const mileage = liters && dist > 0 ? (dist / liters).toFixed(1) : '–';
+
+        // Transfer details check
+        const fromName = (tx.type === 'transfer' || tx.fromAccountId) ? (store.accounts[tx.fromAccountId]?.name || tx.fromAccountId || accName) : null;
+        const toName = (tx.type === 'transfer' || tx.toAccountId) ? (store.accounts[tx.toAccountId]?.name || tx.toAccountId || 'Destination Account') : null;
 
         return `
-                <div class="tx-item" style="cursor: pointer;" onclick="window.showTxDetail('${tx.date}', '${tx.id}')">
-                  <div style="display:flex; align-items:center; gap: 14px;">
-                    <div class="tx-badge">${getCatIcon(tx.category)}</div>
-                    <div>
-                      <div style="font-weight:800; font-size: 0.98rem; color: #fff;">${tx.desc || tx.description || tx.category}</div>
-                      <div style="font-size:0.78rem; color: var(--text-muted); display:flex; gap: 8px; margin-top:4px; align-items:center; flex-wrap:wrap;">
-                        <span>🏷️ ${tx.category}</span>
-                        <span>💳 ${accName}</span>
-                        ${dueBadge}
-                        ${fuelBadge}
+                <div class="tx-item" style="cursor: pointer; padding: 14px 10px; border-bottom: 1px solid rgba(255,255,255,0.06);" onclick="window.showTxDetail('${tx.date}', '${tx.id}')">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap: 12px;">
+                    <div style="display:flex; align-items:flex-start; gap: 12px; flex: 1; min-width: 0;">
+                      <div class="tx-badge" style="margin-top: 2px;">${getCatIcon(tx.category)}</div>
+                      <div style="min-width: 0; flex: 1;">
+                        <div style="font-weight:800; font-size: 1rem; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                          ${descText}
+                        </div>
+                        <div style="font-size:0.78rem; color: var(--text-muted); display:flex; gap: 10px; margin-top:4px; align-items:center; flex-wrap:wrap;">
+                          <span>🏷️ <b>${tx.category}</b></span>
+                          <span>💳 <b>${accName}</b></span>
+                          ${tx.time ? `<span>🕒 ${tx.time}</span>` : ''}
+                        </div>
                       </div>
                     </div>
+                    <div style="text-align:right; flex-shrink:0;">
+                      <div class="stat-amount ${tx.type === 'inc' ? 'inc' : tx.type === 'transfer' ? 'net' : 'exp'} blur-target" style="font-size: 1.15rem; font-weight: 900; margin:0;">
+                        ${tx.type === 'inc' ? '+' : tx.type === 'transfer' ? '🔄' : '-'}${formatMoney(tx.amount)}
+                      </div>
+                      <span class="badge" style="font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; margin-top: 4px; display: inline-block; background: ${typeColor}; color: #000; font-weight: 900;">
+                        ${typeLabel}
+                      </span>
+                    </div>
                   </div>
-                  <div style="text-align:right;">
-                    <div class="stat-amount ${tx.type === 'inc' ? 'inc' : tx.type === 'transfer' ? 'net' : 'exp'} blur-target" style="font-size: 1.05rem; margin:0;">
-                      ${tx.type === 'inc' ? '+' : tx.type === 'transfer' ? '🔄' : '-'}${formatMoney(tx.amount)}
+
+                  ${(duePerson || dueObj || tx.isDueSettlement) ? `
+                    <div style="margin-top: 10px; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25); border-radius: 8px; padding: 6px 12px; font-size: 0.78rem; color: #fff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+                      <span>🤝 <b>${duePerson || 'Splitwise Due'}</b> (${dueTypeVal === 'they_owe' ? '🟢 They Owe Me' : '🔴 I Owe'}) • <b>${formatMoney(dueAmountVal)}</b></span>
+                      <span style="color: #a78bfa; font-weight: 800;">${dueStatusText}</span>
                     </div>
-                    <div style="display:flex; gap: 8px; justify-content: flex-end; margin-top: 4px;" onclick="event.stopPropagation();">
-                      <button onclick="window.showTxDetail('${tx.date}', '${tx.id}')" style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer; font-weight:bold;">
-                        🔍 Details
-                      </button>
-                      <button onclick="window.openEditModal('${tx.date}', '${tx.id}')" style="background:none; border:none; color:var(--cyan-bright); font-size:0.75rem; cursor:pointer; font-weight:bold;">
-                        ✏️ Edit
-                      </button>
-                      <button onclick="window.deleteTransaction('${tx.date}', '${tx.id}')" style="background:none; border:none; color:var(--rose-exp); font-size:0.75rem; cursor:pointer; font-weight:bold;">
-                        🗑️ Delete
-                      </button>
+                  ` : ''}
+
+                  ${(odo || liters || tx.category === 'Petrol') ? `
+                    <div style="margin-top: 10px; background: rgba(234,179,8,0.08); border: 1px dashed var(--amber-warn); border-radius: 8px; padding: 6px 12px; font-size: 0.78rem; color: var(--amber-warn); display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                      <span>🛵 <b>${odo ? odo + ' km' : 'Petrol Log'}</b></span>
+                      ${liters ? `<span>💧 <b>${liters} L</b></span>` : ''}
+                      ${rate ? `<span>💰 <b>${getCurrency()}${rate}/L</b></span>` : ''}
+                      ${dist > 0 && mileage !== '–' ? `<span style="color: var(--emerald-inc); font-weight: 800;">📊 Mileage: ${mileage} km/L</span>` : ''}
                     </div>
+                  ` : ''}
+
+                  ${(fromName && toName) ? `
+                    <div style="margin-top: 10px; background: rgba(6,182,212,0.08); border: 1px solid var(--border-cyan); border-radius: 8px; padding: 6px 12px; font-size: 0.78rem; color: var(--cyan-bright);">
+                      🔄 Account Transfer: <b>${fromName}</b> ➔ <b>${toName}</b>
+                    </div>
+                  ` : ''}
+
+                  <div style="display:flex; gap: 14px; justify-content: flex-end; margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 6px;" onclick="event.stopPropagation();">
+                    <button onclick="window.showTxDetail('${tx.date}', '${tx.id}')" style="background:none; border:none; color:var(--cyan-bright); font-size:0.78rem; cursor:pointer; font-weight:bold;">
+                      🔍 Full Details
+                    </button>
+                    <button onclick="window.openEditModal('${tx.date}', '${tx.id}')" style="background:none; border:none; color:var(--text-secondary); font-size:0.78rem; cursor:pointer; font-weight:bold;">
+                      ✏️ Edit
+                    </button>
+                    <button onclick="window.deleteTransaction('${tx.date}', '${tx.id}')" style="background:none; border:none; color:var(--rose-exp); font-size:0.78rem; cursor:pointer; font-weight:bold;">
+                      🗑️ Delete
+                    </button>
                   </div>
                 </div>
               `;
-      }).join('')}
+            }).join('')}
           </div>
         </div>
       `;
