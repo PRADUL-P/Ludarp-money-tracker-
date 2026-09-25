@@ -217,6 +217,7 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
+    showWhatsNewModal();
   }
 
   function loadAllData() {
@@ -2889,6 +2890,78 @@
         }
       });
     }
+
+    const btnWhatsNew = document.getElementById('about-whatsnew-btn');
+    if (btnWhatsNew && !btnWhatsNew.dataset.bound) {
+      btnWhatsNew.dataset.bound = 'true';
+      btnWhatsNew.addEventListener('click', () => {
+        showWhatsNewModal(true);
+      });
+    }
+  }
+
+  function showWhatsNewModal(force = false) {
+    if (!force && localStorage.getItem('ludarp_v7_1_whatsnew_seen')) return;
+    if (document.getElementById('whats-new-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'whats-new-overlay';
+    overlay.className = 'modal-overlay active';
+    overlay.style.zIndex = '99999';
+
+    overlay.innerHTML = `
+      <div class="tech-card" style="max-width: 480px; width: 92%; padding: 28px; text-align: center; border: 1px solid var(--cyan-bright); box-shadow: 0 0 40px rgba(6, 182, 212, 0.3);">
+        <div style="font-size: 2.8rem; margin-bottom: 12px;">🚀</div>
+        <div style="font-weight: 900; font-size: 1.4rem; margin-bottom: 6px; color: #fff; background: linear-gradient(135deg, var(--cyan-bright), #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          LUDARP v7.1 Finance OS
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px;">
+          Welcome to the ultimate finance management operating system!
+        </div>
+
+        <div style="text-align: left; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); border-radius: 14px; padding: 16px; margin-bottom: 22px; display: grid; gap: 14px;">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 1.3rem;">🤝</span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.88rem; color: #fff;">Dues Classification & Bank Auto-Log</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">Filter dues by 'They Owe Me' vs 'I Owe', with automated bank settlement balance logging.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 1.3rem;">📱</span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.88rem; color: #fff;">Tabbed Settings Navigation</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">Organized into General & Customization, Data & Sync, and User Security sub-tabs.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 1.3rem;">🔍</span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.88rem; color: #fff;">Detailed Transaction Metadata View</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">Tap any history item to view full metadata, fuel metrics, and linked dues.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 1.3rem;">🔒</span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.88rem; color: #fff;">Passcode Security & 100% Offline PWA</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">Zero data loss, 100% local storage privacy, and passcode lock protection.</div>
+            </div>
+          </div>
+        </div>
+
+        <button id="close-whats-new-btn" class="btn-cyan" style="width: 100%; justify-content: center; font-weight: 800; padding: 12px;">
+          ⚡ Explore Version 7.1
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('close-whats-new-btn').addEventListener('click', () => {
+      localStorage.setItem('ludarp_v7_1_whatsnew_seen', 'true');
+      overlay.remove();
+    });
   }
 
   if (document.readyState === 'loading') {
