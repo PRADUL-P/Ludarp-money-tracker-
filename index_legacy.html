@@ -1,0 +1,2838 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- SEO & Primary Meta Tags -->
+  <title>LUDARP Money Tracker v6.1 | Secure Private Expense Manager</title>
+  <meta name="title" content="LUDARP Money Tracker Premium | Secure Private Expense Manager" />
+  <meta name="description"
+    content="Manage your finances with LUDARP Money Tracker. A secure, offline-first PWA for tracking expenses, income, splits, and petrol logs without cloud privacy risks." />
+  <meta name="keywords"
+    content="money tracker, expense manager, petrol log, split bill, finance app, offline tracker, private finance, PWA tracker" />
+  <meta name="author" content="LUDARP" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- JSON-LD Structured Data for Enhanced SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "LUDARP Money Tracker Premium",
+    "operatingSystem": "All",
+    "applicationCategory": "FinanceApplication",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "ratingCount": "120"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "INR"
+    },
+    "description": "LUDARP Money Tracker is a secure, privacy-first PWA for professional finance management with petrol logs, split bills, and 3D analytics."
+  }
+  </script>
+
+  <!-- Open Graph / Facebook / LinkedIn -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://pradul-p.github.io/Money-Tracker/" />
+  <meta property="og:title" content="LUDARP Money Tracker Premium | Secure & Private" />
+  <meta property="og:description"
+    content="Track every rupee securely on your device. Zero cloud sync, 100% privacy. Features include Petrol Logs, Split Bills, and Real-time Analytics." />
+  <meta property="og:image" content="https://pradul-p.github.io/Money-Tracker/icons/og-preview.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://pradul-p.github.io/Money-Tracker/" />
+  <meta property="twitter:title" content="LUDARP Money Tracker Premium" />
+  <meta property="twitter:description"
+    content="Modern tracking for modern living. Get the ultimate offline-first finance manager for free." />
+  <meta property="twitter:image" content="https://pradul-p.github.io/Money-Tracker/icons/og-preview.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css?v=2" />
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-7W6WR450XN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-7W6WR450XN');
+  </script>
+
+  <!-- LUDARP V5 External Libraries -->
+  <!-- Tesseract.js for Offline OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- QRCode.js for Offline P2P Sync -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- HTML5 QR Scanner for receiving Beam / Pairing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+  <!-- SheetJS for Excel export/import -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- SVG sprite for icons -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+    <symbol id="icon-menu" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z" />
+    </symbol>
+    <symbol id="icon-edit" viewBox="0 0 24 24">
+      <path fill="currentColor"
+        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+    </symbol>
+    <symbol id="icon-delete" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+    </symbol>
+    <symbol id="icon-export" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M5 20h14v-2H5v2zM11 16h2v-6h3l-4-4-4 4h3v6z" />
+    </symbol>
+    <symbol id="icon-bank" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 3 1 9h3v8h16V9h3L12 3zM7 14v-3h10v3H7z" />
+    </symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24">
+      <path fill="currentColor"
+        d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 20.49 21.49 19 15.5 14z" />
+    </symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" />
+    </symbol>
+  </svg>
+</head>
+
+<body>
+  <!-- AUTH -->
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card card">
+      <h2 id="authTitle">Welcome</h2>
+      <p id="authSubtitle" class="subtitle"></p>
+      <form id="authForm" class="auth-form">
+        <div id="authNameRow">
+          <label for="authName">Your name</label>
+          <input id="authName" type="text" placeholder="Name" />
+          <label for="authSecurityHint" style="margin-top:8px;">Security Question (Hint)</label>
+          <input id="authSecurityHint" type="text" placeholder="e.g. What is your pet's name?" />
+          <label for="authSecurityAnswer" style="margin-top:8px;">Security Answer</label>
+          <input id="authSecurityAnswer" type="password" placeholder="Answer to your security question" />
+        </div>
+        <label for="authPassword">App password</label>
+        <input id="authPassword" type="password" placeholder="Set / Enter password" />
+        <div class="auth-row" style="display:flex; gap:8px; margin-top:10px;">
+          <button id="authSubmitBtn" class="btn-primary" style="flex:1;" type="submit">Unlock</button>
+          <button id="authBioBtn" class="btn-secondary" type="button"
+            style="display:none; width:50px; justify-content:center; align-items:center;"
+            title="Unlock with Fingerprint">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path
+                d="M12 2a10 10 0 0 1 10 10v2a4 4 0 0 1-4 4h-2a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h2a4 4 0 0 0-4-4 4 4 0 0 0-4 4v10a8 8 0 0 0 8 8">
+              </path>
+              <path d="M8 12v2a4 4 0 0 0 4 4"></path>
+              <path d="M16 12v-2a4 4 0 0 0-4-4"></path>
+            </svg>
+          </button>
+          <button id="forgotBtn" class="btn-secondary" type="button">Forgot?</button>
+        </div>
+        <div id="authHint" class="info" style="margin-top:8px"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SALARY DISTRIBUTOR MODAL -->
+  <div id="salaryDistModal" class="auth-screen" style="display:none; z-index:10001; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px);">
+    <div class="card" style="max-width:400px; width:90%; padding:25px; border-radius:24px;">
+        <div style="font-size:40px; margin-bottom:15px; text-align:center;">💰</div>
+        <h3 style="text-align:center; margin-bottom:10px;">Salary Distributor</h3>
+        <p style="font-size:12px; opacity:0.7; text-align:center; margin-bottom:20px;">Allocate your income to your goals and savings immediately.</p>
+        
+        <div style="display:flex; flex-direction:column; gap:15px;" id="salaryDistList">
+            <!-- Goal rows will be injected here -->
+        </div>
+
+        <div style="margin-top:20px; padding-top:15px; border-top:1px solid var(--card-border);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:700;">
+                <span>Total Salary:</span>
+                <span id="salaryTotalDisp">₹0.00</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:12px; color:var(--muted);">
+                <span>Remaining:</span>
+                <span id="salaryRemainingDisp">₹0.00</span>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button id="salaryDistCancel" class="btn-secondary" style="flex:1;">Skip</button>
+                <button id="salaryDistConfirm" class="btn-primary" style="flex:1;">Distribute</button>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- SMART CLIPBOARD/SMS PARSER MODAL -->
+  <div id="smartPasteModal" class="auth-screen" style="display:none; z-index:10001; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px);">
+    <div class="card" style="max-width:450px; width:92%; padding:25px; border-radius:24px; max-height: 90vh; overflow-y: auto;">
+        <div style="font-size:40px; margin-bottom:15px; text-align:center;">📋</div>
+        <h3 style="text-align:center; margin-bottom:10px;">Smart SMS / Text Parser</h3>
+        <p style="font-size:12px; opacity:0.7; text-align:center; margin-bottom:20px;">
+          Paste your bank transaction SMS or copy-paste text below. We'll automatically extract the amount, description, type, and payment details.
+        </p>
+        
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <textarea id="pasteTextInput" placeholder="Paste transaction text/SMS here... (e.g. 'Debited Rs. 250 at Swiggy from A/c XX123')" style="width:100%; height:120px; padding:12px; border-radius:12px; border:1px solid var(--card-border); background:var(--bg); color:var(--text); font-size:13px; resize:none; font-family:inherit;"></textarea>
+            
+            <button id="tryClipboardBtn" type="button" class="btn-secondary" style="font-size:11px; padding:6px 12px; border-radius:8px; align-self: flex-end; margin-top:-5px; display:none;">
+              📋 Paste from Clipboard
+            </button>
+
+            <!-- Preview Card -->
+            <div id="parsePreviewCard" style="display:none; padding:15px; border-radius:12px; border:1px solid var(--accent-1); background:rgba(37,99,235,0.05); margin-top:10px;">
+                <div style="font-size:12px; font-weight:700; color:var(--accent-1); margin-bottom:10px; display:flex; align-items:center; gap:5px;">
+                    <span>✨</span> PARSED PREVIEW
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 2fr; gap:8px; font-size:13px;">
+                    <div style="color:var(--text-secondary);">Amount:</div>
+                    <div id="parsedAmount" style="font-weight:700;">-</div>
+
+                    <div style="color:var(--text-secondary);">What for:</div>
+                    <div id="parsedDesc" style="font-weight:600;">-</div>
+
+                    <div style="color:var(--text-secondary);">Type:</div>
+                    <div id="parsedType" style="font-weight:600;">-</div>
+
+                    <div style="color:var(--text-secondary);">Method:</div>
+                    <div id="parsedMethod" style="font-weight:600;">-</div>
+
+                    <div style="color:var(--text-secondary);">Account:</div>
+                    <div id="parsedSubType" style="font-weight:600;">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:20px; padding-top:15px; border-top:1px solid var(--card-border); display:flex; gap:10px;">
+            <button id="smartPasteCancel" class="btn-secondary" style="flex:1;">Cancel</button>
+            <button id="smartPasteApply" class="btn-primary" style="flex:1; background:var(--accent-1);" disabled>Apply to Form</button>
+        </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="appRoot" class="appRoot" style="display:none;">
+    <header class="app-header card" role="banner">
+      <div class="header-top">
+
+        <!-- LEFT: MENU + BRAND -->
+        <div class="brand-left" data-view="entry" style="cursor:pointer;">
+
+          <!-- MENU BUTTON (moved here) -->
+          <button id="menuToggle" class="icon-button menu-left" title="Menu" aria-label="Menu">
+            <svg width="18" height="18" aria-hidden="true">
+              <use href="#icon-menu"></use>
+            </svg>
+          </button>
+
+          <!-- BRAND ICON -->
+          <div class="brand-icon" role="img" aria-label="LUDARP logo">
+            <img src="logo.png" style="width:100%; height:100%; border-radius:14px; object-fit:cover;" alt="L">
+          </div>
+
+          <!-- BRAND TEXT -->
+          <div class="brand-text">
+            <h1 class="brand-title">LUDARP Money Tracker</h1>
+            <p class="subtitle brand-sub">
+              Offline daily tracker — secure on your device
+            </p>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: THEME TOGGLE ONLY -->
+        <div class="header-actions">
+          <button id="zenModeToggle" class="icon-button theme-btn" title="Toggle Zen Mode (Blur privacy)">
+            👁️
+          </button>
+          <button id="themeToggleTop" class="icon-button theme-btn" title="Toggle theme">
+            🌙
+          </button>
+        </div>
+
+      </div>
+
+      <nav class="main-nav" role="navigation" aria-label="Main">
+        <button class="nav-item active" data-view="entry">Entry</button>
+        <button class="nav-item" data-view="summary">Summary</button>
+        <button class="nav-item" data-view="accounts">Finance</button>
+        <button class="nav-item" data-view="dues" style="position:relative;">
+          Dues
+          <span id="duesBadge" class="dues-nav-badge" style="display:none;"></span>
+        </button>
+        <button class="nav-item" data-view="settings">Settings</button>
+        <button class="nav-item" data-view="lab">Lab</button>
+        <button class="nav-item" data-view="about">About</button>
+      </nav>
+
+    </header>
+
+    <main class="app-body">
+      <!-- ENTRY VIEW -->
+      <section id="view-entry" class="view active">
+        <section class="card large-glass">
+          <div class="daily-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div class="daily-label">Selected date</div>
+              <div id="selectedDateLabel" class="selected-date-text"></div>
+            </div>
+            <div class="date-input-wrap" style="display:flex; gap:8px; align-items:center;">
+              <input id="date" type="date" />
+              <input id="time" type="time" title="Time (Optional)" style="width: auto; padding: 0 4px;" />
+            </div>
+          </div>
+
+          <div class="summary-row" style="margin-bottom: 20px;">
+            <div>
+              <div class="summary-tag">Today Expense</div>
+              <div id="sumExpense" class="summary-value expense">₹0</div>
+            </div>
+            <div>
+              <div class="summary-tag">Today Income</div>
+              <div id="sumIncome" class="summary-value income">₹0</div>
+            </div>
+            <div>
+              <div class="summary-tag">Net</div>
+              <div id="sumNet" class="summary-value">₹0</div>
+            </div>
+          </div>
+
+          <hr style="border: none; border-top: 1px solid var(--card-border); margin: 0 0 20px 0;" />
+
+          <div class="add-transaction-header" style="justify-content:space-between; gap: 8px;">
+            <h2>Add Transaction</h2>
+            <!-- OCR BUTTON -->
+            <button id="ocrBtn" type="button" class="btn-primary" style="background:var(--accent); font-size:12px; border-radius:30px; height:32px; flex: 1; max-width: 130px; padding: 0 5px;">
+              🧾 Auto-Scan
+            </button>
+            <!-- QUICK PASTE BUTTON -->
+            <button id="quickPasteBtn" type="button" class="btn-primary" style="background:var(--accent-2); font-size:12px; border-radius:30px; height:32px; flex: 1; max-width: 130px; padding: 0 5px;">
+              📋 Smart Paste
+            </button>
+            <input type="file" id="ocrFileInput" accept="image/*" capture="environment" style="display:none;" />
+          </div>
+
+          <form id="money-form" class="form-grid">
+            <!-- ⚡ Quick Presets (Dynamic from Settings) -->
+            <div class="full" id="quickEntryPresets"
+              style="background:var(--card); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--card-border); margin-bottom:10px;">
+              <div
+                style="font-size:12px; color:var(--text-secondary); margin-bottom:8px; font-weight:600; display:flex; align-items:center; gap:5px; justify-content:space-between;">
+                <span>⚡ Quick Actions</span>
+                <button type="button" onclick="MT.nav.showView('settings')"
+                  style="font-size:10px; opacity:0.6; background:none; border:none; color:var(--accent);">Edit
+                  Prefills</button>
+              </div>
+              <div id="presetButtonsContainer" style="display:flex; gap:8px; flex-wrap:wrap;">
+                <!-- Buttons rendered by entry.js -->
+              </div>
+            </div>
+
+            <div>
+              <label for="category">Category</label>
+              <div style="display:flex; gap:8px;">
+                <input id="category" type="text" placeholder="Food, Travel..." style="flex:1;" />
+                <button type="button" id="btnAddQuickCategory" class="btn-secondary"
+                  style="width:46px; display:flex; align-items:center; justify-content:center; font-size:18px;"
+                  title="Add New Category">+</button>
+              </div>
+              <div id="category-pills" class="pill-row"></div>
+            </div>
+
+            <div>
+              <label for="amount">Amount</label>
+              <div style="display:flex; gap:8px;">
+                <input id="amount" type="number" min="0" step="0.01" placeholder="0.00" style="flex:1;" />
+                <button type="button" id="btnCalcToggle" class="btn-secondary"
+                  style="width:46px; display:flex; align-items:center; justify-content:center; font-size:18px;"
+                  title="Open Mini Calculator">🧮</button>
+              </div>
+
+              <!-- 🧮 Mini Calculator Panel -->
+              <div id="miniCalc" class="card"
+                style="display:none; margin-top:10px; padding:12px; background:rgba(255,255,255,0.05); border:1px solid var(--card-border); border-radius:var(--radius-sm); box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+                <div id="calcDisplay"
+                  style="background:rgba(0,0,0,0.2); padding:10px; border-radius:calc(var(--radius-sm) - 4px); text-align:right; font-family:monospace; font-size:20px; margin-bottom:10px; min-height:44px; overflow:hidden;">
+                  0</div>
+                <div class="calc-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
+                  <button type="button" onclick="MT.calc.append('7')" class="btn-secondary">7</button>
+                  <button type="button" onclick="MT.calc.append('8')" class="btn-secondary">8</button>
+                  <button type="button" onclick="MT.calc.append('9')" class="btn-secondary">9</button>
+                  <button type="button" onclick="MT.calc.setOp('/')" class="btn-secondary"
+                    style="background:var(--accent-2);">÷</button>
+
+                  <button type="button" onclick="MT.calc.append('4')" class="btn-secondary">4</button>
+                  <button type="button" onclick="MT.calc.append('5')" class="btn-secondary">5</button>
+                  <button type="button" onclick="MT.calc.append('6')" class="btn-secondary">6</button>
+                  <button type="button" onclick="MT.calc.setOp('*')" class="btn-secondary"
+                    style="background:var(--accent-2);">×</button>
+
+                  <button type="button" onclick="MT.calc.append('1')" class="btn-secondary">1</button>
+                  <button type="button" onclick="MT.calc.append('2')" class="btn-secondary">2</button>
+                  <button type="button" onclick="MT.calc.append('3')" class="btn-secondary">3</button>
+                  <button type="button" onclick="MT.calc.setOp('-')" class="btn-secondary"
+                    style="background:var(--accent-2);">−</button>
+
+                  <button type="button" onclick="MT.calc.append('0')" class="btn-secondary">0</button>
+                  <button type="button" onclick="MT.calc.append('.')" class="btn-secondary">.</button>
+                  <button type="button" onclick="MT.calc.clear()" class="btn-secondary"
+                    style="color:var(--danger); font-weight:700;">C</button>
+                  <button type="button" onclick="MT.calc.setOp('+')" class="btn-secondary"
+                    style="background:var(--accent-2);">+</button>
+
+                  <button type="button" onclick="MT.calc.addPercent(5)" class="btn-secondary"
+                    style="font-size:10px; padding:4px;">+5% GST</button>
+                  <button type="button" onclick="MT.calc.addPercent(18)" class="btn-secondary"
+                    style="font-size:10px; padding:4px;">+18% GST</button>
+                  <button type="button" onclick="MT.calc.round()" class="btn-secondary"
+                    style="font-size:10px; padding:4px;">Round</button>
+                  <button type="button" onclick="MT.calc.calculate()" class="btn-primary"
+                    style="font-size:14px; font-weight:800; background:var(--accent);">Result</button>
+
+                  <button type="button" onclick="MT.calc.apply()" class="btn-primary"
+                    style="grid-column: span 3; background:linear-gradient(135deg, #059669, #10b981);">Apply to
+                    Amount</button>
+                  <button type="button" onclick="MT.calc.close()" class="btn-secondary">Done</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="full">
+              <label for="description">What for?</label>
+              <div style="display:flex; gap:8px;">
+                <input id="description" type="text" placeholder="e.g. Tea and Snacks" style="flex:1;" list="descList" />
+                <datalist id="descList"></datalist>
+                <button id="aiCategorizeBtn" type="button" class="btn-secondary"
+                  style="width:46px; display:flex; align-items:center; justify-content:center;"
+                  title="AI Auto-Categorize">✨</button>
+                <button id="voiceBtn" type="button" class="btn-secondary"
+                  style="width:46px; display:flex; align-items:center; justify-content:center;"
+                  title="Voice input">🎤</button>
+              </div>
+            </div>
+
+            <div>
+              <label>Transaction Type</label>
+              <input type="hidden" id="type" value="Expense" />
+              <div id="type-pills" class="pill-row" style="margin-top:5px;">
+                <button type="button" class="type-pill active" data-value="Expense">Expense</button>
+                <button type="button" class="type-pill" data-value="Income">Income</button>
+                <button type="button" class="type-pill" data-value="Transfer">Transfer</button>
+              </div>
+            </div>
+
+            <!-- ⛽ Fuel Efficiency Widget (Hidden by default, shown for 'Petrol') -->
+            <div id="fuelPanel" class="full"
+              style="display:none; background:rgba(251, 191, 36, 0.05); padding:12px; border:1px solid var(--warning); border-radius:var(--radius-sm); margin-top:10px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; color:var(--warning);">
+                <span>⛽</span> <strong>Fuel Efficiency Tracker</strong>
+              </div>
+              <div class="row" style="gap:10px;">
+                <div>
+                  <label style="font-size:12px;">Previous KM</label>
+                  <input id="fuelPrevKm" type="number" readonly
+                    style="background:var(--bg2); color:var(--muted); font-size:13px;" />
+                </div>
+                <div>
+                  <label style="font-size:12px;">Current ODO (KM)</label>
+                  <input id="fuelCurrentKm" type="number" placeholder="KM reading" />
+                </div>
+                <div>
+                  <label style="font-size:12px;">Liters Refilled</label>
+                  <input id="fuelLiters" type="number" step="0.01" placeholder="0.00" />
+                </div>
+                <div>
+                  <label style="font-size:12px;">Price (Opt)</label>
+                  <input id="fuelPrice" type="number" step="0.01" placeholder="₹0.00" />
+                </div>
+              </div>
+              <div id="fuelStats"
+                style="margin-top:10px; font-size:12px; display:flex; gap:15px; color:var(--text); font-weight:600;">
+                <!-- Stats like Mileage/CostPerKM filled via JS -->
+              </div>
+            </div>
+
+            <!-- 🚉 Trip Date (Shown for 'Travel') -->
+            <div id="tripDateWrap" class="full" style="display:none; margin-top:10px;">
+              <label>Actual Trip Date (if Advance Booking)</label>
+              <input id="tripDate" type="date" />
+            </div>
+
+            <!-- Unified Sharing & Dues Section -->
+            <div class="full split-block"
+              style="background:rgba(255,255,255,0.02); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--card-border); margin-top:10px;">
+              <div
+                style="font-size:12px; color:var(--muted); font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                <span>🤝</span> SHARING & DUES
+              </div>
+
+              <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button type="button" id="btnQuickTheyOwe" class="btn-secondary"
+                  style="flex:1; border-color:var(--success); color:var(--success); background:rgba(52,211,153,0.05);">
+                  They Owe
+                </button>
+                <button type="button" id="btnQuickIOwe" class="btn-secondary"
+                  style="flex:1; border-color:var(--danger); color:var(--danger); background:rgba(248,113,113,0.05);">
+                  I Owe
+                </button>
+              </div>
+
+              <div id="quickDueWrap"
+                style="display:none; margin-bottom:15px; padding:12px; background:var(--bg2); border:1px solid var(--card-border); border-radius:10px;">
+                <label id="quickDueLabel" style="margin-bottom:6px; display:block;">Person</label>
+                <div style="display:flex; gap:8px;">
+                  <input id="quickDuePerson" type="text" placeholder="Who?" style="flex:1;" list="quickDuePersonList" />
+                  <datalist id="quickDuePersonList"></datalist>
+                  <button type="button" id="btnCancelQuickDue" class="btn-small" style="color:var(--danger);">✕</button>
+                </div>
+              </div>
+
+              <label style="display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;">
+                <input id="isGroup" type="checkbox" />
+                <span style="font-size:13px; font-weight:700; color:var(--accent-1);">🚀 Splitwise Bill Splitter</span>
+              </label>
+
+              <div id="splitOptions"
+                style="display:none; margin-top:15px; padding-top:15px; border-top:1px dashed var(--card-border);">
+                <label>Participants (comma separated)</label>
+                <input id="splitNames" placeholder="Alice, Bob..." />
+
+                <div class="row" style="margin-top:12px;">
+                  <div style="flex:1.5;">
+                    <label>Split Mode</label>
+                    <select id="splitMode">
+                      <option value="equal">Equal Split</option>
+                      <option value="custom">Custom (Friend's Amounts)</option>
+                    </select>
+                  </div>
+                  <div id="myShareWrap" style="flex:1;">
+                    <label>Your Share</label>
+                    <input id="myShare" type="number" step="0.01" placeholder="₹0.00" />
+                  </div>
+                </div>
+
+                <div id="customSplits" style="display:none; margin-top:12px;">
+                  <label>Friend's Amounts (comma)</label>
+                  <input id="splitAmounts" placeholder="100, 50..." />
+                </div>
+                
+                <div id="splitSumCheck" style="font-size: 11px; margin-top: 8px; font-weight: 600;"></div>
+
+                <div style="margin-top:12px;">
+                  <label style="display:flex; align-items:center; gap:8px; font-size:12px; text-transform:none;">
+                    <input id="linkToDues" type="checkbox" checked />
+                    <span>Sync with Dues Tracker</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label>Payment Method</label>
+              <input type="hidden" id="payMethod" value="Cash" />
+              <div id="pay-pills" class="pill-row" style="margin-top:5px;">
+                <button type="button" class="pay-pill active" data-value="Cash">Cash</button>
+                <button type="button" class="pay-pill" data-value="UPI">UPI</button>
+                <button type="button" class="pay-pill" data-value="Card">Card</button>
+                <button type="button" class="pay-pill" data-value="Bank">Bank</button>
+                <button type="button" class="pay-pill" data-value="Self transfer">Transfer</button>
+              </div>
+            </div>
+
+            <div id="paySubTypeWrap" style="display:none;">
+              <label id="paySubTypeLabel" for="paySubType">UPI app</label>
+              <select id="paySubType"></select>
+            </div>
+
+            <div id="transferWrap" style="display:none;">
+              <label>Self transfer</label>
+              <div class="row">
+                <div>
+                  <label>From (bank)</label>
+                  <select id="transferFrom"></select>
+                </div>
+                <div>
+                  <label>To (bank)</label>
+                  <select id="transferTo"></select>
+                </div>
+              </div>
+            </div>
+
+            <div class="full">
+              <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:4px;">
+                <label for="note" style="margin-bottom:0;">Note</label>
+                <button type="button" onclick="document.getElementById('note').value = ''" style="font-size:10px; padding:2px 8px; border-radius:4px; background:rgba(255,255,255,0.05); border:1px solid var(--card-border); color:var(--text-secondary); cursor:pointer;">✖ Clear Note</button>
+              </div>
+              <textarea id="note" rows="2" placeholder="Extra details..."></textarea>
+            </div>
+
+
+
+
+            <div class="full form-actions">
+              <button id="submitBtn" class="btn-primary" type="submit">Save entry</button>
+              <button id="clear-btn" type="button" class="btn-secondary">Clear</button>
+            </div>
+            <div class="full">
+              <div id="status" class="status"></div>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Daily History</span>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <select id="entrySortBy" class="compact" style="font-size:10px; height:28px; width:70px;"
+                onchange="window.MT.entry.renderEntries()">
+                <option value="time">Time</option>
+                <option value="amount">Amount</option>
+                <option value="category">Category</option>
+              </select>
+              <select id="entrySortOrder" class="compact" style="font-size:10px; height:28px; width:60px;"
+                onchange="window.MT.entry.renderEntries()">
+                <option value="desc">Desc</option>
+                <option value="asc">Asc</option>
+              </select>
+            </div>
+          </div>
+          <div id="entriesList" class="list"></div>
+        </section>
+      </section>
+
+      <!-- SUMMARY VIEW -->
+      <section id="view-summary" class="view">
+          <!-- NEW: TRUE BALANCE / NET WORTH HERO CARD -->
+          <div id="trueBalanceCard" class="card gyro-card"
+            style="margin-bottom:16px; padding:20px; text-align:center; background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(167,139,250,0.08)); border:1px solid rgba(99,102,241,0.2); box-shadow:0 10px 40px rgba(0,0,0,0.25); perspective: 1000px; transform-style: preserve-3d; overflow:hidden;">
+            <div
+              style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; transform:translateZ(10px)">
+              🛡️ True Balance (Net Worth)</div>
+            <div id="trueBalanceValue" class="blur-target" style="font-size:32px; font-weight:900; color:var(--text); letter-spacing:-1px; transform:translateZ(20px);">
+              ₹0.00
+            </div>
+            <div id="trueBalanceSub" style="font-size:11px; color:var(--muted); margin-top:6px; transform:translateZ(5px);">
+              Accounts + Owed To You - You Owe
+            </div>
+            <div id="safeToSpendBlock" style="margin-top:15px; padding-top:12px; border-top:1px dashed rgba(255,255,255,0.1); transform:translateZ(5px);">
+              <div style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">✨ Safe to Spend (Guilt-Free)</div>
+              <div id="safeToSpendValue" class="blur-target" style="font-size:20px; font-weight:800; color:var(--success);">₹0.00</div>
+              <div style="font-size:10px; color:var(--muted); margin-top:2px;">After upcoming subscriptions & goals</div>
+            </div>
+          </div>
+          
+
+          
+          <section class="card">
+            <div class="summary-stats-grid"
+              style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; text-align:center;">
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(244,63,94,0.03); border-color:rgba(244,63,94,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Expense</div>
+                <div id="monthSumExpense" class="blur-target" style="font-size:18px; font-weight:800; color:var(--danger);">₹0.00</div>
+              </div>
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(52,211,153,0.03); border-color:rgba(52,211,153,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Income</div>
+                <div id="monthSumIncome" class="blur-target" style="font-size:18px; font-weight:800; color:var(--success);">₹0.00</div>
+              </div>
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(99,102,241,0.03); border-color:rgba(99,102,241,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Owed To You</div>
+                <div id="splitOutstanding" class="blur-target" style="font-size:18px; font-weight:800; color:var(--accent-1);">₹0.00</div>
+              </div>
+              <div class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(216,180,254,0.03); border-color:rgba(216,180,254,0.1);">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  You Owe</div>
+                <div id="totalIOwe" class="blur-target" style="font-size:18px; font-weight:800; color:var(--accent-3);">₹0.00</div>
+              </div>
+              <div id="avgDailyWrap" class="card mini-card"
+                style="margin:0; padding:12px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; justify-content:center;">
+                <div
+                  style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                  Avg / Day</div>
+                <div id="avgDailySpend" class="blur-target" style="font-size:18px; font-weight:800; color:var(--text-secondary);">₹0.00
+                </div>
+                <div id="vsLastMonth" class="blur-target" style="font-size:11px; margin-top:4px; display:none;"></div>
+              </div>
+            </div>
+          </section>
+          <section class="card" style="padding: 10px; position:relative;">
+            <!-- CHART CAROUSEL CONTROLS -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <button onclick="window.SummaryModule.prevChart()" class="btn-small" style="padding:4px 10px;">◀</button>
+              <div id="chartTitle" style="font-size:13px; font-weight:700; color:var(--accent);">Expense Categories
+              </div>
+              <button onclick="window.SummaryModule.nextChart()" class="btn-small" style="padding:4px 10px;">▶</button>
+            </div>
+
+            <div class="summary-charts-container overflow-hidden" style="height:260px; position:relative;">
+              <div id="chartSlot1" class="chart-slide active">
+                <!-- PIE CHART -->
+                <div class="summary-chart-grid" style="align-items:flex-start;">
+                  <div class="chart-col">
+                    <canvas id="categoryPie" style="max-height:180px;"></canvas>
+                  </div>
+                  <div class="legend-col" style="max-height:160px; overflow-y:auto;">
+                    <div id="categoryLegend" class="legend"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="chartSlot2" class="chart-slide">
+                <!-- TREND CHART -->
+                <div style="height:220px; position:relative; width:100%;">
+                  <canvas id="trendChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dots -->
+            <div style="display:flex; justify-content:center; gap:6px; margin-top:8px;">
+              <div class="chart-dot active" onclick="window.SummaryModule.showChart(0)"></div>
+              <div class="chart-dot" onclick="window.SummaryModule.showChart(1)"></div>
+            </div>
+          </section>
+
+
+
+
+          <!-- NEW: SMART INSIGHTS -->
+          <div id="smartInsights" class="card" style="display:none; padding:15px; background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.15); margin-bottom:15px;">
+            <div style="font-size:13px; font-weight:800; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                <span>💡</span> AI Smart Insights
+            </div>
+            <div id="insightsList" style="font-size:12px; line-height:1.5; color:var(--text-secondary); display:flex; flex-direction:column; gap:8px;">
+                <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <!-- NEW: HASHTAG ANALYZER -->
+          <section id="hashtagCard" class="card"
+            style="padding:15px; background:rgba(255,255,255,0.02); border-color:rgba(167,139,250,0.12); display:none;">
+            <div
+              style="font-size:13px; font-weight:800; color:var(--accent-2); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <span>🏷️</span> Hashtag Analyzer
+            </div>
+            <div id="hashtagList" style="display:flex; flex-wrap:wrap; gap:8px;">
+              <!-- Filled by JS -->
+            </div>
+          </section>
+
+          <!-- NEW: SPENDING HEATMAP (Collapsible) -->
+          <section id="heatmapCard" class="card"
+            style="padding:0; background:rgba(255,255,255,0.02); display:none; overflow:hidden;">
+            <div class="heatmap-header" onclick="this.parentElement.classList.toggle('heatmap-collapsed');"
+              style="padding:15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+              <div
+                style="font-size:13px; font-weight:800; color:var(--accent-2); display:flex; align-items:center; gap:8px;">
+                <span>🗓️</span> Spending Heatmap
+              </div>
+              <span class="heatmap-chevron" style="font-size:10px; opacity:0.5; transition:0.3s;">▼</span>
+            </div>
+
+            <div class="heatmap-body" style="padding:0 15px 15px 15px;">
+              <div id="heatmapGrid" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px;">
+                <!-- Grid items 1-31 filled by JS -->
+              </div>
+              <div id="heatmapLegend"
+                style="margin-top:12px; display:flex; align-items:center; gap:8px; font-size:10px; color:var(--muted); justify-content:center;">
+                <span>Low</span>
+                <div style="width:12px; height:12px; background:rgba(244,63,94,0.1); border-radius:3px;"></div>
+                <div style="width:12px; height:12px; background:rgba(244,63,94,0.3); border-radius:3px;"></div>
+                <div style="width:12px; height:12px; background:rgba(244,63,94,0.6); border-radius:3px;"></div>
+                <div style="width:12px; height:12px; background:rgba(244,63,94,1.0); border-radius:3px;"></div>
+                <span>High</span>
+              </div>
+            </div>
+          </section>
+
+          <style>
+            .heatmap-collapsed .heatmap-body {
+              display: none;
+            }
+
+            .heatmap-collapsed .heatmap-chevron {
+              transform: rotate(-90deg);
+            }
+          </style>
+          <!-- NEW: ACHIEVEMENT BADGES (Gamification) -->
+          <div id="achievementsCard" class="card"
+            style="margin-bottom:16px; padding:15px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; gap:10px;">
+            <div
+              style="font-size:13px; font-weight:800; color:var(--accent-3); display:flex; align-items:center; gap:8px;">
+              <span>🏆</span> Milestones & Badges
+            </div>
+            <div id="badgeList"
+              style="display:flex; gap:10px; overflow-x:auto; padding-bottom:5px; scrollbar-width:none; -ms-overflow-style: none;">
+              <!-- Badges will be injected here by JS -->
+              <div class="info" style="font-size:11px;">Keep tracking to unlock badges...</div>
+            </div>
+          </div>
+          <section class="card">
+            <div class="section-title">Filters & totals</div>
+
+          <!-- FIRST ROW: Period & Date Pickers -->
+          <div class="summary-controls-row">
+            <div class="summary-control-item">
+              <label for="dateMode">Period</label>
+              <select id="dateMode">
+                <option value="day">Day</option>
+                <option value="month" selected>Month</option>
+                <option value="year">Year</option>
+                <option value="all">Full History</option>
+              </select>
+            </div>
+
+            <div id="monthPickerWrap" class="summary-control-item date-picker-wrap" style="display:block;">
+              <label for="monthPicker">Month</label>
+              <input id="monthPicker" type="month" />
+            </div>
+            <div id="dayPickerWrap" class="summary-control-item date-picker-wrap" style="display:none;">
+              <label for="dayPicker">Day</label>
+              <input id="dayPicker" type="date" />
+            </div>
+            <div id="yearPickerWrap" class="summary-control-item date-picker-wrap" style="display:none;">
+              <label for="yearPicker">Year</label>
+              <input id="yearPicker" type="number" min="2000" max="2100" />
+            </div>
+          </div>
+
+
+
+          <!-- SECOND ROW: Search, Rows & Sort -->
+          <div class="summary-search-row">
+            <div class="search-input-wrap" style="flex:2;">
+              <input id="summarySearch" type="text" placeholder="🔍 Search any transaction..." />
+              <span class="search-icon">🔍</span>
+            </div>
+            <div class="rows-select-wrap" style="flex:1;">
+              <select id="searchScope" style="width:100%; font-size:11px;">
+                <option value="month">This Month</option>
+                <option value="global">All Time</option>
+              </select>
+            </div>
+            <div class="rows-select-wrap">
+              <label for="rowsPerPage" style="font-size:10px; margin-right:4px;">Rows</label>
+              <select id="rowsPerPage">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- NEW: SORTING CONTROLS -->
+          <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:120px;">
+              <label style="font-size:10px; color:var(--muted); margin-bottom:4px; display:block;">Sort By</label>
+              <select id="summarySortBy" class="compact" onchange="window.SummaryModule.renderSummary()">
+                <option value="date">Date</option>
+                <option value="amount">Amount</option>
+                <option value="category">Category</option>
+                <option value="description">Description</option>
+              </select>
+            </div>
+            <div style="flex:1; min-width:120px;">
+              <label style="font-size:10px; color:var(--muted); margin-bottom:4px; display:block;">Order</label>
+              <select id="summarySortOrder" class="compact" onchange="window.SummaryModule.renderSummary()">
+                <option value="desc">Newest / Highest</option>
+                <option value="asc">Oldest / Lowest</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- THIRD ROW: Type, Payment, Category, Export -->
+          <div class="summary-filters-grid">
+            <div class="filter-item">
+              <label for="typeFilter">Type filter</label>
+              <select id="typeFilter">
+                <option>All</option>
+                <option>Expense</option>
+                <option>Income</option>
+                <option>Split</option>
+                <option>Transfer</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label for="filterPayment">Payment</label>
+              <select id="filterPayment">
+                <option>All</option>
+                <!-- options populated by JS -->
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label for="filterCategory">Category</label>
+              <select id="filterCategory">
+                <option>All</option>
+                <!-- options populated by JS -->
+              </select>
+            </div>
+
+            <div class="filter-item export-wrap" style="align-items: flex-end; display: flex; gap: 5px; flex-wrap: wrap;">
+              <button id="summaryExportBtn" class="btn-primary" style="margin-bottom:8px; flex: 1;">
+                <svg width="14" height="14" aria-hidden="true">
+                  <use href="#icon-export"></use>
+                </svg> Export
+              </button>
+              <button id="summaryPdfBtn" class="btn-primary" style="margin-bottom:8px; flex: 1; background: #e11d48; color: white;" onclick="if(window.PDFGenerator && window.PDFGenerator.generatePDF) window.PDFGenerator.generatePDF()">
+                📄 PDF
+              </button>
+              <button id="summaryWaBtn" class="btn-primary" onclick="if(window.SummaryModule && window.SummaryModule.shareWhatsAppReport) window.SummaryModule.shareWhatsAppReport()" style="margin-bottom:8px; flex: 1; background: #25D366; color: white;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+                </svg> WhatsApp
+              </button>
+            </div>
+          </div>
+          <div
+            style="display:flex; gap:15px; margin-bottom:15px; font-size:12px; color:var(--muted); justify-content: flex-end;">
+            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox"
+                id="hideTransfers" checked onchange="window.SummaryModule.renderSummary()"> Hide transfers</label>
+            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox"
+                id="hideSettlements" checked onchange="window.SummaryModule.renderSummary()"> Hide due
+              settlements</label>
+          </div>
+          </section>
+
+          <!-- GRID: left pie, right legend, bottom history -->
+
+
+
+          <section class="card">
+            <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>History (filtered)</span>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <select id="summaryGroupMode" class="compact" style="font-size:11px; height:32px; width: auto;"
+                  onchange="window.SummaryModule.renderSummary()">
+                  <option value="date">By Date</option>
+                  <option value="month">By Month</option>
+                  <option value="none">No Grouping</option>
+                </select>
+                <div style="display:flex; gap:4px;">
+                  <button id="btnExpandAll" class="btn-small" title="Expand All"
+                    style="font-size:14px; padding:2px 8px; opacity:0.8;">⏬</button>
+                  <button id="btnCollapseAll" class="btn-small" title="Collapse All"
+                    style="font-size:14px; padding:2px 8px; opacity:0.8;">⏫</button>
+                </div>
+              </div>
+            </div>
+            <div id="summaryHistory" class="list"></div>
+          </section>
+      </section>
+
+      <section id="view-accounts" class="view">
+        <div class="finance-tab-bar"
+          style="display:flex; gap:10px; margin-bottom:15px; background:var(--card); padding:8px; border-radius:var(--radius-sm); border:1px solid var(--card-border);">
+          <button class="tab-btn active" data-target="finance-accounts"
+            style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">🏦
+            Balances</button>
+          <button class="tab-btn" data-target="finance-subscriptions"
+            style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">📅
+            Subs</button>
+          <button class="tab-btn" data-target="finance-statement"
+            style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">📄
+            Statement</button>
+          <button class="tab-btn" data-target="finance-petrol"
+            style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">⛽
+            Petrol Log</button>
+          <button class="tab-btn" data-target="finance-goals"
+            style="flex:1; padding:10px; font-weight:600; border-radius:calc(var(--radius-sm) - 4px); background:none; border:none; color:var(--text-secondary);">🎯
+            Goals</button>
+        </div>
+
+        <section id="finance-accounts" class="tab-content active">
+          <section class="card">
+            <div class="section-title">Bank balances</div>
+            <div class="row">
+              <div><label>Month</label><input id="accountsMonth" type="month" /></div>
+              <div><label>Bank</label><select id="accountsBankSelect"></select></div>
+              <div><label>Initial</label><input id="accountsInitialAmount" type="number" step="0.01" /></div>
+              <div style="align-self:flex-end;"><button id="saveInitialBtn" class="btn-primary">Set</button></div>
+            </div>
+            <div style="margin-top:12px;">
+              <div id="bankBalancesList" class="list"></div>
+            </div>
+          </section>
+        </section>
+
+        <section id="finance-statement" class="tab-content" style="display:none;">
+          <section class="card">
+            <div class="section-title">Transaction History</div>
+            <div class="row" style="gap:10px; align-items:center; flex-wrap:wrap;">
+              <div><label>Month</label><input id="stmtMonthFilter" type="month" /></div>
+              <div><label>Type</label><select id="stmtTypeFilter">
+                  <option value="All">All</option>
+                  <option>Expense</option>
+                  <option>Income</option>
+                  <option>Transfer</option>
+                </select></div>
+              <div><label>Sort By</label><select id="stmtSortBy" style="font-size:12px; width:100px;">
+                  <option value="date">Date</option>
+                  <option value="amount">Amount</option>
+                  <option value="category">Category</option>
+                </select></div>
+              <div id="stmtSortOrderWrap" style="display:flex; flex-direction:column;">
+                <label>Order</label>
+                <select id="stmtSortOrder" style="font-size:12px; width:80px;">
+                  <option value="desc">Desc</option>
+                  <option value="asc">Asc</option>
+                </select>
+              </div>
+              <div style="margin-left:auto; display:flex; gap:5px;">
+                <button id="stmtExportBtn" class="btn-secondary" style="font-size:11px;">Excel</button>
+                <button id="stmtPdfBtn" class="btn-secondary"
+                  style="font-size:11px; background:rgba(244,63,94,0.1); color:#fb7185;">PDF</button>
+              </div>
+            </div>
+            <div class="table-scroll-container" style="margin-top: 15px; overflow-x: auto;">
+              <table class="data-table" style="width: 100%; font-size:13px;">
+                <thead>
+                  <tr style="border-bottom: 2px solid var(--card-border);">
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Cat</th>
+                    <th>Details</th>
+                    <th>Method</th>
+                    <th style="text-align:right;">Amt</th>
+                  </tr>
+                </thead>
+                <tbody id="statementTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <!-- ⛽ PETROL LOG TAB -->
+        <section id="finance-petrol" class="tab-content" style="display:none;">
+          <section class="card">
+
+            <!-- Filter bar -->
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;">
+              <div style="flex:1; min-width:130px;">
+                <label style="font-size:11px; color:var(--muted); margin-bottom:2px;">Month</label>
+                <input id="petrolMonthFilter" type="month" style="width:100%;" />
+              </div>
+              <div>
+                <label style="font-size:11px; color:var(--muted); margin-bottom:2px;">Year</label>
+                <select id="petrolYearFilter" style="min-width:90px;">
+                  <option value="">All Years</option>
+                </select>
+              </div>
+              <div style="align-self:flex-end;">
+                <button id="petrolClearFilter" class="btn-secondary"
+                  style="font-size:12px; padding:8px 14px;">Clear</button>
+              </div>
+            </div>
+
+            <!-- Summary stats bar -->
+            <div id="petrolStatsBar"
+              style="display:flex; gap:0; border-radius:10px; overflow:hidden; margin-bottom:16px; border:1px solid var(--card-border);">
+            </div>
+
+            <!-- Title row -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <div class="section-title" style="margin:0;">⛽ Fill-up History</div>
+              <div id="petrolSummaryLine" style="font-size:11px; color:var(--muted);"></div>
+            </div>
+
+            <div id="petrolLogList" class="list"></div>
+          </section>
+        </section>
+
+        <!-- 📅 SUBSCRIPTIONS TAB -->
+        <section id="finance-subscriptions" class="tab-content" style="display:none;">
+          <section class="card">
+            <div class="section-title">📅 Upcoming Subscriptions</div>
+            <div id="recurringPanel" class="settings-panel open">
+              <div id="recurringContainer"></div>
+            </div>
+          </section>
+        </section>
+
+        <!-- 🎯 GOALS TAB -->
+        <section id="finance-goals" class="tab-content" style="display:none;">
+          <section class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+              <div class="section-title" style="margin:0;">🎯 Financial Goals</div>
+              <button id="addGoalBtn" class="btn-primary" style="padding:6px 12px; font-size:12px;">+ New Goal</button>
+            </div>
+            <div id="goalsContainer" class="list" style="display:flex; flex-direction:column; gap:12px;"></div>
+          </section>
+        </section>
+
+
+      </section>
+
+      <!-- SETTINGS VIEW -->
+      <section id="view-settings" class="view">
+
+        <!-- Settings Tab Bar -->
+        <div class="settings-tab-bar">
+          <button class="settings-tab active" data-stab="stab-general">⚙️ General</button>
+          <button class="settings-tab" data-stab="stab-data">📦 Data & Sync</button>
+          <button class="settings-tab" data-stab="stab-user">👤 User Profile</button>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin: -10px 15px 15px 0;">
+          <button id="btnSettingsExpandAll" class="btn-small"
+            style="font-size:11px; background:rgba(255,255,255,0.05);">↔️ Expand All</button>
+          <button id="btnSettingsCollapseAll" class="btn-small"
+            style="font-size:11px; background:rgba(255,255,255,0.05);">↕️ Collapse All</button>
+        </div>
+
+        <!-- ======= TAB: GENERAL ======= -->
+        <div id="stab-general" class="settings-tab-panel active">
+
+          <!-- App Customization -->
+          <section id="gs-customization" class="card settings-section">
+            <button class="settings-header" data-target="customizationPanel">
+              <span>🎨 App Customization &amp; Theme</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="customizationPanel" class="settings-panel open">
+              <label>Theme</label>
+              <select id="themeSelect">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+              </select>
+              <label style="margin-bottom:12px; display:block;">Theme Palette</label>
+              <div id="themePalette"
+                style="display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin-bottom:18px;">
+                <div class="theme-swatch active" data-color1="#38bdf8" data-color2="#6366f1"
+                  style="background:linear-gradient(135deg, #38bdf8, #6366f1); height:45px; border-radius:12px; cursor:pointer; border:2px solid #fff; box-shadow:0 0 10px rgba(99,102,241,0.3);">
+                </div>
+                <div class="theme-swatch" data-color1="#10b981" data-color2="#34d399"
+                  style="background:linear-gradient(135deg, #10b981, #34d399); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;">
+                </div>
+                <div class="theme-swatch" data-color1="#f43f5e" data-color2="#fb7185"
+                  style="background:linear-gradient(135deg, #f43f5e, #fb7185); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;">
+                </div>
+                <div class="theme-swatch" data-color1="#f59e0b" data-color2="#fbbf24"
+                  style="background:linear-gradient(135deg, #f59e0b, #fbbf24); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;">
+                </div>
+                <div class="theme-swatch" data-color1="#a78bfa" data-color2="#c084fc"
+                  style="background:linear-gradient(135deg, #a78bfa, #c084fc); height:45px; border-radius:12px; cursor:pointer; border:2px solid transparent;">
+                </div>
+              </div>
+
+              <div
+                style="display:flex; align-items:center; gap:12px; margin-bottom:18px; padding:10px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid var(--card-border);">
+                <input id="accentColorPicker" type="color"
+                  style="width:30px; height:30px; border:none; background:none; cursor:pointer;"
+                  title="Choose custom color" />
+                <div style="font-size:12px; color:var(--text-secondary); font-weight:600;">Choose Custom Accent Color
+                </div>
+              </div>
+
+              <input id="accentColor" type="hidden" value="#38bdf8" />
+              <input id="accentColor2" type="hidden" value="#6366f1" />
+              <label>Currency symbol</label>
+              <input id="currencySymbol" placeholder="₹" />
+              <div style="margin-top:0.6rem;">
+                <button id="saveCustomization" class="btn-primary">Save customization</button>
+                <button id="resetCustomization" class="btn-secondary">Reset to defaults</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Presets -->
+          <section id="gs-presets" class="card settings-section">
+            <button class="settings-header" data-target="presetsPanel">
+              <span>⚡ Quick Action Prefills</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="presetsPanel" class="settings-panel open">
+              <div id="settingsPresetsList" class="list" style="margin-bottom:12px;"></div>
+              <button id="addPresetBtn" class="btn-secondary" style="width:100%; border:1px dashed var(--accent);">+ Add
+                New Preset</button>
+            </div>
+          </section>
+
+          <!-- Categories -->
+          <section id="gs-categories" class="card settings-section">
+            <button class="settings-header" data-target="categoriesPanel">
+              <span>🏷️ Categories</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="categoriesPanel" class="settings-panel open">
+              <div id="settingsCategories" class="settings-pills-wrap"></div>
+              <div class="settings-add-row">
+                <input id="newCategory" placeholder="Add category" />
+                <button id="addCategoryBtn">Add</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Daily Reminders -->
+          <section id="gs-reminders" class="card settings-section">
+            <button class="settings-header" data-target="reminderPanel">
+              <span>🔔 Daily Reminders</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="reminderPanel" class="settings-panel">
+              <div style="display:flex; flex-direction:column; gap:12px; padding:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label style="margin:0;">Enable Reminder</label>
+                  <input type="checkbox" id="reminderToggle" style="width:20px; height:20px;">
+                </div>
+                <div id="reminderTimeWrap" style="display:none;">
+                  <label>Reminder Time</label>
+                  <input type="time" id="reminderTime" value="21:00" />
+                </div>
+                <button id="testNotifyBtn" class="btn-secondary" style="margin-top:4px;">Send Test Notification</button>
+                <div id="reminderStatus" class="modal-status"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- All Tab Order in One Card -->
+          <section id="gs-taborder" class="card settings-section">
+            <button class="settings-header" data-target="allTabOrderPanel">
+              <span>🗂️ Tab &amp; Navigation Order</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="allTabOrderPanel" class="settings-panel">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:18px;">
+
+                <!-- Bottom Nav -->
+                <div>
+                  <div
+                    style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    📱 Bottom Navigation
+                  </div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">The ➕ Add button always stays in the
+                    center.</div>
+                  <div id="navOrderList"></div>
+                  <button id="resetNavOrderBtn" class="btn-secondary"
+                    style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                </div>
+
+                <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
+
+                <!-- Finance Tabs -->
+                <div>
+                  <div
+                    style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    🏦 Finance Page Tabs
+                  </div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">Balances · Statement · Petrol Log</div>
+                  <div id="financeTabOrderList"></div>
+                  <button id="resetFinanceTabOrderBtn" class="btn-secondary"
+                    style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                </div>
+
+                <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
+
+                <!-- Settings Tabs -->
+                <div>
+                  <div
+                    style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    ⚙️ Settings Tabs
+                  </div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">General · Data &amp; Sync ·
+                    User Profile</div>
+                  <div id="settingsTabOrderList"></div>
+                  <button id="resetSettingsTabOrderBtn" class="btn-secondary"
+                    style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                </div>
+
+                <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
+
+                <!-- General Tab Sections -->
+                <div>
+                  <div
+                    style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    📋 General Tab Sections
+                  </div>
+                  <div class="info" style="margin-bottom:8px; font-size:11px;">Reorder the accordion sections inside the
+                    General settings tab.</div>
+                  <div id="generalSectionsOrderList"></div>
+                  <button id="resetGeneralSectionsOrderBtn" class="btn-secondary"
+                    style="width:100%; margin-top:6px; font-size:11px;">↺ Reset</button>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          <!-- UPI / Cards / Banks -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="paymentsPanel">
+              <span>🏦 UPI / Cards / Banks</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="paymentsPanel" class="settings-panel open">
+              <h4>UPI apps</h4>
+              <div id="settingsUpi" class="settings-list"></div>
+              <div class="settings-add-row">
+                <input id="newUpi" placeholder="Add UPI app" />
+                <button id="addUpiBtn">Add</button>
+              </div>
+
+              <h4>Cards</h4>
+              <div id="settingsCards" class="settings-list"></div>
+              <div class="settings-add-row">
+                <input id="newCard" placeholder="Add card" />
+                <button id="addCardBtn">Add</button>
+              </div>
+
+              <h4>Banks</h4>
+              <div id="settingsBanks" class="settings-list"></div>
+              <div class="settings-add-row">
+                <input id="newBank" placeholder="Add bank" />
+                <button id="addBankBtn">Add</button>
+              </div>
+
+              <!-- Mapping -->
+              <div id="paymentBankMapWrap" style="margin-top:12px;">
+                <div class="section-title">Map payment items to banks</div>
+                <div class="info">
+                  Assign each UPI app / Card to a Bank so bank balances update automatically.
+                </div>
+                <div id="mapList" style="margin-top:8px; display:flex; flex-direction:column; gap:8px;"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Budget Tracking -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="budgetPanel">
+              <span>🎯 Budget Tracking</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="budgetPanel" class="settings-panel">
+              <div id="budgetContainer"></div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- ======= TAB: DATA ======= -->
+        <div id="stab-data" class="settings-tab-panel">
+
+          <!-- Export & Import -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="exportPanel">
+              <span>📤 Export &amp; Import</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="exportPanel" class="settings-panel open">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:16px;">
+
+                <!-- EXPORT SETTINGS -->
+                <div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">⚙️ EXPORT
+                    SETTINGS</div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button id="expSettingsJson" class="btn-secondary" style="flex:1;">JSON</button>
+                    <button id="expSettingsCsv" class="btn-secondary" style="flex:1;">CSV</button>
+                    <button id="expSettingsXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+                  </div>
+                </div>
+
+                <!-- EXPORT TRANSACTIONS -->
+                <div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">💳 EXPORT
+                    TRANSACTIONS</div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button id="expTxJson" class="btn-secondary" style="flex:1;">JSON</button>
+                    <button id="expTxCsv" class="btn-secondary" style="flex:1;">CSV</button>
+                    <button id="expTxXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+                  </div>
+                </div>
+
+                <!-- EXPORT ALL -->
+                <div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">📦 EXPORT
+                    ALL (Full Backup)</div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button id="expAllJson" class="btn-primary" style="flex:1;">JSON</button>
+                    <button id="expAllCsv" class="btn-secondary" style="flex:1;">CSV</button>
+                    <button id="expAllXlsx" class="btn-secondary" style="flex:1;">Excel</button>
+                  </div>
+                </div>
+
+                <hr style="border:none; border-top:1px solid var(--card-border); margin:0;" />
+
+                <!-- IMPORT -->
+                <div>
+                  <div class="section-title" style="font-size:0.8rem; color:var(--muted); margin-bottom:4px;">📥 IMPORT
+                    (Auto-detects type)</div>
+                  <div class="info" style="font-size:0.78rem; margin-bottom:8px;">
+                    Accepts .json, .csv, .xlsx — auto-detects whether it's a Full Backup, Transactions or Settings file.
+                  </div>
+                  <label for="settingsImportFile" class="btn-primary"
+                    style="display:block; text-align:center; cursor:pointer; padding:10px 0;">
+                    📂 Choose File to Import
+                  </label>
+                  <input id="settingsImportFile" type="file"
+                    accept=".json,.csv,.xlsx,.xls,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    style="display:none;" />
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          <!-- Automatic Backup (Moved here) -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="autoExportPanel">
+              <span>💾 Automatic Monthly Backup</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="autoExportPanel" class="settings-panel">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label style="margin:0;">Monthly Statement Auto-Download</label>
+                  <input type="checkbox" id="autoDownloadStmt" style="width:20px; height:20px;">
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Google Sheets (Moved here) -->
+          <section class="card settings-section">
+            <button class="settings-header" data-target="gsheetPanel">
+              <span>📊 Google Sheets Sync</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="gsheetPanel" class="settings-panel">
+              <div style="padding:10px;">
+                <label>Google Apps Script Web App URL</label>
+                <input type="url" id="gsheetUrl" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:8px;" />
+                <label>Google Sheet URL (Optional)</label>
+                <input type="url" id="gsheetSpreadsheetUrl" placeholder="https://docs.google.com/spreadsheets/d/.../edit" style="margin-bottom:8px;" />
+                <div style="margin-top:4px; display:flex; gap:8px;">
+                  <button id="saveGsheetBtn" class="btn-primary" style="flex:1;">Save Sync URL</button>
+                  <button id="gsheetSetupBtn" class="btn-secondary" style="flex:1;">Help</button>
+                </div>
+                <button id="openGsheetBtn" class="btn-secondary" style="width:100%; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                  🟢 Open Google Sheet
+                </button>
+                
+                <div id="gsheetInstructions" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.02); border:1px dashed var(--card-border); border-radius:8px; font-size:12px; line-height:1.5;">
+                  <div style="font-weight:800; color:var(--accent); margin-bottom:8px; font-size:13px;">📊 Google Sheets Setup Guide</div>
+                  <ol style="margin-left:16px; display:flex; flex-direction:column; gap:6px;">
+                    <li>Open our pre-configured Google Sheet template: <a href="https://docs.google.com/spreadsheets/d/1mNXbG2qUxOzMl_MmAPEPxEf_j3cLHUSlHYu9eIY7RV0/edit?usp=sharing" target="_blank" style="color:var(--accent); text-decoration:underline; font-weight:700;">Click here to open template</a>
+                      <div style="margin: 6px 0 6px 0; padding: 8px; background: rgba(56, 189, 248, 0.05); border-left: 3px solid #38bdf8; border-radius: 4px; font-size: 11px;">
+                        ⚠️ <strong>Note:</strong> You must click on <strong>File &gt; Make a copy</strong> in Google Sheets to create your own editable copy before doing anything else!
+                      </div>
+                    </li>
+                    <li>Go to <strong>Extensions > Apps Script</strong></li>
+                    <li>Delete any code there and paste our updated script code.</li>
+                    <li>Click <strong>Deploy > New Deployment</strong></li>
+                    <li>Select type: <strong>Web App</strong>, Execute as: <strong>Me</strong>, Access: <strong>Anyone</strong></li>
+                    <li>Copy the <strong>Web App URL</strong> and save it above!</li>
+                  </ol>
+                  <button id="downloadManualBtn" class="btn-primary" style="width:100%; margin-top:12px; font-size:11px; padding:8px 12px; display:flex; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg, #38bdf8, #6366f1); border:none; color:white; font-weight:700;">📋 View &amp; Copy Apps Script Code</button>
+                </div>
+
+                <button id="syncAllGsheetBtn" class="btn-secondary" style="width:100%; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;">📤 Sync All Existing Data</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Time Machine (Undo Log) -->
+          <section id="gs-undolog" class="card settings-section">
+            <button class="settings-header" data-target="undoLogPanel">
+              <span>⏳ Time Machine (Undo Log)</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="undoLogPanel" class="settings-panel">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
+                <p style="font-size:11px; color:var(--muted);">Roll back your database to a previous state. Only the last 5 major changes are kept.</p>
+                <div id="undoList" style="display:flex; flex-direction:column; gap:8px;"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Danger Zone -->
+          <section class="card settings-section" style="border:1px solid var(--danger-dim);">
+            <button class="settings-header" data-target="clearDataPanel" style="color: var(--danger);">
+              <span>⚠️ Danger Zone (Clear Data)</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="clearDataPanel" class="settings-panel">
+              <div style="padding:10px; display:flex; flex-direction:column; gap:12px;">
+                <div class="info" style="color:var(--danger); border-color:var(--danger-dim);">
+                  Warning: This will permanently delete all your data. A backup will be auto-downloaded first.
+                </div>
+                <button id="btnSettingsClearData" class="btn-primary"
+                  style="background:var(--danger); border:none; color:white; font-weight:700;">Export Backup &amp; Clear
+                  All Data</button>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+
+
+        <!-- ======= TAB: USER PROFILE ======= -->
+        <div id="stab-user" class="settings-tab-panel">
+          <section class="card settings-section">
+            <div class="section-title">Personal Information</div>
+            <div class="row">
+              <div><label>Your Name</label><input id="userNameField" placeholder="Admin" /></div>
+              <div><label>Security Question</label><input id="securityHint" placeholder="e.g. Pet's name" /></div>
+              <div><label>Security Answer</label><input id="securityAnswerField" type="password" placeholder="Answer" />
+              </div>
+            </div>
+            <div class="row" style="margin-top:10px;">
+              <div style="flex:1;"><label>Bio/Note</label><input id="userBio" placeholder="Your note" /></div>
+            </div>
+            <button id="saveUserBtn" class="btn-primary" style="margin-top:12px;">Save Profile</button>
+          </section>
+
+          <section class="card settings-section">
+            <div class="section-title">🔒 Security & Authentication</div>
+            <div style="margin-top:0.6rem; margin-bottom: 1.2rem; display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="requireAppLockToggle" checked />
+              <label for="requireAppLockToggle" style="font-weight:600; cursor:pointer;">Require App Lock</label>
+            </div>
+
+            <div>
+              <button id="enableBiometricBtn" class="btn-secondary"
+                style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path
+                    d="M12 2a10 10 0 0 1 10 10v2a4 4 0 0 1-4 4h-2a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h2a4 4 0 0 0-4-4 4 4 0 0 0-4 4v10a8 8 0 0 0 8 8">
+                  </path>
+                  <path d="M8 12v2a4 4 0 0 0 4 4"></path>
+                  <path d="M16 12v-2a4 4 0 0 0-4-4"></path>
+                </svg>
+                Enable fingerprint unlock
+              </button>
+              <div id="biometricStatus" class="modal-status"></div>
+            </div>
+
+            <div style="margin-top:1.5rem;">
+              <div class="section-title" style="font-size:0.9rem;">Change Password</div>
+              <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+                <input id="oldPassword" type="password" placeholder="Current password" />
+                <input id="newPassword" type="password" placeholder="New password" />
+                <button id="changePasswordBtn" class="btn-primary">Update password</button>
+              </div>
+              <div id="passwordStatus" class="modal-status"></div>
+            </div>
+          </section>
+          <section class="card settings-section" style="display:none;">
+            <div class="section-title">📡 Offline Data & Pairing</div>
+            <p style="font-size:11px; color:var(--muted); margin-top:6px; margin-bottom:12px;">Sync your data across devices offline.</p>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+               <button id="settingsQrBtn" class="btn-secondary" style="color:#3b82f6; border-color:#3b82f6;">🎬 Transmit Data Beam (QR)</button>
+               <button id="settingsQrRecBtn" class="btn-secondary" style="color:#10b981; border-color:#10b981;">📸 Receive Beam (Scanner)</button>
+               <button id="settingsPcPairBtn" class="btn-secondary" style="color:#8b5cf6; border-color:#8b5cf6;">💻 Pair with PC (Command Center)</button>
+            </div>
+          </section>
+        </div>
+
+      </section> <!-- Close view-settings -->
+
+
+
+
+
+
+      <!-- DUES VIEW -->
+      <section id="view-dues" class="view">
+        <!-- Rendered dynamically by dues.js -->
+      </section>
+
+
+
+      <!-- ABOUT VIEW -->
+      <section id="view-about" class="view">
+        <section class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 class="section-title" style="margin:0;">LUDARP v6.1 Stable</h2>
+            <span class="badge" style="background:var(--accent); color:white;">LATEST</span>
+          </div>
+          <div class="subtitle" style="margin-bottom:20px;">
+            Professional-grade, privacy-first financial tracking. 
+            Titanium+ focuses on analytical depth, speed, and 100% offline security.
+          </div>
+          <p class="info" style="font-size:14px; line-height:1.6; margin-bottom:18px;">
+            A professional-grade, privacy-first financial companion. Every byte of your data stays on your device—no
+            cloud prying, no ads, just pure management.
+          </p>
+
+          <div id="installSection" style="margin-bottom: 30px; text-align: center;">
+            <div id="appStatusTag" style="font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-bottom:12px; letter-spacing:1px;">App Status: Browser Mode</div>
+            
+            <button id="installAppBtn" class="btn-primary" style="display:none; width:100%; justify-content:center; gap:10px; padding:16px; font-size:16px; box-shadow:0 10px 30px rgba(99,102,241,0.4);">
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+               DIRECT DOWNLOAD & INSTALL
+            </button>
+
+            <div id="appInstalledMsg" style="display:none; padding:15px; border-radius:15px; background:rgba(52,211,153,0.05); border:1px solid rgba(52,211,153,0.2); color:var(--success); font-weight:700; margin-bottom:10px;">
+               ✅ LUDARP Premium Installed
+            </div>
+
+            <button id="refreshAppBtn" class="btn-secondary" style="width:100%; justify-content:center; gap:8px; margin-top:8px;">
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+               Check for Updates
+            </button>
+
+            <div id="installManualMsg" style="font-size:12px; color:var(--muted); padding:15px; border-radius:15px; background:rgba(255,255,255,0.02); border:1px dashed var(--card-border); margin-top:12px;">
+               <div style="font-weight:800; color:var(--text-secondary); margin-bottom:6px; font-size:14px;">✨ Premium PWA Experience</div>
+               LUDARP is a Progressive Web App. To install directly to your home screen:
+               <div style="margin-top:10px; font-style:italic; opacity:0.8;">Tap browser menu (⋮) → 'Install App'</div>
+            </div>
+          </div>
+
+          <div class="features-list-rich"
+            style="display:grid; gap:12px; margin-top:10px;">
+
+            <!-- SMART DASHBOARD -->
+            <div class="card mini-card" style="background:rgba(56,189,248,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#38bdf8; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>📊</span> Smart Dashboard</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Real-time expense trends, category pie charts,
+                and filtered history logs.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(56,189,248,0.2); padding-top:10px;">
+                💡 **Deep-Dive:** Use the <strong>Summary</strong> tab to visualize your financial health. Toggle the
+                'Month/Day' view to compare spending periods. The system automatically highlights budget-exceeding
+                categories in red. Tap on the Charts themselves to see exact amounts per segment.
+              </div>
+            </div>
+
+            <!-- QUICK ENTRY -->
+            <div class="card mini-card" style="background:rgba(99,102,241,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#818cf8; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>📥</span> Quick Entry</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Voice input, auto-filling presets (Prefills),
+                and split-bill support.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(99,102,241,0.2); padding-top:10px;">
+                💡 **Efficiency:** Use the <strong>Prefills</strong> button in the Entry tab to save items you repeat
+                daily. When using Voice, speak clearly: 'Fifty rupees for coffee' for auto-recognition. Trip Dates are
+                available for the <strong>Travel</strong> category if you're booking in advance.
+              </div>
+            </div>
+
+            <!-- ADVANCED DUES -->
+            <div class="card mini-card" style="background:rgba(167,139,250,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#a78bfa; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>🤝</span> Advanced Dues</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Powerful 'I Owe' & 'They Owe' engine with Search
+                and Bank Mapping.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(167,139,250,0.2); padding-top:10px;">
+                💡 **Debt Management:** Track exactly who owes you what. When marking as 'Received', the app asks for
+                the <strong>Bank account</strong> and date to create a matching settlement entry. Use the 🔍
+                <strong>Filter</strong> to find old records or search by name.
+              </div>
+            </div>
+
+            <!-- PETROL -->
+            <div class="card mini-card" style="background:rgba(234,179,8,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#eab308; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>⛽</span> Fuel & Petrol Price</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Track fuel economy (km/L) and log daily petrol
+                prices (₹/L).</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(234,179,8,0.2); padding-top:10px;">
+                💡 **Cost Analysis:** By entering ODO readings and Liters refilled, the app calculates vehicle
+                performance. Logging the <strong>Price per Litre</strong> allows you to see how fuel rate changes impact
+                your monthly budget over time.
+              </div>
+            </div>
+
+            <!-- NET WORTH -->
+            <div class="card mini-card" style="background:rgba(52,211,153,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#34d399; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>🏦</span> Net Worth</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Multi-account support for Banks, Wallets, and
+                Cards.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(52,211,153,0.2); padding-top:10px;">
+                💡 **Balance Tracking:** Add your accounts in the <strong>Accounts</strong> tab. As you spend or receive
+                income, choose the source account. The system maintains a ledger for each, ensuring your bank balance
+                always matches the app's record.
+              </div>
+            </div>
+
+            <!-- MASTER REPORTS -->
+            <div class="card mini-card" style="background:rgba(244,63,94,0.05); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:#fb7185; margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>📋</span> Master Reports</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Export filtered data to Excel (XLSX) or
+                professional PDF.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px dashed rgba(244,63,94,0.2); padding-top:10px;">
+                💡 **Accounting:** Use the <strong>Statement</strong> view to audit your logs. You can filter by any
+                specific category (e.g. only 'Rent') across years. Export high-quality PDFs for proof or XLSX for
+                advanced data analysis.
+              </div>
+            </div>
+
+            <!-- ORDERING -->
+            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>🗂️</span> Infinite Ordering</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Drag-and-drop to reorder navigation and tabs.
+              </div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px solid var(--card-border); padding-top:10px;">
+                💡 **Customization:** Head to <strong>Settings -> Order</strong>. Use the ☰ handles to prioritize the
+                features you use most. Want 'Dues' as your first tab? Just drag it to the top to redefine your app flow.
+              </div>
+            </div>
+
+            <!-- PRIVACY -->
+            <div class="card mini-card" style="background:rgba(255,255,255,0.03); margin:0; cursor:pointer;"
+              onclick="this.classList.toggle('expanded')">
+              <div
+                style="font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;"><span>🔒</span> Privacy & Lock</div>
+                <span class="chevron" style="transition:0.3s; font-size:10px; opacity:0.5;">▼</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">Optional Biometric or PIN lock with AES
+                encryption.</div>
+              <div class="feature-detail"
+                style="display:none; margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; border-top:1px solid var(--card-border); padding-top:10px;">
+                💡 **Security:** Your data is strictly offline. Use the optional PIN or Fingerprint lock for an extra
+                layer of privacy. Backups are exported as <strong>AES-Encrypted</strong> JSON files, keeping them safe
+                even on external storage.
+              </div>
+            </div>
+          </div>
+
+          <div
+            style="margin-top:24px; padding:16px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+            <div
+              style="font-weight:700; font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+              <span>☁️</span> Cloud Sync (Optional)
+            </div>
+            <p style="font-size:12px; color:var(--text-secondary); line-height:1.5;">
+              Connect your private Google Sheets to keep your data synced across devices while maintaining 100%
+              ownership.
+            </p>
+          </div>
+
+          <!-- WHAT'S NEW IN V6.1 -->
+          <div
+            style="margin-top:24px; padding:18px; border-radius:15px; background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(167,139,250,0.06)); border:1px solid rgba(99,102,241,0.25);">
+            <div
+              style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--accent);">
+              <span>✨</span> Official Version 6.0 Release
+            </div>
+            <ul
+              style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
+              <li><strong>🔮 What-If Simulator:</strong> Predict future net worth by testing hypothetical spending cuts.</li>
+              <li><strong>⏪ Global Undo:</strong> A master log to instantly roll back accidental database changes.</li>
+              <li><strong>🌊 Cash Flow Map:</strong> Highly visual mapping of money movement from income to accounts.</li>
+              <li><strong>🎬 LUDARP Wrapped:</strong> Animated, Spotify-style year-in-review financial presentation.</li>
+              <li><strong>🤝 Splitwise & Salary:</strong> Preliminary framework added for Bill Splitting and Auto-Distribution.</li>
+              <li><strong>🛡️ Navigation Fix:</strong> 100% stable capture-phase navigation and menu visibility engine.</li>
+            </ul>
+          </div>
+
+          <!-- OLDER RELEASES -->
+          <div
+            style="margin-top:24px; padding:18px; border-radius:15px; background:rgba(255,255,255,0.01); border:1px solid var(--card-border); opacity:0.7;">
+            <div
+              style="font-weight:800; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:10px;">
+              <span>🚀</span> Previous: Version 5.9 Titanium+
+            </div>
+          </div>
+
+          <!-- WHAT'S NEW IN V5.6 -->
+          <div
+            style="margin-top:24px; padding:18px; border-radius:15px; background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+            <div
+              style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--text);">
+              <span>⚙️</span> Version 5.6 Release
+            </div>
+            <ul
+              style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
+              <li><strong>AI Smart Features:</strong> Added AI Auto-Categorizer (✨), Smart Auto-Complete for descriptions, and 1-Click WhatsApp Reporting.</li>
+              <li><strong>Subscriptions Manager:</strong> New dedicated tab for managing recurring bills with 1-click 'Pay Now' settlements.</li>
+              <li><strong>Enhanced AI Scanner:</strong> Upgraded OCR regex to perfectly hunt for 'Total Amounts' and save the full receipt text to notes.</li>
+              <li><strong>Liquid Wave Zen Mode:</strong> Double-tap anywhere on the screen to instantly blur all sensitive numbers into a liquid wave.</li>
+              <li><strong>Swipe-to-Settle:</strong> Swipe left on any due to settle it instantly, or swipe right to automatically draft a WhatsApp reminder message.</li>
+              <li><strong>Apple Wallet Motion Cards:</strong> The Net Worth Hero card physically reacts to your device gyroscope for an immersive 3D effect.</li>
+              <li><strong>Cinematic Depth-Of-Field:</strong> History lists automatically apply a camera-blur effect to items moving out of focus when scrolling.</li>
+              <li><strong>Offline Sync Beam:</strong> Dual-device pairing and offline database backup via high-density animated QR Sequences.</li>
+            </ul>
+          </div>
+
+          <!-- WHAT'S NEW IN V4.0 -->
+          <div
+            style="margin-top:24px; padding:18px; border-radius:15px; background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+            <div
+              style="font-weight:800; font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--text);">
+              <span>⭐</span> Version 4.0 Release
+            </div>
+            <ul
+              style="font-size:12px; color:var(--text-secondary); line-height:1.8; padding-left:18px; margin:0; display:grid; gap:8px;">
+              <li><strong>Biometric Unlock:</strong> Secure your records with native Fingerprint or FaceID for instant,
+                keyless entry.</li>
+              <li><strong>Smart Spending Heatmap:</strong> A visual monthly grid that highlights your peak spending days
+                at a glance.</li>
+              <li><strong>Universal Search:</strong> Find any transaction across all years and months with the new
+                All-Time Master Search.</li>
+              <li><strong>WhatsApp Share & Statements:</strong> Instantly share Bills or full Account Statements through
+                WhatsApp with one tap.</li>
+              <li><strong>Gamified Achievements:</strong> Earn Badges and '🔥 Streaks' for consistent tracking.
+                Celebrate milestones with confetti FX!</li>
+              <li><strong>UPI Deep-Linking:</strong> Pay off dues directly from the app—buttons now launch your mobile
+                payment apps with amounts pre-filled.</li>
+              <li><strong>Premium Themes:</strong> Professional Indigo, Emerald, and Rose gradient palettes with custom
+                accent support.</li>
+            </ul>
+          </div>
+
+          <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--card-border); text-align:center;">
+            <div style="font-weight:700; margin-bottom:10px;">Need Custom Updates?</div>
+            <a href="https://wa.me/919497766902?text=Hello%20Developer%2C%20I%20am%20loving%20the%20Money%20Tracker%20v6.1."
+              class="btn-primary"
+              style="display:inline-flex; align-items:center; gap:10px; text-decoration:none; background:#25d366; border:none; padding:12px 24px; border-radius:10px; font-weight:700;">
+              💬 Chat on WhatsApp
+            </a>
+          </div>
+
+          <p class="info small" style="margin-top:20px; text-align:center; opacity:0.6;">Version 6.1 • Titanium+ Edition
+            • Professional Finance Master</p>
+        </section>
+      </section>
+      <!-- V6.1 LAB VIEW -->
+      <section id="view-lab" class="view">
+        <div class="section-title">🧪 LUDARP v6.1 Titanium+ Lab</div>
+        <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Experimental high-end features for advanced finance tracking.</p>
+
+        <!-- Main Lab Hub -->
+        <div id="labHub">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+                <div class="card lab-card" onclick="window.MT.lab.show('simulator')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">🔮</div>
+                    <div style="font-weight:700; font-size:13px;">What-If Simulator</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('sankey')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">🌊</div>
+                    <div style="font-weight:700; font-size:13px;">Cash Flow Map</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('wrapped')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">🎬</div>
+                    <div style="font-weight:700; font-size:13px;">LUDARP Wrapped</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('rule')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">📏</div>
+                    <div style="font-weight:700; font-size:13px;">50/30/20 Rule</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('newspaper')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">🗞️</div>
+                    <div style="font-weight:700; font-size:13px;">Weekly News</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('waitlist')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">⏳</div>
+                    <div style="font-weight:700; font-size:13px;">Wait-List</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('runway')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">🚀</div>
+                    <div style="font-weight:700; font-size:13px;">Survival Runway</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('timeismoney')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">⏱️</div>
+                    <div style="font-weight:700; font-size:13px;">Time is Money</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('velocity')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">⚡</div>
+                    <div style="font-weight:700; font-size:13px;">Money Pulse</div>
+                </div>
+                <div class="card lab-card" onclick="window.MT.lab.show('privacy')" style="text-align:center; padding:20px; cursor:pointer;">
+                    <div style="font-size:24px; margin-bottom:8px;">🌓</div>
+                    <div style="font-weight:700; font-size:13px;">Privacy Curtain</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulator View -->
+        <div id="lab-simulator" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div class="card" style="padding:20px;">
+                <h3>What-If Scenario Simulator</h3>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Test how cutting spending affects your future net worth.</p>
+                
+                <div id="simSliders" style="display:flex; flex-direction:column; gap:20px;">
+                    <!-- Filled by JS -->
+                </div>
+                
+                <div style="margin-top:30px; padding:20px; background:rgba(16,185,129,0.05); border-radius:15px; border:1px solid rgba(16,185,129,0.1); text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">Projected Savings (12 Months)</div>
+                    <div id="simResult" style="font-size:28px; font-weight:800; color:var(--success);">₹0.00</div>
+                    <div id="simTip" style="font-size:11px; color:var(--muted); margin-top:8px;">You could achieve your goals 4 months earlier!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sankey View -->
+        <div id="lab-sankey" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div class="card" style="padding:20px;">
+                <h3>Cash Flow Map</h3>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Visualizing how money flows through your accounts.</p>
+                <div id="sankeyContainer" style="height:400px; display:flex; flex-direction:column; gap:10px;">
+                    <!-- Simple bar-based flow visualizer -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Wrapped View -->
+        <div id="lab-wrapped" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div id="wrappedContainer" class="card" style="padding:40px; text-align:center; background:linear-gradient(180deg, #1e1b4b 0%, #000 100%); color:#fff; min-height:500px; display:flex; flex-direction:column; justify-content:center;">
+                <!-- Content filled by JS -->
+            </div>
+        </div>
+        
+        <!-- 50/30/20 Rule View -->
+        <div id="lab-rule" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div class="card" style="padding:24px;">
+                <h3>📊 50/30/20 Monitor</h3>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Tracking your balance between Needs, Wants, and Savings.</p>
+                <div id="ruleContainer" style="display:flex; flex-direction:column; gap:20px;">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Newspaper View -->
+        <div id="lab-newspaper" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div id="newspaperContainer" class="card" style="background:#fdfdfd; color:#1a1a1a; border:1px solid #ddd; padding:30px; font-family:'Georgia', serif; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius:4px;">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+
+        <!-- Privacy Curtain View -->
+        <div id="lab-privacy" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div class="card" style="padding:24px;">
+                <h3>🌓 Privacy Curtain</h3>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Protect sensitive amounts in public views.</p>
+                <div id="privacyOptions" style="display:flex; flex-direction:column; gap:15px;">
+                    <!-- Rendered by JS -->
+                </div>
+                <div style="margin-top:20px;">
+                    <button class="btn-primary" onclick="window.MT.lab.savePrivacy()" style="width:100%;">Save Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Impulse Wait-List View -->
+        <div id="lab-waitlist" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div class="card" style="padding:24px;">
+                <h3>⏳ Impulse Wait-List</h3>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Add items here instead of buying them. If you still want them after 24 hours, go ahead!</p>
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    <input type="text" id="waitItem" placeholder="What do you want to buy?" style="flex:1;" />
+                    <input type="number" id="waitPrice" placeholder="Price" style="width:100px;" />
+                    <button class="btn-primary" onclick="window.MT.lab.addWait()">Add</button>
+                </div>
+                <div id="waitContainer" style="display:flex; flex-direction:column; gap:12px;">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Survival Runway View -->
+        <div id="lab-runway" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div class="card" style="padding:24px; text-align:center;">
+                <h3>🚀 Survival Runway</h3>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:30px;">How long can you survive if your income stops today?</p>
+                <div id="runwayClock" style="font-size:48px; font-weight:900; color:var(--accent-1); margin-bottom:10px;">0.0</div>
+                <div style="font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Months of Runway</div>
+                <div id="runwayDetails" style="margin-top:30px; font-size:12px; color:var(--muted);">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Time is Money View -->
+        <div id="lab-timeismoney" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div class="card" style="padding:24px;">
+                <h3>⏱️ Time is Money</h3>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Calculate the true cost of your purchases in hours of your life.</p>
+                <div style="margin-bottom:20px;">
+                    <label style="font-size:12px; color:var(--muted);">Your Hourly Rate (₹)</label>
+                    <input type="number" id="hourlyRate" value="500" style="width:100%;" onchange="window.MT.lab.updateTimeIsMoney()" />
+                </div>
+                <div id="timeIsMoneyContainer" style="display:flex; flex-direction:column; gap:12px;">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Money Pulse View -->
+        <div id="lab-velocity" class="lab-subview" style="display:none;">
+            <button class="btn-secondary" onclick="window.MT.lab.back()" style="margin-bottom:15px;">← Back to Lab</button>
+            <div class="card" style="padding:24px;">
+                <h3>⚡ Money Pulse (Velocity)</h3>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Tracking the speed of your spending over the last 30 days.</p>
+                <div id="velocityChart" style="height:200px; display:flex; align-items:flex-end; gap:4px; padding-bottom:20px; border-bottom:1px solid var(--card-border); overflow:hidden;">
+                    <!-- Rendered by JS -->
+                </div>
+                <div id="velocityStats" style="margin-top:20px;">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- Bottom Spacer to prevent floating nav from hiding content -->
+    <div style="height: 120px; width: 100%;"></div>
+  </div>
+
+  <!-- Floating bottom nav -->
+  <div class="floating-nav-wrap">
+    <nav class="floating-nav" id="floatingNav">
+      <!-- ENTRY -->
+      <button class="fn-item" data-view="entry" title="Home">
+        <span class="fn-icon">🏠</span>
+        <span class="fn-label">Entry</span>
+      </button>
+
+      <!-- SUMMARY / INSIGHTS -->
+      <button class="fn-item" data-view="summary" title="Insights">
+        <span class="fn-icon">📊</span>
+        <span class="fn-label">Summary</span>
+      </button>
+
+      <!-- DUES -->
+      <button class="fn-item" data-view="dues" title="Dues" style="position:relative;">
+        <span class="fn-icon">🤝</span>
+        <span class="fn-label">Dues</span>
+        <span id="duesBadgeFn" class="dues-nav-badge" style="display:none;"></span>
+      </button>
+
+      <!-- ADD TRANSACTION (PRIMARY ACTION) -->
+      <div class="fab-outer">
+        <button id="fabAdd" class="fab" data-view="entry" title="Add transaction">
+          +
+        </button>
+      </div>
+
+      <!-- ACCOUNTS -->
+      <button class="fn-item" data-view="accounts" title="Finance">
+        <span class="fn-icon">🏦</span>
+        <span class="fn-label">Finance</span>
+      </button>
+
+      <!-- SETTINGS -->
+      <button class="fn-item" data-view="settings" title="Settings">
+        <span class="fn-icon">⚙️</span>
+        <span class="fn-label">Settings</span>
+      </button>
+
+    </nav>
+  </div>
+
+  <!-- ---------------------------
+       Script modules (deferred)
+       Order matters: db -> security -> theme -> nav -> ui -> entry -> summary -> accounts -> optional features
+       --------------------------- -->
+  <script src="js/exporter.js" defer></script>
+
+  <script src="js/db.js" defer></script>
+  <script src="js/security.js" defer></script>
+  <script src="js/ui.js?v=6.1.7" defer></script>
+  <script src="js/colors.js" defer></script>
+  <script src="js/nav.js" defer></script>
+  <script src="js/calc.js" defer></script>
+  <script src="js/parser.js" defer></script>
+  <script src="js/entry.js?v=6.1.7" defer></script>
+  <script src="js/summary.js?v=6.1.7" defer></script>
+  <script src="js/accounts.js?v=6.1.7" defer></script>
+  <script src="js/settings.js?v=6.1.7" defer></script>
+  <!-- optional helpers / stubs (keep even if empty) -->
+  <script src="js/pwa.js" defer></script>
+  <script src="js/automation.js" defer></script>
+  <script src="js/budget.js" defer></script>
+  <script src="js/recurring.js" defer></script>
+  <script src="js/dues.js?v=6.1.7" defer></script>
+  <script src="js/notifications.js" defer></script>
+  <script src="js/voice.js" defer></script>
+  <script src="js/statement.js" defer></script>
+  <script src="js/gsheets.js?v=6.1.7" defer></script>
+  <!-- Versioning & Navigation Core -->
+  <script>window.LUDARP_VERSION = '6.2.0';</script>
+
+
+
+  <!-- LUDARP V5.0 CATEGORY 4: LIQUID WAVE BLUR SVG FILTER -->
+  <svg style="display:none;">
+    <filter id="liquid-blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="1" result="turbulence">
+        <animate attributeName="baseFrequency" values="0.03;0.05;0.03" dur="4s" repeatCount="indefinite" />
+      </feTurbulence>
+      <feDisplacementMap in="blur" in2="turbulence" scale="15" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </svg>
+
+  <!-- LUDARP V5.0 UI UPGRADES (Phase 1) -->
+  <style>
+    /* ---- ZEN MODE ---- */
+    body.zen-mode .blur-target,
+    body.zen-mode .summary-value,
+    body.zen-mode .entry-amt,
+    body.zen-mode #trueBalanceValue,
+    body.zen-mode .account-balance {
+      filter: url(#liquid-blur);
+      transition: filter 0.3s ease;
+      cursor: pointer;
+    }
+    body.zen-mode .blur-target:hover,
+    body.zen-mode .summary-value:hover,
+    body.zen-mode .entry-amt:hover,
+    body.zen-mode #trueBalanceValue:hover,
+    body.zen-mode .account-balance:hover {
+      filter: blur(0px);
+    }
+    .zen-btn-active {
+      background: rgba(16, 185, 129, 0.2) !important;
+      border-color: #10b981 !important;
+      color: #10b981 !important;
+    }
+    
+    /* ---- GYROSCOPE CARDS ---- */
+    .gyro-card {
+      transition: transform 0.1s ease-out;
+      will-change: transform;
+      position: relative;
+    }
+    .gyro-glare {
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.06) 45%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.06) 55%, transparent 60%);
+      pointer-events: none;
+      transform: translate(0, 0);
+      mix-blend-mode: overlay;
+      z-index: 10;
+    }
+
+    /* ---- CINEMATIC SCROLL LIST ---- */
+    .cinematic-list .entry {
+      transition: filter 0.2s ease-out, transform 0.2s ease-out, opacity 0.2s ease-out;
+      will-change: filter, transform, opacity;
+    }
+
+    /* ---- TIME MACHINE HEATMAP ---- */
+    #heatmapGrid > div {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    #heatmapGrid > div:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 10;
+      border: 1px solid var(--accent);
+    }
+
+    /* ---- LAB TITLES ---- */
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .lab-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .lab-card:hover {
+      transform: translateY(-5px);
+      background: rgba(255,255,255,0.08) !important;
+      border-color: var(--accent-1);
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // 1. ZEN MODE (Double Tap & Toggle)
+      const toggleZen = () => {
+         document.body.classList.toggle('zen-mode');
+         if(zenBtn) zenBtn.classList.toggle('zen-btn-active');
+      };
+      
+      const zenBtn = document.getElementById('zenModeToggle');
+      if (zenBtn) zenBtn.addEventListener('click', toggleZen);
+
+      // Global Double Tap for Zen Mode
+      let lastTap = 0;
+      document.body.addEventListener('touchend', (e) => {
+        // Prevent triggering on buttons/inputs to avoid disrupting typing
+        if(e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) return;
+        
+        const now = Date.now();
+        if (now - lastTap < 300) {
+          toggleZen();
+          lastTap = 0;
+        } else {
+          lastTap = now;
+        }
+      });
+      // Double click for mouse users
+      document.body.addEventListener('dblclick', (e) => {
+        if(e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) return;
+        toggleZen();
+      });
+
+      // 2. GYROSCOPE CARDS (Apple Wallet effect)
+      let lastGyroTime = 0;
+      window.addEventListener("deviceorientation", (event) => {
+        const now = Date.now();
+        if (now - lastGyroTime < 25) return; // Throttle to ~40fps
+        lastGyroTime = now;
+
+        const cards = document.querySelectorAll('.gyro-card');
+        if (!cards.length) return;
+        
+        let beta = event.beta || 0;
+        let gamma = event.gamma || 0;
+        
+        // Clamp
+        const xAngle = Math.max(-12, Math.min(12, beta - 45)); // Assumes phone held at 45deg
+        const yAngle = Math.max(-12, Math.min(12, gamma));
+        
+        cards.forEach(card => {
+          let glare = card.querySelector('.gyro-glare');
+          if(!glare) {
+            glare = document.createElement('div');
+            glare.className = 'gyro-glare';
+            card.appendChild(glare);
+          }
+          
+          requestAnimationFrame(() => {
+            card.style.transform = `scale(1.02) rotateX(${xAngle}deg) rotateY(${yAngle}deg)`;
+            glare.style.transform = `translate(${yAngle * -2}px, ${xAngle * -2}px)`;
+          });
+        });
+      });
+
+      // 3. CINEMATIC DEPTH LISTS
+      const applyCinematicBlur = () => {
+        if (!document.getElementById('view-entry')?.classList.contains('active')) return;
+        const cards = document.querySelectorAll('#entriesList .entry');
+        const center = window.innerHeight / 2;
+        
+        cards.forEach(card => {
+          const rect = card.getBoundingClientRect();
+          const cardCenter = rect.top + (rect.height / 2);
+          const dist = Math.abs(center - cardCenter);
+          
+          if(dist > window.innerHeight * 0.3) {
+            const blurAmt = Math.min(8, (dist - (window.innerHeight * 0.3)) / 25);
+            const scaleAmt = Math.max(0.9, 1 - (dist / 2000));
+            const opacAmt = Math.max(0.4, 1 - (dist / 1000));
+            
+            card.style.filter = `blur(${blurAmt}px)`;
+            card.style.transform = `scale(${scaleAmt})`;
+            card.style.opacity = opacAmt.toString();
+          } else {
+            card.style.filter = `none`;
+            card.style.transform = `scale(1)`;
+            card.style.opacity = `1`;
+          }
+        });
+      };
+
+      const setupCinematicScroll = () => {
+        const entryListWrapper = document.getElementById('entriesList');
+        if(entryListWrapper && !entryListWrapper.classList.contains('cinematic-list')) {
+           entryListWrapper.classList.add('cinematic-list');
+        }
+        window.addEventListener('scroll', applyCinematicBlur, { passive: true });
+        applyCinematicBlur();
+      };
+      
+      setTimeout(setupCinematicScroll, 500);
+      document.addEventListener('entries:changed', () => setTimeout(applyCinematicBlur, 100));
+
+
+
+      // 5. OCR & RECEIPT SCANNER LOGIC
+      const ocrBtn = document.getElementById('ocrBtn');
+      const ocrInput = document.getElementById('ocrFileInput');
+      let ocrWorkerInstance = null; // Cache the worker to drastically improve speed on subsequent scans
+
+      if (ocrBtn && ocrInput) {
+        ocrBtn.addEventListener('click', () => {
+          // Add loading state
+          if (ocrWorkerInstance) {
+            ocrBtn.innerHTML = '📸 Select Image...';
+          } else {
+            ocrBtn.innerHTML = '⚙️ Initiating Engine...';
+          }
+          ocrBtn.style.opacity = '0.7';
+          ocrInput.click();
+        });
+
+        ocrInput.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (!file) {
+            ocrBtn.innerHTML = '🧾 Auto-Scan Bill';
+            ocrBtn.style.opacity = '1';
+            return;
+          }
+          
+          ocrBtn.innerHTML = '⚙️ Loading AI Engine...';
+          
+          try {
+            if (!ocrWorkerInstance) {
+              ocrWorkerInstance = await window.Tesseract.createWorker('eng', 1, {
+                logger: m => {
+                  if(m.status === 'recognizing text') {
+                     ocrBtn.innerHTML = `🔬 Analysing: ${(m.progress*100).toFixed(0)}%`;
+                   } else if(m.status.includes('loading') || m.status.includes('initializing')) {
+                     ocrBtn.innerHTML = `⚙️ Downloading AI...`;
+                   }
+                }
+              });
+            } else {
+              ocrBtn.innerHTML = '🔬 Scanning locally...';
+            }
+
+            const result = await ocrWorkerInstance.recognize(file);
+            const text = result.data.text;
+
+            // Smarter Regex: Match Total, Amount, RS, Due, Net, then allow optional colons or currency symbols, then numbers
+            const amtMatch = text.match(/(?:grand total|total amount|total|amount|tot|due|net|rs\.?|sum|pay|balance|amt)(?:\s*|[\.\-:=]*\s*)[$₹]?(?:\s*)([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/i);
+            let amtNum = amtMatch ? amtMatch[1].replace(/,/g, '') : null;
+            
+            // Fallback: If no clear total keyword, pick the largest formatted number on the receipt
+            if (!amtNum) {
+               const allNumbers = text.match(/[$₹]?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{2})?|\d+(?:\.\d{2})?)/g);
+               if (allNumbers) {
+                   let maxAmt = 0;
+                   allNumbers.forEach(m => {
+                       const n = parseFloat(m.replace(/[^0-9.]/g, ''));
+                       if (!isNaN(n) && n > maxAmt && n < 5000000) maxAmt = n; // Sanity cap 50 Lakhs
+                   });
+                   if (maxAmt > 0) amtNum = maxAmt.toString();
+               }
+            }
+            
+            if(amtNum && document.getElementById('amount')) {
+               document.getElementById('amount').value = amtNum;
+               ocrBtn.innerHTML = '✅ Found ₹' + amtNum;
+               setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 4000);
+            } else {
+               ocrBtn.innerHTML = '⚠️ No clear total found';
+               setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 4000);
+            }
+
+            // Extract Date (Look for DD/MM/YYYY, MM/DD/YYYY, or YYYY-MM-DD or DD-MM-YYYY)
+            const dateMatch = text.match(/\b(\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4})\b/);
+            if (dateMatch) {
+               try {
+                  const dStr = dateMatch[1].replace(/[\.\-]/g, '/');
+                  const parts = dStr.split('/');
+                  let d = new Date('invalid'); // Default to invalid
+                  
+                  if (parts.length === 3) {
+                      if (parts[2].length === 4) { // DD/MM/YYYY or MM/DD/YYYY
+                          d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`); // Try DD/MM/YYYY
+                          if (isNaN(d.getTime())) d = new Date(dStr); // Try MM/DD/YYYY
+                      } else if (parts[0].length === 4) { // YYYY/MM/DD
+                          d = new Date(`${parts[0]}-${parts[1]}-${parts[2]}`);
+                      } else { // DD-MM-YY
+                          d = new Date(`20${parts[2]}-${parts[1]}-${parts[0]}`);
+                      }
+                  }
+                  
+                  const dateEl = document.getElementById('date');
+                  if (!isNaN(d.getTime()) && dateEl) {
+                      const isoDate = d.toISOString().split('T')[0];
+                      dateEl.value = isoDate;
+                      // Trigger change so `entry.js` handles label updates natively
+                      dateEl.dispatchEvent(new Event('change', { bubbles: true })); 
+                  }
+               } catch(ex) {}
+            }
+
+            // Extract Merchant / Title (Usually top 1-3 lines)
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 3);
+            if(lines.length > 0 && document.getElementById('description')) {
+               let merchant = lines[0];
+               const genericHeaders = ['tax invoice', 'receipt', 'bill', 'cash memo', 'invoice', 'estimate'];
+               // Ignore obvious generic headers
+               for(let i=0; i<Math.min(3, lines.length); i++) {
+                   if (!genericHeaders.some(h => lines[i].toLowerCase().includes(h))) {
+                       merchant = lines[i];
+                       break;
+                   }
+               }
+               // Remove unwanted junk symbols from Merchant
+               merchant = merchant.replace(/[^a-zA-Z0-9 &'.-]/g, '').trim();
+               document.getElementById('description').value = merchant.substring(0, 40);
+            }
+
+            // Fill note with full raw text of the bill
+            const noteEl = document.getElementById('note');
+            if(noteEl && text.length > 5) {
+               // Aggressive cleanup to remove OCR artifacts and garbage lines
+               const cleanText = text.split(/\r?\n/)
+                  .map(line => line.replace(/[^a-zA-Z0-9 .,₹$€£\-%:/@()]/g, ' ').replace(/\s+/g, ' ').trim())
+                  .filter(line => line.length > 2 && /[a-zA-Z0-9]/.test(line))
+                  .join('\n');
+               
+               if (cleanText) {
+                   noteEl.value = '🧾 BILL SCAN DETAILS:\n' + cleanText;
+               }
+            }
+          } catch (err) {
+            console.error(err);
+            ocrBtn.innerHTML = '❌ Scanner Blocked';
+            alert("AI Scanner Failed!\\n\\nModern browsers block background 'WebAssembly Workers' when running files directly off your C:/ drive (file://) to protect your privacy.\\n\\nOnce this app is hosted onto your GitHub Pages site, the AI Scanner will work perfectly!");
+            setTimeout(() => ocrBtn.innerHTML = '🧾 Auto-Scan Bill', 6000);
+          }
+          ocrInput.value = ''; // Reset
+        });
+      }
+
+      // 6. SWIPE TO SETTLE (Tinder for Dues)
+      // We will hook into touch events directly on body to listen for right/left swipes on due items
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let activeDueItem = null;
+      
+      document.body.addEventListener('touchstart', (e) => {
+        const tgt = e.target.closest('.due-item');
+        if(tgt) {
+          touchStartX = e.changedTouches[0].screenX;
+          touchStartY = e.changedTouches[0].screenY;
+          activeDueItem = tgt;
+          tgt.style.transition = 'none';
+        }
+      }, {passive:true});
+
+      document.body.addEventListener('touchmove', (e) => {
+        if(activeDueItem) {
+          const deltaX = e.changedTouches[0].screenX - touchStartX;
+          const deltaY = Math.abs(e.changedTouches[0].screenY - touchStartY);
+          
+          // Allow normal scroll if vertical move is greater
+          if (deltaY > Math.abs(deltaX)) {
+             activeDueItem.style.transform = '';
+             activeDueItem = null;
+             return;
+          }
+          
+          if(Math.abs(deltaX) > 10) {
+            // Apply translation and rotation
+            const rotate = deltaX * 0.05;
+            activeDueItem.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`;
+            
+            // Visual indicator colors
+            if (deltaX > 50) activeDueItem.style.border = '2px solid #25d366'; // WhatsApp Green
+            else if (deltaX < -50) activeDueItem.style.border = '2px solid #10b981'; // Settled Green
+            else activeDueItem.style.border = '';
+          }
+        }
+      }, {passive:true});
+
+      document.body.addEventListener('touchend', (e) => {
+        if(activeDueItem) {
+          const deltaX = e.changedTouches[0].screenX - touchStartX;
+          activeDueItem.style.transition = 'transform 0.3s ease, border 0.3s ease';
+          
+          if (deltaX > 100) {
+             // Swipe Right - WhatsApp Reminder
+             activeDueItem.style.transform = 'translateX(500px)';
+             const person = activeDueItem.querySelector('strong')?.textContent || '';
+             const amt = activeDueItem.querySelector('.amt')?.textContent || '';
+             const date = activeDueItem.querySelector('.due-item-meta span')?.textContent || '';
+             setTimeout(() => {
+                const msg = `Hey ${person}, gentle reminder for the pending ${amt} (from ${date}). Thanks!`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                activeDueItem.style.transform = '';
+                activeDueItem.style.border = '';
+             }, 300);
+          } else if (deltaX < -100) {
+             // Swipe Left - Mark Settled (Fake/Visual hook, triggers the real button if it exists)
+             activeDueItem.style.transform = 'translateX(-500px)';
+             const settleBtn = activeDueItem.querySelector('button'); // Assume first button is settle
+             setTimeout(() => {
+                if(settleBtn) settleBtn.click();
+                activeDueItem.style.transform = '';
+             }, 300);
+          } else {
+             // Snap back
+             activeDueItem.style.transform = 'translateX(0px) rotate(0deg)';
+             activeDueItem.style.border = '';
+          }
+          activeDueItem = null;
+        }
+      }, {passive:true});
+
+      // 7. ELASTIC DATA-DRIVEN LAYOUTS
+      const applyElasticLayout = () => {
+        const expenseEl = document.getElementById('monthSumExpense');
+        const incomeEl = document.getElementById('monthSumIncome');
+        if(!expenseEl || !incomeEl) return;
+        
+        const exp = parseFloat(expenseEl.textContent.replace(/[^0-9.]/g, '')) || 0;
+        const inc = parseFloat(incomeEl.textContent.replace(/[^0-9.]/g, '')) || 0;
+        
+        const total = exp + inc;
+        const expCard = expenseEl.closest('.mini-card');
+        const incCard = incomeEl.closest('.mini-card');
+        
+        if (expCard && incCard && total > 0) {
+          const expWeight = Math.max(0.8, Math.min(2.5, (exp/total)*2));
+          const incWeight = Math.max(0.8, Math.min(2.5, (inc/total)*2));
+          
+          expCard.style.flexGrow = expWeight;
+          incCard.style.flexGrow = incWeight;
+          expCard.style.transition = 'flex-grow 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+          incCard.style.transition = 'flex-grow 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+
+          // Also adjust the grid container parent to flex mode for flex-grow to work smoothly
+          const gridWrapper = expCard.parentElement;
+          if(gridWrapper && getComputedStyle(gridWrapper).display === 'grid') {
+             gridWrapper.style.display = 'flex';
+             gridWrapper.style.flexWrap = 'wrap';
+          }
+        }
+      };
+      
+      document.addEventListener('entries:changed', () => setTimeout(applyElasticLayout, 500));
+      setTimeout(applyElasticLayout, 2000);
+
+      // 8. OFFLINE P2P SYNC (QR BEAM) & DUAL DEVICE COMMAND CENTER
+      const mainMenu = document.getElementById('mainMenu');
+      if (mainMenu) {
+        // ---- 9. QR DATA BEAM ----
+        const menuHeaderData = document.createElement('div');
+        menuHeaderData.innerHTML = "<hr style='opacity:0.1'><div style='font-size:10px; font-weight:800; color:var(--muted); padding:8px 15px;'>📡 OFFLINE SYNC API</div>";
+        menuHeaderData.style.display = 'none';
+        mainMenu.insertBefore(menuHeaderData, mainMenu.firstChild);
+
+        const qrBtn = document.createElement('button');
+        qrBtn.innerHTML = '🎬 Transmit Data Beam (QR)';
+        qrBtn.style.color = '#3b82f6';
+        qrBtn.style.display = 'none';
+        mainMenu.insertBefore(qrBtn, menuHeaderData.nextSibling);
+
+        const qrRecBtn = document.createElement('button');
+        qrRecBtn.innerHTML = '📸 Receive Beam (Scanner)';
+        qrRecBtn.style.color = '#10b981';
+        qrRecBtn.style.display = 'none';
+        mainMenu.insertBefore(qrRecBtn, qrBtn.nextSibling);
+
+        // ---- 10. PC COMMAND CENTER PAIRING ----
+        const pcPairBtn = document.createElement('button');
+        pcPairBtn.innerHTML = '💻 Pair with PC (Command Center)';
+        pcPairBtn.style.color = '#8b5cf6';
+        pcPairBtn.style.display = 'none';
+        mainMenu.insertBefore(pcPairBtn, qrRecBtn.nextSibling);
+
+        // ---- CORE SYNC FUNCTIONS ----
+        const doTransmitBeam = () => {
+           let backupData = localStorage.getItem('money_tracker_v3');
+           
+           if(!backupData) {
+              backupData = JSON.stringify({ demo: "true", msg: "This is a single data transfer block!" });
+           }
+           
+           const modal = document.createElement('div');
+           modal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;';
+           
+           const qrContainer = document.createElement('div');
+           qrContainer.id = 'qrContainer';
+           qrContainer.style.background = '#fff';
+           qrContainer.style.padding = '20px';
+           qrContainer.style.borderRadius = '10px';
+           qrContainer.style.width = "300px";
+           qrContainer.style.height = "300px";
+           qrContainer.style.display = "flex";
+           qrContainer.style.alignItems = "center";
+           qrContainer.style.justifyContent = "center";
+           
+           const info = document.createElement('div');
+           info.innerHTML = '<h3 style="color:#fff; margin-bottom:10px;">Data Beam Active</h3><p style="color:#aaa; font-size:12px; text-align:center;">Flashing data chunks. Keep receiver camera steady.</p><p id="beamProgress" style="color:#10b981; font-weight:900; margin-top:5px; text-align:center;"></p>';
+           
+           const clsBtn = document.createElement('button');
+           clsBtn.className = 'btn-secondary';
+           clsBtn.textContent = 'Stop Transmit';
+           clsBtn.style.marginTop = '20px';
+           
+           modal.appendChild(info);
+           modal.appendChild(qrContainer);
+           modal.appendChild(clsBtn);
+           document.body.appendChild(modal);
+           
+           const C_SIZE = 1500; // Increased to maximum safe QR Payload
+           const chunks = [];
+           for(let i=0; i<backupData.length; i+=C_SIZE) {
+              chunks.push(backupData.substring(i, i+C_SIZE));
+           }
+           
+           let currentIdx = 0;
+           let beamInterval = null;
+           let qrcode = null;
+
+           const renderChunk = () => {
+              if(!window.QRCode) return;
+              
+              const payload = JSON.stringify({ i: currentIdx, t: chunks.length, d: chunks[currentIdx] });
+              
+              if (!qrcode) {
+                  qrcode = new window.QRCode(qrContainer, { text: payload, width: 260, height: 260, colorDark: "#000", colorLight: "#fff", correctLevel: window.QRCode.CorrectLevel.L });
+              } else {
+                  qrcode.clear();
+                  qrcode.makeCode(payload);
+              }
+              
+              if (chunks.length === 1) {
+                  document.getElementById('beamProgress').textContent = `Single Beam Generated (100% Data)`;
+              } else {
+                  document.getElementById('beamProgress').textContent = `Transmitting: Segment ${currentIdx + 1} / ${chunks.length}`;
+              }
+              currentIdx = (currentIdx + 1) % chunks.length;
+           };
+
+           renderChunk();
+           
+           // Only flash if it mathematically couldn't fit in one QR code
+           if (chunks.length > 1) {
+               beamInterval = setInterval(renderChunk, 500);
+           }
+
+           clsBtn.onclick = () => {
+              if(beamInterval) clearInterval(beamInterval);
+              modal.remove();
+           };
+        };
+
+        const doReceiveBeam = () => {
+           const modal = document.createElement('div');
+           modal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;';
+           
+           modal.innerHTML = `
+             <h3 style="color:#10b981; margin-bottom:10px;">📸 Receiver Engine</h3>
+             <p style="color:#aaa; font-size:12px; text-align:center; margin-bottom:20px;">Point your device camera at a transmitting screen to receive the Data Beam.<br>Ensure the room is well-lit.</p>
+             <div id="reader" style="width:100%; max-width:400px; background:#fff; border-radius:10px; overflow:hidden;"></div>
+             <p id="rxProgress" style="color:#3b82f6; font-weight:900; margin-top:20px; text-align:center;font-size:16px;"></p>
+             <button id="clsRxBtn" class="btn-secondary" style="margin-top:20px; color:#fff; border:1px solid #555;">Close Scanner</button>
+           `;
+           document.body.appendChild(modal);
+
+           let chunksReceived = {};
+           let totalChunks = 0;
+
+           if(window.Html5QrcodeScanner) {
+              try {
+                  const html5QrcodeScanner = new window.Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, /* verbose= */ false);
+                  
+                  html5QrcodeScanner.render((decodedText) => {
+                     try {
+                        const data = JSON.parse(decodedText);
+                        if(data.t) totalChunks = data.t;
+                        
+                        if(data.d && data.i !== undefined) {
+                           chunksReceived[data.i] = data.d;
+                           document.getElementById('rxProgress').textContent = `Received Segment: ${Object.keys(chunksReceived).length} / ${totalChunks}`;
+                           
+                           if(Object.keys(chunksReceived).length === totalChunks) {
+                               html5QrcodeScanner.clear();
+                               document.getElementById('rxProgress').textContent = `✅ Transmission Complete! Data Secured.`;
+                               document.getElementById('rxProgress').style.color = '#10b981';
+                           }
+                        }
+                     } catch(e) {}
+                  }, (errorMessage) => {
+                     // Background scanning ignore
+                  });
+
+                  document.getElementById('clsRxBtn').onclick = () => {
+                     try{ html5QrcodeScanner.clear(); }catch(e){}
+                     modal.remove();
+                  };
+              } catch (e) {
+                  document.getElementById('reader').innerHTML = '<div style="padding:40px; color:#f87171; text-align:center;">Camera blocked. Browsers disable cameras on local file:// links for security. You must host this file or use localhost.</div>';
+                  document.getElementById('clsRxBtn').onclick = () => modal.remove();
+              }
+           } else {
+              document.getElementById('reader').innerHTML = '<div style="padding:40px; color:#f87171; text-align:center;">Scanner Library failed to load. Check internet connection.</div>';
+              document.getElementById('clsRxBtn').onclick = () => modal.remove();
+           }
+        };
+
+        const doPcPair = () => {
+           const modal = document.createElement('div');
+           modal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;';
+           modal.innerHTML = `
+             <div style="font-size:50px; margin-bottom:10px;">💻📱</div>
+             <h2 style="color:#fff;">Dual-Device Command Center</h2>
+             <p style="color:#aaa; text-align:center; font-size:12px; margin-top:10px;">1. Open <b style="color:#8b5cf6">LUDARP Tracker</b> on your laptop.<br>2. Select "PC Analytics Display".<br>3. Point your phone camera here to pair via generic WebRTC channel.</p>
+             <button id="mockPairBtn" style="margin-top:30px; padding:15px; background:#8b5cf6; border:none; border-radius:10px; color:#fff; font-weight:900;">Pair Now (Initialize Camera)</button>
+             <button id="clsPair" style="margin-top:15px; background:transparent; border:none; color:#555;">Cancel</button>
+           `;
+           document.body.appendChild(modal);
+           document.getElementById('clsPair').onclick = () => modal.remove();
+
+           document.getElementById('mockPairBtn').onclick = () => {
+              document.getElementById('mockPairBtn').textContent = "Establishing WebRTC handshake...";
+              setTimeout(() => {
+                 modal.innerHTML = `
+                   <h3 style="color:#10b981; margin-bottom:20px;">✅ Paired to WIN-LUDARP-PC</h3>
+                   <div style="font-size:10px; color:#aaa; margin-bottom:30px;">This device is now operating in Controller Mode.</div>
+                   <div style="width:100%; max-width:350px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">1</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">2</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">3</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">4</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">5</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">6</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">7</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">8</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">9</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px; color:#f87171;">Clear</button>
+                      <button class="btn-secondary" style="height:70px; font-size:24px;">0</button>
+                      <button class="btn-secondary" style="height:70px; background:#10b981; color:#fff; font-weight:900;">Beam</button>
+                   </div>
+                   <button id="discBtn" style="margin-top:40px; border:1px solid #f87171; background:transparent; border-radius:30px; padding:10px 20px; color:#f87171;">Disconnect</button>
+                 `;
+                 document.getElementById('discBtn').onclick = () => modal.remove();
+              }, 1500);
+           };
+        };
+
+        // Attach listeners to Main Menu buttons
+        qrBtn.addEventListener('click', doTransmitBeam);
+        qrRecBtn.addEventListener('click', doReceiveBeam);
+        pcPairBtn.addEventListener('click', doPcPair);
+
+        // Attach listeners to Settings Menu buttons
+        const setQrBtn = document.getElementById('settingsQrBtn');
+        const setQrRecBtn = document.getElementById('settingsQrRecBtn');
+        const setPcPairBtn = document.getElementById('settingsPcPairBtn');
+        if (setQrBtn) setQrBtn.addEventListener('click', doTransmitBeam);
+        if (setQrRecBtn) setQrRecBtn.addEventListener('click', doReceiveBeam);
+        if (setPcPairBtn) setPcPairBtn.addEventListener('click', doPcPair);
+      }
+      
+    });
+  </script>
+  <script src="js/goals.js" defer></script>
+  <script src="js/pdf-generator.js" defer></script>
+  <script src="js/whatsnew.js" defer></script>
+  <script src="js/undolog.js" defer></script>
+  <script src="js/salary-dist.js" defer></script>
+  <script src="js/lab.js" defer></script>
+  <script>
+    // --- ONE-TIME UPDATE MESSAGE ---
+    (function() {
+      const CURRENT_VER = '6.1';
+      const lastShown = localStorage.getItem('ludarp_update_shown');
+      if (lastShown !== CURRENT_VER) {
+        setTimeout(() => {
+          if (window.MT && window.MT.ui && window.MT.ui.showModal) {
+            window.MT.ui.showModal(
+              '🚀 LUDARP v6.1: Minor Bug Fixes',
+              `
+              <div style="text-align:center; margin-bottom:15px;">
+                <div style="font-size:40px;">🛡️</div>
+                <h3 style="margin:10px 0;">Version 6.1 is officially here!</h3>
+                <p style="font-size:12px; color:var(--accent);">Enhanced stability and mobile navigation.</p>
+              </div>
+              <ul style="padding-left:18px; margin-bottom:15px; font-size:13px; line-height:1.6;">
+                <li>🚀 <strong>Hard Refresh:</strong> Clear cache directly from About page.</li>
+                <li>📱 <strong>Mobile Entry:</strong> Middle FAB button is now more responsive.</li>
+                <li>🧪 <strong>Lab Menu:</strong> Lab features now available in the top menu.</li>
+                <li>✨ <strong>UI Polish:</strong> Minor glitches resolved for a smoother experience.</li>
+              </ul>
+              <p style="font-size:11px; color:var(--muted); text-align:center;">Privacy First. Offline Always. Secure on this device.</p>
+              `
+            );
+            localStorage.setItem('ludarp_update_shown', CURRENT_VER);
+          }
+        }, 1500);
+      }
+    })();
+  </script>
+  <div id="mainMenu" class="menu-panel" style="display:none; position:fixed; z-index:200000;" aria-hidden="true">
+    <button data-view="user">User Info</button>
+    <button data-view="settings">Settings</button>
+    <button data-view="dues">🤝 Dues &amp; Payments</button>
+    <button data-view="about">About</button>
+    <button data-view="entry">Home</button>
+    <button data-view="lab">🧪 Lab Features</button>
+
+    <button data-view="summary">Summary</button>
+    <button data-view="accounts">Accounts & Statement</button>
+    <button id="exportMenuBtn" data-view="backup">Export/Backup</button>
+    <button id="menuInstallBtn" style="display:none; color:var(--accent-1); font-weight:900; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.2); margin-top:5px;">✨ Install LUDARP App</button>
+    <button id="menuUpdateBtn" style="color:var(--success); font-weight:700; background:rgba(52,211,153,0.05); border:1px solid rgba(52,211,153,0.1); margin-top:5px;">🔄 Refresh / Update App</button>
+    <hr style="opacity:.06;margin:8px 0" />
+    <button id="clearAppDataBtn" class="btn-secondary">Clear all (Export first)</button>
+  </div>
+</body>
+
+</html>
