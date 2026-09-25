@@ -524,16 +524,22 @@
           </div>
           <div class="tech-card">
             ${list.map(tx => {
-        const accName = store.accounts[tx.accountId]?.name || tx.paymentType || 'GPay';
+        const accName = store.accounts[tx.accountId]?.name || tx.paymentType || tx.paymentMethod || 'GPay';
+        const duePerson = tx.duePerson || tx.person || dues.find(d => d.id === (tx.linkedDueId || tx.dueId))?.person;
+        const dueBadge = duePerson ? `<span style="color:#a78bfa; font-weight:800; background:rgba(167,139,250,0.15); padding:2px 6px; border-radius:4px; font-size:0.72rem;">🤝 Due: ${duePerson}</span>` : '';
+        const fuelBadge = (tx.fuel || tx.odometer || tx.fuelLitres || tx.currentKm) ? `<span style="color:var(--amber-warn); font-weight:800; background:rgba(234,179,8,0.15); padding:2px 6px; border-radius:4px; font-size:0.72rem;">⛽ Fuel</span>` : '';
+
         return `
                 <div class="tx-item" style="cursor: pointer;" onclick="window.showTxDetail('${tx.date}', '${tx.id}')">
                   <div style="display:flex; align-items:center; gap: 14px;">
                     <div class="tx-badge">${getCatIcon(tx.category)}</div>
                     <div>
-                      <div style="font-weight:800; font-size: 0.98rem; color: #fff;">${tx.desc || tx.category}</div>
-                      <div style="font-size:0.78rem; color: var(--text-muted); display:flex; gap: 10px; margin-top:2px;">
+                      <div style="font-weight:800; font-size: 0.98rem; color: #fff;">${tx.desc || tx.description || tx.category}</div>
+                      <div style="font-size:0.78rem; color: var(--text-muted); display:flex; gap: 8px; margin-top:4px; align-items:center; flex-wrap:wrap;">
                         <span>🏷️ ${tx.category}</span>
                         <span>💳 ${accName}</span>
+                        ${dueBadge}
+                        ${fuelBadge}
                       </div>
                     </div>
                   </div>
@@ -573,49 +579,72 @@
     const body = document.getElementById('tx-detail-body');
     if (!modal || !body) return;
 
-    const accName = store.accounts[tx.accountId]?.name || tx.paymentType || 'GPay';
+    const accName = store.accounts[tx.accountId]?.name || tx.paymentType || tx.paymentMethod || tx.account || 'GPay';
     const typeLabel = tx.type === 'inc' ? 'Income (+)' : tx.type === 'transfer' ? 'Transfer (🔄)' : 'Expense (-)';
     const typeColor = tx.type === 'inc' ? 'var(--emerald-inc)' : tx.type === 'transfer' ? 'var(--cyan-bright)' : 'var(--rose-exp)';
+    const descText = tx.desc || tx.description || tx.note || tx.remarks || 'No description provided.';
 
     let extraHtml = '';
 
-    if (tx.type === 'transfer') {
+    // 1. Transfer Details
+    if (tx.type === 'transfer' || tx.fromAccountId || tx.toAccountId) {
       const fromName = store.accounts[tx.fromAccountId]?.name || tx.fromAccountId || accName;
       const toName = store.accounts[tx.toAccountId]?.name || tx.toAccountId || 'Destination Account';
       extraHtml += `
-        <div style="background: rgba(6,182,212,0.08); padding: 12px; border-radius: 8px; border: 1px solid var(--border-cyan);">
-          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Transfer Details</div>
+        <div style="background: rgba(6,182,212,0.08); padding: 12px; border-radius: 8px; border: 1px solid var(--border-cyan); margin-top: 10px;">
+          <div style="font-size: 0.75rem; color: var(--cyan-bright); text-transform: uppercase; font-weight: 800;">🔄 Transfer Account Mapping</div>
           <div style="font-size: 0.9rem; font-weight: 800; color: #fff; margin-top: 4px;">${fromName} ➔ ${toName}</div>
         </div>
       `;
     }
 
-    if (tx.linkedDueId) {
-      const due = dues.find(d => d.id === tx.linkedDueId);
-      if (due) {
-        extraHtml += `
-          <div style="background: rgba(167,139,250,0.08); padding: 12px; border-radius: 8px; border: 1px solid rgba(167,139,250,0.2);">
-            <div style="font-size: 0.75rem; color: #a78bfa; text-transform: uppercase;">Linked Splitwise Due</div>
-            <div style="font-size: 0.9rem; font-weight: 800; color: #fff; margin-top: 4px;">${due.person} (${due.type === 'i_owe' ? 'I Owe' : 'Owes Me'}) • ${formatMoney(due.amount)}</div>
-            <div style="font-size: 0.78rem; color: var(--text-muted);">${due.settled ? '✓ Settled' : '⏳ Pending Settlement'}</div>
+    // 2. Due / Sharing Information (Comprehensive property check)
+    let dueObj = null;
+    const dueIdToFind = tx.linkedDueId || tx.dueId;
+    if (dueIdToFind) {
+      dueObj = dues.find(d => d.id === dueIdToFind);
+    }
+    const duePerson = dueObj?.person || tx.duePerson || tx.person || (tx.desc && tx.desc.toLowerCase().includes('due') ? tx.desc : null);
+    const dueTypeVal = dueObj?.type || tx.dueType || (tx.type === 'inc' ? 'they_owe' : 'i_owe');
+    const dueAmountVal = dueObj?.amount || tx.dueAmount || tx.amount;
+    const dueStatusText = dueObj ? (dueObj.settled ? '✓ Settled' : '⏳ Pending Settlement') : (tx.isDueSettlement ? '🤝 Settlement Log' : '🟢 Linked Due');
+
+    if (duePerson || dueObj || tx.linkedDueId || tx.dueId || tx.isDueSettlement) {
+      extraHtml += `
+        <div style="background: rgba(167,139,250,0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(167,139,250,0.3); margin-top: 10px;">
+          <div style="font-size: 0.75rem; color: #a78bfa; text-transform: uppercase; font-weight: 800; display: flex; justify-content: space-between;">
+            <span>🤝 Linked Due / Sharing Info</span>
+            <span>${dueStatusText}</span>
           </div>
-        `;
-      }
+          <div style="font-size: 0.92rem; font-weight: 800; color: #fff; margin-top: 4px;">
+            Person: <span style="color: var(--cyan-bright);">${duePerson || 'Unspecified'}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+            Classification: <b style="color: ${dueTypeVal === 'they_owe' ? 'var(--emerald-inc)' : 'var(--rose-exp)'}">${dueTypeVal === 'they_owe' ? '🟢 They Owe Me' : '🔴 I Owe Person'}</b> • Amount: <b>${formatMoney(dueAmountVal)}</b>
+          </div>
+        </div>
+      `;
     }
 
-    if (tx.fuel) {
-      const f = tx.fuel;
-      const dist = f.currentKm > f.prevKm ? f.currentKm - f.prevKm : 0;
-      const mileage = f.liters > 0 && dist > 0 ? (dist / f.liters).toFixed(1) : '–';
+    // 3. Fuel & Vehicle Metrics (Comprehensive property check)
+    const f = tx.fuel || {};
+    const odo = f.currentKm || tx.odometer || tx.currentKm || tx.km;
+    const prevOdo = f.prevKm || tx.prevKm || 0;
+    const liters = f.liters || tx.fuelLitres || tx.liters || tx.fuel_liters;
+    const rate = f.price || tx.fuelRate || tx.rate || tx.price;
+
+    if (odo || liters || rate || tx.category === 'Petrol') {
+      const dist = odo && prevOdo && odo > prevOdo ? odo - prevOdo : 0;
+      const mileage = liters && dist > 0 ? (dist / liters).toFixed(1) : '–';
       extraHtml += `
-        <div style="background: rgba(234,179,8,0.08); padding: 12px; border-radius: 8px; border: 1px dashed var(--amber-warn);">
+        <div style="background: rgba(234,179,8,0.08); padding: 12px; border-radius: 8px; border: 1px dashed var(--amber-warn); margin-top: 10px;">
           <div style="font-size: 0.75rem; color: var(--amber-warn); text-transform: uppercase; font-weight: 800;">⛽ Fuel & Vehicle Metrics</div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; font-size: 0.82rem; color: var(--text-secondary);">
-            <span>🛵 ODO: <b style="color:#fff;">${f.currentKm} km</b></span>
-            <span>📏 Distance: <b style="color:#fff;">${dist} km</b></span>
-            <span>💧 Volume: <b style="color:#fff;">${f.liters} L</b></span>
-            <span>💰 Rate: <b style="color:#fff;">${getCurrency()}${f.price}/L</b></span>
-            <span style="color: var(--emerald-inc); grid-column: 1 / -1;">📊 Mileage: <b>${mileage} km/L</b></span>
+            <span>🛵 Odometer: <b style="color:#fff;">${odo ? odo + ' km' : 'N/A'}</b></span>
+            <span>📏 Distance: <b style="color:#fff;">${dist > 0 ? dist + ' km' : 'N/A'}</b></span>
+            <span>💧 Litres: <b style="color:#fff;">${liters ? liters + ' L' : 'N/A'}</b></span>
+            <span>💰 Rate/L: <b style="color:#fff;">${rate ? formatMoney(rate) : 'N/A'}</b></span>
+            ${dist > 0 && mileage !== '–' ? `<span style="color: var(--emerald-inc); grid-column: 1 / -1; font-weight: 800;">📊 Mileage: ${mileage} km/L</span>` : ''}
           </div>
         </div>
       `;
@@ -632,7 +661,7 @@
         </span>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem; margin-top: 14px;">
         <div>
           <div style="font-size: 0.75rem; color: var(--text-muted);">Date & Time</div>
           <div style="font-weight: 700; color: #fff;">${tx.date} ${tx.time ? '• ' + tx.time : ''}</div>
@@ -651,10 +680,10 @@
         </div>
       </div>
 
-      <div>
+      <div style="margin-top: 12px;">
         <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Description / Notes</div>
         <div style="font-weight: 700; color: #fff; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid var(--border-card);">
-          ${tx.desc || 'No description provided.'}
+          ${descText}
         </div>
       </div>
 
