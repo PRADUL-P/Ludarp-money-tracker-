@@ -2759,4 +2759,11 @@ textarea:focus-visible {
 .privacy-blur:active {
     filter: blur(0);
 }
+
+#summaryHistory {
+    padding-bottom: 100px;
+}
+main, .page-view, .section {
+    padding-bottom: 90px;
+}
 

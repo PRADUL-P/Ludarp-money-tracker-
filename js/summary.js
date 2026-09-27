@@ -778,13 +778,20 @@
         left.addEventListener('click', (ev) => {
             if (ev.target.tagName !== 'INPUT') row.classList.toggle('collapsed');
         });
-        const desc = (e.description || '').toString().toUpperCase();
+        const descText = e.description && e.description.trim() ? e.description.trim() : (e.category || 'Expense');
+        const desc = descText.toString().toUpperCase();
         const catIcon = getCatIcon(e.category);
         const title = document.createElement('div'); title.className = 'entry-title'; title.style.color = '#ffffff'; 
         title.innerHTML = `<span style="opacity:0.6; font-size:12px; margin-right:6px;">${idx + 1}.</span> <span>${catIcon}</span> ${desc}`;
         const meta = document.createElement('div'); meta.className = 'entry-meta'; meta.style.color = 'var(--muted)';
-        let metaText = `${e.type || ''} • ${(e.category || 'No category')} • ${e.payMethod || ''}` + (e.paySubType ? (' • ' + e.paySubType) : '');
-        if (e.mappedBank) metaText += ` • ${e.mappedBank}`;
+        const metaParts = [
+          (e.type === 'Income' ? 'inc' : (e.type === 'Transfer' ? 'transfer' : 'exp')),
+          e.category || 'No category',
+          e.payMethod,
+          e.paySubType,
+          e.mappedBank
+        ].filter(Boolean);
+        let metaText = metaParts.join(' • ');
         if (e.timeStr) metaText = `⏰ ${e.timeStr} • ${metaText}`;
         meta.textContent = metaText;
         left.appendChild(title); left.appendChild(meta);
