@@ -80,41 +80,86 @@
     return false;
   }
 
-  /* ---------- BALANCE CALCULATION ---------- */
-  function getBankBalancesForMonth(month) {
+  /* ---------- BALANCE CALCULATION WITH CARRY-FORWARD ---------- */
+  function getBankBalancesForMonth(targetMonth) {
     const s = db.loadStore();
     const balances = {};
 
-    Object.entries(s.accounts?.[month] || {}).forEach(([b, v]) => {
-      balances[b] = Number(v) || 0;
+    // 1. Gather all initial setup balances recorded up to targetMonth
+    Object.keys(s.accounts || {}).forEach(m => {
+      if (!targetMonth || m <= targetMonth) {
+        Object.entries(s.accounts[m] || {}).forEach(([b, v]) => {
+          balances[b] = (balances[b] || 0) + (Number(v) || 0);
+        });
+      }
     });
 
-    Object.keys(s.days || {}).forEach(dateStr => {
-      if (!dateStr.startsWith(month)) return;
+    // 2. Accumulate all transactions up to end of targetMonth
+    const sortedDates = Object.keys(s.days || {}).sort();
+    sortedDates.forEach(dateStr => {
+      const txMonth = dateStr.slice(0, 7);
+      if (targetMonth && txMonth > targetMonth) return;
+
       (s.days[dateStr] || []).forEach(e => {
+        const amt = Number(e.amount) || 0;
+
+        // Transfers
         if (e.type === 'Transfer' && e.transfer) {
-          const amt = Number(e.amount) || 0;
-          if (e.transfer.from)
-            balances[e.transfer.from] = (balances[e.transfer.from] || 0) - amt;
-          if (e.transfer.to)
-            balances[e.transfer.to] = (balances[e.transfer.to] || 0) + amt;
+          const fromBank = e.transfer.from;
+          const toBank = e.transfer.to;
+          if (fromBank) balances[fromBank] = (balances[fromBank] || 0) - amt;
+          if (toBank) balances[toBank] = (balances[toBank] || 0) + amt;
           return;
         }
 
-        if (!transactionTouchesBank(e, null)) return;
-
-        const bank = e.mappedBank || e.paySubType;
+        // Account mapping detection
+        const bank = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.paySubType) || (e.payMethod === 'Bank' ? 'SBI' : null);
         if (!bank) return;
 
-        const amt = Number(e.amount) || 0;
-        if (e.type === 'Income')
+        if (e.type === 'Income') {
           balances[bank] = (balances[bank] || 0) + amt;
-        else
+        } else if (e.type === 'Expense') {
           balances[bank] = (balances[bank] || 0) - amt;
+        }
       });
     });
 
     return balances;
+  }
+
+  function getOpeningBalance(targetMonth, bank) {
+    const s = db.loadStore();
+    let balance = 0;
+
+    // Sum initial balances recorded before targetMonth
+    Object.keys(s.accounts || {}).forEach(m => {
+      if (m < targetMonth && s.accounts[m]?.[bank]) {
+        balance += Number(s.accounts[m][bank]) || 0;
+      }
+    });
+    if (s.accounts?.[targetMonth]?.[bank]) {
+      balance += Number(s.accounts[targetMonth][bank]) || 0;
+    }
+
+    // Accumulate transactions strictly BEFORE targetMonth
+    Object.keys(s.days || {}).forEach(dateStr => {
+      if (dateStr.slice(0, 7) >= targetMonth) return;
+      (s.days[dateStr] || []).forEach(e => {
+        const amt = Number(e.amount) || 0;
+        if (e.type === 'Transfer' && e.transfer) {
+          if (e.transfer.from === bank) balance -= amt;
+          if (e.transfer.to === bank) balance += amt;
+          return;
+        }
+        const b = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.paySubType);
+        if (b === bank) {
+          if (e.type === 'Income') balance += amt;
+          else if (e.type === 'Expense') balance -= amt;
+        }
+      });
+    });
+
+    return balance;
   }
 
   /* ---------- RENDER BANK CARDS ---------- */
@@ -131,11 +176,13 @@
     const balances = getBankBalancesForMonth(month);
 
     const bankSet = new Set();
-    (s.settings?.banks || []).forEach(b => bankSet.add(b));
+    (s.settings?.banks || ['Cash', 'SBI', 'HDFC', 'Canara', 'Credit Card']).forEach(b => bankSet.add(b));
     Object.keys(s.accounts?.[month] || {}).forEach(b => bankSet.add(b));
     Object.keys(balances).forEach(b => bankSet.add(b));
 
     Array.from(bankSet).sort().forEach(bank => {
+      const opening = getOpeningBalance(month, bank);
+      const current = balances[bank] || 0;
       const row = document.createElement('div');
       row.className = 'entry';
 
@@ -143,11 +190,11 @@
         <div class="entry-main">
           <div class="entry-title">${bank}</div>
           <div class="entry-meta">
-            Initial: ${db.currencyFmt(getInitialBalance(month, bank))}
+            Opening: ${db.currencyFmt(opening)}
           </div>
         </div>
         <div class="entry-right">
-          <div class="entry-amount">${db.currencyFmt(balances[bank] || 0)}</div>
+          <div class="entry-amount" style="color: ${current < 0 ? 'var(--danger)' : 'var(--text)'};">${db.currencyFmt(current)}</div>
           <button class="bank-action">Ledger</button>
           <button class="btn-small">Export</button>
         </div>
@@ -327,7 +374,14 @@
   }
 
   window.MT = window.MT || {};
-  window.MT.accounts = { populateAccountsBanks, renderBankBalances, getTotalBalance };
+  window.MT.accounts = {
+    populateAccountsBanks,
+    renderBankBalances,
+    getTotalBalance,
+    getBankBalancesForMonth,
+    getOpeningBalance,
+    rebuildAccountBalances: renderBankBalances
+  };
 
   window.addEventListener('mt:auth-entered', () => {
     populateAccountsBanks();

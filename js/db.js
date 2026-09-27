@@ -12,7 +12,7 @@ const DEFAULTS = {
     categories: ['Food','Travel','Bills','Shopping','Salary','Petrol','Bike Maint','Hostel','Other'],
     upiApps: ['GPay','PhonePe','Paytm'],
     cards: ['Canara','HDFC','SBI','Credit Card'],
-    banks: ['Canara','HDFC','SBI'],
+    banks: ['Cash','SBI','HDFC','Canara','Credit Card'],
     presets: [
       { id: 1, label: '⛽ Petrol', category: 'Petrol', amount: 0, description: 'Bike Petrol Refill', note: '' },
       { id: 2, label: '🏠 Home Trip', category: 'Travel', amount: 450, description: 'Weekly Trip to Home', note: 'Train + Auto' },
