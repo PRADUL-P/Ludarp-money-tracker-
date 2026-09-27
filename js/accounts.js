@@ -81,47 +81,64 @@
   }
 
   /* ---------- BALANCE CALCULATION WITH CARRY-FORWARD ---------- */
+  function getLatestInitialBalanceInfo(bank, targetMonth) {
+    const s = db.loadStore();
+    const months = Object.keys(s.accounts || {})
+      .filter(m => s.accounts[m]?.[bank] !== undefined && (!targetMonth || m <= targetMonth))
+      .sort();
+    if (months.length === 0) return { startMonth: null, baseAmount: 0 };
+    const startMonth = months[months.length - 1];
+    const baseAmount = Number(s.accounts[startMonth][bank]) || 0;
+    return { startMonth, baseAmount };
+  }
+
   function getBankBalancesForMonth(targetMonth) {
     const s = db.loadStore();
     const balances = {};
 
-    // 1. Gather all initial setup balances recorded up to targetMonth
+    const bankSet = new Set();
+    (s.settings?.banks || ['Cash', 'SBI', 'HDFC', 'Canara', 'Credit Card']).forEach(b => bankSet.add(b));
     Object.keys(s.accounts || {}).forEach(m => {
-      if (!targetMonth || m <= targetMonth) {
-        Object.entries(s.accounts[m] || {}).forEach(([b, v]) => {
-          balances[b] = (balances[b] || 0) + (Number(v) || 0);
-        });
-      }
+      Object.keys(s.accounts[m] || {}).forEach(b => bankSet.add(b));
     });
 
-    // 2. Accumulate all transactions up to end of targetMonth
-    const sortedDates = Object.keys(s.days || {}).sort();
-    sortedDates.forEach(dateStr => {
-      const txMonth = dateStr.slice(0, 7);
-      if (targetMonth && txMonth > targetMonth) return;
-
-      (s.days[dateStr] || []).forEach(e => {
-        const amt = Number(e.amount) || 0;
-
-        // Transfers
+    Object.values(s.days || {}).forEach(dayEntries => {
+      (dayEntries || []).forEach(e => {
         if (e.type === 'Transfer' && e.transfer) {
-          const fromBank = e.transfer.from;
-          const toBank = e.transfer.to;
-          if (fromBank) balances[fromBank] = (balances[fromBank] || 0) - amt;
-          if (toBank) balances[toBank] = (balances[toBank] || 0) + amt;
-          return;
-        }
-
-        // Account mapping detection
-        const bank = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.paySubType) || (e.payMethod === 'Bank' ? 'SBI' : null);
-        if (!bank) return;
-
-        if (e.type === 'Income') {
-          balances[bank] = (balances[bank] || 0) + amt;
-        } else if (e.type === 'Expense') {
-          balances[bank] = (balances[bank] || 0) - amt;
+          if (e.transfer.from) bankSet.add(e.transfer.from);
+          if (e.transfer.to) bankSet.add(e.transfer.to);
+        } else {
+          const bank = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.paySubType) || (e.payMethod === 'Bank' ? 'SBI' : null);
+          if (bank) bankSet.add(bank);
         }
       });
+    });
+
+    bankSet.forEach(bank => {
+      const { startMonth, baseAmount } = getLatestInitialBalanceInfo(bank, targetMonth);
+      let bal = baseAmount;
+
+      Object.keys(s.days || {}).sort().forEach(dateStr => {
+        const txMonth = dateStr.slice(0, 7);
+        if (startMonth && txMonth < startMonth) return;
+        if (targetMonth && txMonth > targetMonth) return;
+
+        (s.days[dateStr] || []).forEach(e => {
+          const amt = Number(e.amount) || 0;
+          if (e.type === 'Transfer' && e.transfer) {
+            if (e.transfer.from === bank) bal -= amt;
+            if (e.transfer.to === bank) bal += amt;
+            return;
+          }
+          const b = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.paySubType) || (e.payMethod === 'Bank' ? 'SBI' : null);
+          if (b === bank) {
+            if (e.type === 'Income') bal += amt;
+            else if (e.type === 'Expense') bal -= amt;
+          }
+        });
+      });
+
+      balances[bank] = bal;
     });
 
     return balances;
@@ -129,21 +146,28 @@
 
   function getOpeningBalance(targetMonth, bank) {
     const s = db.loadStore();
-    let balance = 0;
+    if (!targetMonth) return 0;
 
-    // Sum initial balances recorded before targetMonth
-    Object.keys(s.accounts || {}).forEach(m => {
-      if (m < targetMonth && s.accounts[m]?.[bank]) {
-        balance += Number(s.accounts[m][bank]) || 0;
-      }
-    });
-    if (s.accounts?.[targetMonth]?.[bank]) {
-      balance += Number(s.accounts[targetMonth][bank]) || 0;
+    if (s.accounts?.[targetMonth]?.[bank] !== undefined) {
+      return Number(s.accounts[targetMonth][bank]) || 0;
     }
 
-    // Accumulate transactions strictly BEFORE targetMonth
-    Object.keys(s.days || {}).forEach(dateStr => {
-      if (dateStr.slice(0, 7) >= targetMonth) return;
+    const priorMonths = Object.keys(s.accounts || {})
+      .filter(m => s.accounts[m]?.[bank] !== undefined && m < targetMonth)
+      .sort();
+
+    let startMonth = null;
+    let balance = 0;
+    if (priorMonths.length > 0) {
+      startMonth = priorMonths[priorMonths.length - 1];
+      balance = Number(s.accounts[startMonth][bank]) || 0;
+    }
+
+    Object.keys(s.days || {}).sort().forEach(dateStr => {
+      const txMonth = dateStr.slice(0, 7);
+      if (startMonth && txMonth < startMonth) return;
+      if (txMonth >= targetMonth) return;
+
       (s.days[dateStr] || []).forEach(e => {
         const amt = Number(e.amount) || 0;
         if (e.type === 'Transfer' && e.transfer) {
@@ -151,7 +175,7 @@
           if (e.transfer.to === bank) balance += amt;
           return;
         }
-        const b = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.paySubType);
+        const b = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.paySubType) || (e.payMethod === 'Bank' ? 'SBI' : null);
         if (b === bank) {
           if (e.type === 'Income') balance += amt;
           else if (e.type === 'Expense') balance -= amt;

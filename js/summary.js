@@ -782,7 +782,7 @@
         const desc = descText.toString().toUpperCase();
         const catIcon = getCatIcon(e.category);
         const title = document.createElement('div'); title.className = 'entry-title'; title.style.color = '#ffffff'; 
-        title.innerHTML = `<span style="opacity:0.6; font-size:12px; margin-right:6px;">${idx + 1}.</span> <span>${catIcon}</span> ${desc}`;
+        title.innerHTML = `<span style="opacity:0.6; font-size:12px; margin-right:6px;">${idx + 1}.</span> <span>${catIcon}</span> ${escapeHtml(desc)}`;
         const meta = document.createElement('div'); meta.className = 'entry-meta'; meta.style.color = 'var(--muted)';
         const metaParts = [
           (e.type === 'Income' ? 'inc' : (e.type === 'Transfer' ? 'transfer' : 'exp')),

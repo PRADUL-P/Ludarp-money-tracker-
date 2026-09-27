@@ -367,26 +367,63 @@
         const participants = splitNamesInput.value.trim() ? splitNamesInput.value.split(',').map(s => s.trim()).filter(Boolean) : [];
         if (participants.length === 0) { alert('Provide participants for split'); return; }
 
+        const oldParticipants = (oldEntry && oldEntry.split && Array.isArray(oldEntry.split.participants))
+          ? oldEntry.split.participants
+          : [];
+
+        const getOldParticipantMatch = (name, index) => {
+          const nameMatch = oldParticipants.find(op => op.name && op.name.trim().toLowerCase() === name.trim().toLowerCase());
+          if (nameMatch) return nameMatch;
+          if (oldParticipants.length === participants.length && oldParticipants[index]) {
+            return oldParticipants[index];
+          }
+          return null;
+        };
+
         let participantsSplit = [];
         let myShare = 0;
 
         if (splitModeSelect.value === 'equal') {
           const totalPeople = participants.length + 1;
           const per = +(amountValue / totalPeople).toFixed(2);
-          participantsSplit = participants.map(p => ({ name: p, amount: per, received: false }));
+          participantsSplit = participants.map((pName, i) => {
+            const oldP = getOldParticipantMatch(pName, i);
+            if (oldP) {
+              return {
+                ...oldP,
+                name: pName,
+                amount: per,
+                received: typeof oldP.received === 'boolean' ? oldP.received : false
+              };
+            }
+            return { name: pName, amount: per, received: false };
+          });
           myShare = per;
         } else {
           const raw = splitAmountsInput.value.trim();
           if (!raw) { alert('Provide custom amounts for participants'); return; }
           const arr = raw.split(',').map(s => parseFloat(s.trim()) || 0);
           if (arr.length !== participants.length) { alert('Number of custom amounts must match participants'); return; }
-          participantsSplit = participants.map((p, i) => ({ name: p, amount: +arr[i].toFixed(2), received: false }));
+
+          participantsSplit = participants.map((pName, i) => {
+            const amt = +arr[i].toFixed(2);
+            const oldP = getOldParticipantMatch(pName, i);
+            if (oldP) {
+              return {
+                ...oldP,
+                name: pName,
+                amount: amt,
+                received: typeof oldP.received === 'boolean' ? oldP.received : false
+              };
+            }
+            return { name: pName, amount: amt, received: false };
+          });
           myShare = parseFloat(myShareInput.value) || 0;
           if (myShare < 0) { alert('Custom amounts exceed total. Fix amounts.'); return; }
           const sumOthers = participantsSplit.reduce((a, b) => a + b.amount, 0);
           const splitTotal = sumOthers + myShare;
           if (Math.abs(splitTotal - amountValue) > 0.05) {
-            alert(`Split total (₹${splitTotal.toFixed(2)}) must equal total bill amount (₹${amountValue.toFixed(2)}).`);
+            alert(`Split amounts must equal the bill total. (Split: ₹${splitTotal.toFixed(2)}, Bill: ₹${amountValue.toFixed(2)})`);
             return;
           }
         }
@@ -397,15 +434,39 @@
         // SYNC TO DUES TRACKER (Splits)
         if (window.MT.dues) {
           const duesList = window.MT.dues.loadDues();
-          if (!currentEdit) {
-            // Create new dues for split
-            const linkToDues = document.getElementById('linkToDues');
-            if (linkToDues && linkToDues.checked) {
-              participantsSplit.forEach(p => {
-                const dueId = `due_split_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-                p.dueId = dueId;
+          let duesChanged = false;
+          const linkToDues = document.getElementById('linkToDues');
+          const createDues = !currentEdit ? (linkToDues && linkToDues.checked) : true;
+
+          // Remove orphaned dues for participants removed during edit
+          if (currentEdit && oldParticipants.length > 0) {
+            const currentDueIds = new Set(participantsSplit.map(p => p.dueId).filter(Boolean));
+            oldParticipants.forEach(op => {
+              if (op.dueId && !currentDueIds.has(op.dueId)) {
+                const orphanIdx = duesList.findIndex(d => d.id === op.dueId);
+                if (orphanIdx >= 0) {
+                  duesList.splice(orphanIdx, 1);
+                  duesChanged = true;
+                }
+              }
+            });
+          }
+
+          participantsSplit.forEach(p => {
+            if (p.dueId) {
+              const dIdx = duesList.findIndex(d => d.id === p.dueId);
+              if (dIdx >= 0) {
+                duesList[dIdx].person = p.name;
+                duesList[dIdx].amount = p.amount;
+                duesList[dIdx].description = `Split: ${description}`;
+                duesList[dIdx].date = dateStr;
+                if (duesList[dIdx].paid) {
+                  p.received = true;
+                }
+                duesChanged = true;
+              } else if (createDues) {
                 duesList.push({
-                  id: dueId,
+                  id: p.dueId,
                   type: 'they_owe',
                   person: p.name,
                   amount: p.amount,
@@ -413,32 +474,35 @@
                   date: dateStr,
                   occasion: 'Split Payment',
                   note: `From transaction: ${description}`,
-                  paid: false,
-                  paidDate: null,
+                  paid: !!p.received,
+                  paidDate: p.received ? new Date().toISOString() : null,
                   createdAt: new Date().toISOString()
                 });
-              });
-              window.MT.dues.saveDues(duesList);
-              window.MT.dues.updateDuesBadge();
-            }
-          } else {
-            // Update existing split dues
-            let splitChanged = false;
-            entry.split.participants.forEach(p => {
-              if (p.dueId) {
-                const dIdx = duesList.findIndex(d => d.id === p.dueId);
-                if (dIdx >= 0) {
-                  duesList[dIdx].amount = p.amount;
-                  duesList[dIdx].description = `Split: ${description}`;
-                  duesList[dIdx].date = dateStr;
-                  splitChanged = true;
-                }
+                duesChanged = true;
               }
-            });
-            if (splitChanged) {
-              window.MT.dues.saveDues(duesList);
-              window.MT.dues.updateDuesBadge();
+            } else if (createDues) {
+              const newDueId = `due_split_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+              p.dueId = newDueId;
+              duesList.push({
+                id: newDueId,
+                type: 'they_owe',
+                person: p.name,
+                amount: p.amount,
+                description: `Split: ${description}`,
+                date: dateStr,
+                occasion: 'Split Payment',
+                note: `From transaction: ${description}`,
+                paid: false,
+                paidDate: null,
+                createdAt: new Date().toISOString()
+              });
+              duesChanged = true;
             }
+          });
+
+          if (duesChanged) {
+            window.MT.dues.saveDues(duesList);
+            window.MT.dues.updateDuesBadge();
           }
         }
       } else {
@@ -496,6 +560,8 @@
     if (typeof window.cancelQuickDue === 'function') window.cancelQuickDue();
     else window.pendingQuickDueType = null;
 
+    const isEditMode = !!currentEdit;
+
     if (currentEdit) {
       const s2 = db.loadStore();
       const oldDate = currentEdit.dateStr;
@@ -545,7 +611,11 @@
     localStorage.setItem('mt_sticky_paysubtype', paySubType);
 
     window.dispatchEvent(new Event('mt:entries-changed'));
-    window.dispatchEvent(new CustomEvent('mt:entry-added', { detail: entry }));
+    if (isEditMode) {
+      window.dispatchEvent(new CustomEvent('mt:entry-edited', { detail: entry }));
+    } else {
+      window.dispatchEvent(new CustomEvent('mt:entry-added', { detail: entry }));
+    }
   });
 
   clearBtn && clearBtn.addEventListener('click', () => {

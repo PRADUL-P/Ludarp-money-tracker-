@@ -48,7 +48,17 @@ function saveStore(store){
         }
     }
   } catch(e) {}
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); 
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); 
+  } catch(e) {
+    console.error('Storage error during saveStore:', e);
+    const msg = 'Unable to save data because browser storage is full. Please export a backup and free some storage.';
+    if (window.MT && window.MT.ui && typeof window.MT.ui.showToast === 'function') {
+      window.MT.ui.showToast(msg, 'error');
+    } else {
+      alert(msg);
+    }
+  }
 }
 
 function loadUser(){ try{ const r=localStorage.getItem(USER_KEY); return r?JSON.parse(r):null;}catch{return null;} }
@@ -76,12 +86,24 @@ function formatDateLabel(dateStr){
 let custom = loadCustom();
 function currencyFmt(v){ custom = loadCustom(); return (custom.currency||'₹') + Number(v).toFixed(2); }
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+window.escapeHtml = escapeHtml;
+
 // expose to global so other modules can use
 window.MT = window.MT || {};
 window.MT.db = {
   APP_VERSION, STORAGE_KEY, USER_KEY, CUSTOM_KEY, DEFAULTS,
   loadStore, saveStore, loadUser, saveUser, loadCustom, saveCustom,
-  getTZOffsetMs, todayISO, formatDateLabel, currencyFmt
+  getTZOffsetMs, todayISO, formatDateLabel, currencyFmt, escapeHtml
 };
 
 function ensureSettingsSeeded() {

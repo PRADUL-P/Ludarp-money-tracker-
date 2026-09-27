@@ -741,6 +741,14 @@ function doPost(e) {
     window.addEventListener('mt:entry-added', (e) => {
         syncToSheet(e.detail);
     });
+
+    // Listen for edited entries to sync
+    window.addEventListener('mt:entry-edited', (e) => {
+        if (e.detail && (e.detail.id || e.detail.dueId)) {
+            markAsUnsynced(e.detail.id || e.detail.dueId);
+            syncToSheet(e.detail);
+        }
+    });
     
     // Listen for deleted entries
     window.addEventListener('mt:entry-deleted', (e) => {
