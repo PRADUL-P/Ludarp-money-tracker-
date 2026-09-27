@@ -3,6 +3,7 @@
    Storage keys, defaults, load/save helpers and small format helpers
 */
 
+const APP_VERSION = "6.2.1";
 const STORAGE_KEY = 'money_tracker_v3';
 const USER_KEY = 'money_tracker_user_v3';
 const CUSTOM_KEY = 'money_tracker_custom_v3';
@@ -74,8 +75,6 @@ function formatDateLabel(dateStr){
 // currency formatting reads custom from local storage; expose a getter/setter pattern
 let custom = loadCustom();
 function currencyFmt(v){ custom = loadCustom(); return (custom.currency||'₹') + Number(v).toFixed(2); }
-
-const APP_VERSION = '6.2.1';
 
 // expose to global so other modules can use
 window.MT = window.MT || {};
