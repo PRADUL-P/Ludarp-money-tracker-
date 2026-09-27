@@ -1,85 +1,177 @@
 'use strict';
-/* calc.js — Mini Calculator logic */
+/* calc.js — Enhanced Mini Calculator logic with dual-line display & keyboard support */
 (function () {
   let calcInput = '0';
   let calcOp = null;
   let calcPrev = null;
+  let exprStr = '';
+  let isEvaluated = false;
 
-  const cDisp = document.getElementById('calcDisplay');
-  const mCalc = document.getElementById('miniCalc');
-  const amountEl = document.getElementById('amount');
+  function getOpSymbol(op) {
+    if (op === '/') return '÷';
+    if (op === '*') return '×';
+    if (op === '-') return '−';
+    if (op === '+') return '+';
+    return '';
+  }
 
   function updateCalc() {
-    if (cDisp) cDisp.textContent = calcInput;
+    const dispEl = document.getElementById('calcDisplay');
+    const exprEl = document.getElementById('calcExpr');
+
+    if (dispEl) {
+      dispEl.textContent = calcInput || '0';
+    }
+    if (exprEl) {
+      exprEl.textContent = exprStr;
+    }
+  }
+
+  function executeCalc() {
+    if (calcPrev === null || !calcOp) return false;
+    const cur = parseFloat(calcInput) || 0;
+    let res = 0;
+    if (calcOp === '+') res = calcPrev + cur;
+    if (calcOp === '-') res = calcPrev - cur;
+    if (calcOp === '*') res = calcPrev * cur;
+    if (calcOp === '/') res = calcPrev / (cur || 1);
+
+    calcInput = parseFloat(res.toFixed(2)).toString();
+    return true;
   }
 
   window.MT = window.MT || {};
   window.MT.calc = {
     append: (v) => {
-      if (calcInput === '0' && v !== '.') calcInput = v;
-      else calcInput += v;
+      if (isEvaluated) {
+        calcInput = '0';
+        exprStr = '';
+        isEvaluated = false;
+      }
+      if (v === '00') {
+        if (calcInput === '0') calcInput = '0';
+        else calcInput += '00';
+      } else if (v === '.') {
+        if (!calcInput.includes('.')) {
+          calcInput += '.';
+        }
+      } else {
+        if (calcInput === '0') calcInput = v;
+        else calcInput += v;
+      }
       updateCalc();
     },
+
     setOp: (op) => {
-      calcPrev = parseFloat(calcInput);
+      if (isEvaluated) {
+        isEvaluated = false;
+        exprStr = '';
+      }
+      if (calcOp && calcPrev !== null && calcInput !== '0') {
+        executeCalc();
+      } else if (calcPrev === null) {
+        calcPrev = parseFloat(calcInput) || 0;
+      }
       calcOp = op;
+      exprStr = `${calcPrev} ${getOpSymbol(op)}`;
       calcInput = '0';
       updateCalc();
     },
+
+    backspace: () => {
+      if (isEvaluated) {
+        exprStr = '';
+        isEvaluated = false;
+      }
+      if (calcInput.length > 1) {
+        calcInput = calcInput.slice(0, -1);
+        if (calcInput === '-' || calcInput === '') calcInput = '0';
+      } else {
+        calcInput = '0';
+      }
+      updateCalc();
+    },
+
+    percent: () => {
+      let cur = parseFloat(calcInput) || 0;
+      if (calcPrev !== null && calcOp) {
+        let pVal = 0;
+        if (calcOp === '+' || calcOp === '-') {
+          pVal = calcPrev * (cur / 100);
+        } else {
+          pVal = cur / 100;
+        }
+        calcInput = parseFloat(pVal.toFixed(2)).toString();
+      } else {
+        calcInput = parseFloat((cur / 100).toFixed(2)).toString();
+      }
+      updateCalc();
+    },
+
     clear: () => {
       calcInput = '0';
       calcOp = null;
       calcPrev = null;
+      exprStr = '';
+      isEvaluated = false;
       updateCalc();
     },
+
     calculate: () => {
-      const cur = parseFloat(calcInput);
       if (calcPrev !== null && calcOp) {
-        let res = 0;
-        if (calcOp === '+') res = calcPrev + cur;
-        if (calcOp === '-') res = calcPrev - cur;
-        if (calcOp === '*') res = calcPrev * cur;
-        if (calcOp === '/') res = calcPrev / (cur || 1);
-        
-        calcInput = parseFloat(res.toFixed(2)).toString();
-        updateCalc();
-        calcOp = null;
-        calcPrev = null;
+        const prev = calcPrev;
+        const op = calcOp;
+        const cur = calcInput;
+        if (executeCalc()) {
+          exprStr = `${prev} ${getOpSymbol(op)} ${cur} =`;
+          calcPrev = null;
+          calcOp = null;
+          isEvaluated = true;
+          updateCalc();
+        }
       }
     },
+
     apply: () => {
-      // Execute pending calculation if any before applying
       if (calcOp && calcPrev !== null) {
         window.MT.calc.calculate();
       }
+      const amountEl = document.getElementById('amount');
       if (amountEl) {
         amountEl.value = calcInput;
-        // Trigger input event for fuel milage recalc if needed
         amountEl.dispatchEvent(new Event('input', { bubbles: true }));
-        if (window.MT && window.MT.ui) window.MT.ui.showToast('Amount applied', 'success');
+        if (window.MT && window.MT.ui && typeof window.MT.ui.showToast === 'function') {
+          window.MT.ui.showToast(`Applied ₹${calcInput}`, 'success');
+        }
       }
     },
-    addPercent: (p) => {
-      let val = parseFloat(calcInput) || 0;
-      val = val * (1 + p / 100);
-      calcInput = parseFloat(val.toFixed(2)).toString();
-      updateCalc();
-    },
+
     round: () => {
       let val = parseFloat(calcInput) || 0;
       calcInput = Math.round(val).toString();
       updateCalc();
     },
+
     close: () => {
+      const mCalc = document.getElementById('miniCalc');
       if (mCalc) mCalc.style.display = 'none';
     },
+
     toggle: () => {
+      const mCalc = document.getElementById('miniCalc');
       if (!mCalc) return;
       const isOff = mCalc.style.display === 'none' || mCalc.style.display === '';
       mCalc.style.display = isOff ? 'block' : 'none';
-      if (isOff && amountEl && amountEl.value) {
-        calcInput = amountEl.value;
-        updateCalc();
+      if (isOff) {
+        const amountEl = document.getElementById('amount');
+        if (amountEl && amountEl.value) {
+          calcInput = amountEl.value;
+          calcPrev = null;
+          calcOp = null;
+          exprStr = '';
+          isEvaluated = false;
+          updateCalc();
+        }
       }
     }
   };
@@ -87,4 +179,45 @@
   const btnCT = document.getElementById('btnCalcToggle');
   btnCT?.addEventListener('click', () => window.MT.calc.toggle());
 
+  // Keyboard support for mini calculator
+  document.addEventListener('keydown', (e) => {
+    const panel = document.getElementById('miniCalc');
+    if (!panel || panel.style.display === 'none') return;
+
+    if (document.activeElement && document.activeElement.tagName === 'INPUT' && document.activeElement.id !== 'amount') {
+      return;
+    }
+
+    if (e.key >= '0' && e.key <= '9') {
+      window.MT.calc.append(e.key);
+      e.preventDefault();
+    } else if (e.key === '.') {
+      window.MT.calc.append('.');
+      e.preventDefault();
+    } else if (e.key === '+') {
+      window.MT.calc.setOp('+');
+      e.preventDefault();
+    } else if (e.key === '-') {
+      window.MT.calc.setOp('-');
+      e.preventDefault();
+    } else if (e.key === '*') {
+      window.MT.calc.setOp('*');
+      e.preventDefault();
+    } else if (e.key === '/') {
+      window.MT.calc.setOp('/');
+      e.preventDefault();
+    } else if (e.key === 'Enter' || e.key === '=') {
+      window.MT.calc.calculate();
+      e.preventDefault();
+    } else if (e.key === 'Backspace') {
+      window.MT.calc.backspace();
+      e.preventDefault();
+    } else if (e.key === 'Escape') {
+      window.MT.calc.close();
+      e.preventDefault();
+    } else if (e.key === '%') {
+      window.MT.calc.percent();
+      e.preventDefault();
+    }
+  });
 })();

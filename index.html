@@ -358,49 +358,43 @@
 
               <!-- 🧮 Mini Calculator Panel -->
               <div id="miniCalc" class="card"
-                style="display:none; margin-top:10px; padding:12px; background:rgba(255,255,255,0.05); border:1px solid var(--card-border); border-radius:var(--radius-sm); box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-                <div id="calcDisplay"
-                  style="background:rgba(0,0,0,0.2); padding:10px; border-radius:calc(var(--radius-sm) - 4px); text-align:right; font-family:monospace; font-size:20px; margin-bottom:10px; min-height:44px; overflow:hidden;">
-                  0</div>
+                style="display:none; margin-top:10px; padding:14px; background:var(--card); border:1px solid var(--card-border); border-radius:18px; box-shadow:0 12px 40px rgba(0,0,0,0.4);">
+                
+                <!-- Dual Display Screen (Expression + Live Result) -->
+                <div style="background:rgba(0,0,0,0.3); border:1px solid var(--card-border); padding:10px 14px; border-radius:12px; margin-bottom:12px; text-align:right;">
+                  <div id="calcExpr" style="font-family:monospace; font-size:12px; color:var(--muted); min-height:18px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+                  <div id="calcDisplay" style="font-family:monospace; font-size:24px; font-weight:800; color:var(--text); min-height:32px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">0</div>
+                </div>
+
+                <!-- 4x6 Clean Calculator Grid -->
                 <div class="calc-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
-                  <button type="button" onclick="MT.calc.append('7')" class="btn-secondary">7</button>
-                  <button type="button" onclick="MT.calc.append('8')" class="btn-secondary">8</button>
-                  <button type="button" onclick="MT.calc.append('9')" class="btn-secondary">9</button>
-                  <button type="button" onclick="MT.calc.setOp('/')" class="btn-secondary"
-                    style="background:var(--accent-2);">÷</button>
+                  <button type="button" onclick="MT.calc.clear()" class="btn-secondary" style="color:var(--danger); font-weight:800; font-size:16px;">C</button>
+                  <button type="button" onclick="MT.calc.backspace()" class="btn-secondary" style="font-size:16px;" title="Backspace">⌫</button>
+                  <button type="button" onclick="MT.calc.percent()" class="btn-secondary" style="font-weight:700; color:var(--accent-1);" title="Percent">%</button>
+                  <button type="button" onclick="MT.calc.setOp('/')" class="btn-secondary" style="background:rgba(99,102,241,0.2); color:#a5b4fc; font-size:18px; font-weight:800;">÷</button>
 
-                  <button type="button" onclick="MT.calc.append('4')" class="btn-secondary">4</button>
-                  <button type="button" onclick="MT.calc.append('5')" class="btn-secondary">5</button>
-                  <button type="button" onclick="MT.calc.append('6')" class="btn-secondary">6</button>
-                  <button type="button" onclick="MT.calc.setOp('*')" class="btn-secondary"
-                    style="background:var(--accent-2);">×</button>
+                  <button type="button" onclick="MT.calc.append('7')" class="btn-secondary" style="font-size:16px; font-weight:700;">7</button>
+                  <button type="button" onclick="MT.calc.append('8')" class="btn-secondary" style="font-size:16px; font-weight:700;">8</button>
+                  <button type="button" onclick="MT.calc.append('9')" class="btn-secondary" style="font-size:16px; font-weight:700;">9</button>
+                  <button type="button" onclick="MT.calc.setOp('*')" class="btn-secondary" style="background:rgba(99,102,241,0.2); color:#a5b4fc; font-size:18px; font-weight:800;">×</button>
 
-                  <button type="button" onclick="MT.calc.append('1')" class="btn-secondary">1</button>
-                  <button type="button" onclick="MT.calc.append('2')" class="btn-secondary">2</button>
-                  <button type="button" onclick="MT.calc.append('3')" class="btn-secondary">3</button>
-                  <button type="button" onclick="MT.calc.setOp('-')" class="btn-secondary"
-                    style="background:var(--accent-2);">−</button>
+                  <button type="button" onclick="MT.calc.append('4')" class="btn-secondary" style="font-size:16px; font-weight:700;">4</button>
+                  <button type="button" onclick="MT.calc.append('5')" class="btn-secondary" style="font-size:16px; font-weight:700;">5</button>
+                  <button type="button" onclick="MT.calc.append('6')" class="btn-secondary" style="font-size:16px; font-weight:700;">6</button>
+                  <button type="button" onclick="MT.calc.setOp('-')" class="btn-secondary" style="background:rgba(99,102,241,0.2); color:#a5b4fc; font-size:18px; font-weight:800;">−</button>
 
-                  <button type="button" onclick="MT.calc.append('0')" class="btn-secondary">0</button>
-                  <button type="button" onclick="MT.calc.append('.')" class="btn-secondary">.</button>
-                  <button type="button" onclick="MT.calc.clear()" class="btn-secondary"
-                    style="color:var(--danger); font-weight:700;">C</button>
-                  <button type="button" onclick="MT.calc.setOp('+')" class="btn-secondary"
-                    style="background:var(--accent-2);">+</button>
+                  <button type="button" onclick="MT.calc.append('1')" class="btn-secondary" style="font-size:16px; font-weight:700;">1</button>
+                  <button type="button" onclick="MT.calc.append('2')" class="btn-secondary" style="font-size:16px; font-weight:700;">2</button>
+                  <button type="button" onclick="MT.calc.append('3')" class="btn-secondary" style="font-size:16px; font-weight:700;">3</button>
+                  <button type="button" onclick="MT.calc.setOp('+')" class="btn-secondary" style="background:rgba(99,102,241,0.2); color:#a5b4fc; font-size:18px; font-weight:800;">+</button>
 
-                  <button type="button" onclick="MT.calc.addPercent(5)" class="btn-secondary"
-                    style="font-size:10px; padding:4px;">+5% GST</button>
-                  <button type="button" onclick="MT.calc.addPercent(18)" class="btn-secondary"
-                    style="font-size:10px; padding:4px;">+18% GST</button>
-                  <button type="button" onclick="MT.calc.round()" class="btn-secondary"
-                    style="font-size:10px; padding:4px;">Round</button>
-                  <button type="button" onclick="MT.calc.calculate()" class="btn-primary"
-                    style="font-size:14px; font-weight:800; background:var(--accent);">Result</button>
+                  <button type="button" onclick="MT.calc.append('00')" class="btn-secondary" style="font-size:14px; font-weight:700;">00</button>
+                  <button type="button" onclick="MT.calc.append('0')" class="btn-secondary" style="font-size:16px; font-weight:700;">0</button>
+                  <button type="button" onclick="MT.calc.append('.')" class="btn-secondary" style="font-size:18px; font-weight:800;">.</button>
+                  <button type="button" onclick="MT.calc.calculate()" class="btn-primary" style="font-size:18px; font-weight:800; background:var(--accent);">=</button>
 
-                  <button type="button" onclick="MT.calc.apply()" class="btn-primary"
-                    style="grid-column: span 3; background:linear-gradient(135deg, #059669, #10b981);">Apply to
-                    Amount</button>
-                  <button type="button" onclick="MT.calc.close()" class="btn-secondary">Done</button>
+                  <button type="button" onclick="MT.calc.apply()" class="btn-primary" style="grid-column: span 3; background:linear-gradient(135deg, #059669, #10b981); font-weight:800;">Apply to Amount</button>
+                  <button type="button" onclick="MT.calc.close()" class="btn-secondary" style="font-weight:700;">Done</button>
                 </div>
               </div>
             </div>
