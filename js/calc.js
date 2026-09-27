@@ -1,5 +1,5 @@
 'use strict';
-/* calc.js — Enhanced Mini Calculator logic with dual-line display & keyboard support */
+/* calc.js — Enhanced Mini Calculator logic with live 5+6 expression display */
 (function () {
   let calcInput = '0';
   let calcOp = null;
@@ -19,11 +19,20 @@
     const dispEl = document.getElementById('calcDisplay');
     const exprEl = document.getElementById('calcExpr');
 
+    let currentExpr = exprStr;
+    if (!isEvaluated && calcPrev !== null && calcOp) {
+      if (calcInput !== '0') {
+        currentExpr = `${calcPrev} ${getOpSymbol(calcOp)} ${calcInput}`;
+      } else {
+        currentExpr = `${calcPrev} ${getOpSymbol(calcOp)}`;
+      }
+    }
+
     if (dispEl) {
       dispEl.textContent = calcInput || '0';
     }
     if (exprEl) {
-      exprEl.textContent = exprStr;
+      exprEl.textContent = currentExpr;
     }
   }
 
@@ -45,6 +54,8 @@
     append: (v) => {
       if (isEvaluated) {
         calcInput = '0';
+        calcPrev = null;
+        calcOp = null;
         exprStr = '';
         isEvaluated = false;
       }
@@ -69,7 +80,8 @@
       }
       if (calcOp && calcPrev !== null && calcInput !== '0') {
         executeCalc();
-      } else if (calcPrev === null) {
+      }
+      if (calcPrev === null || (calcOp && calcInput !== '0')) {
         calcPrev = parseFloat(calcInput) || 0;
       }
       calcOp = op;
@@ -82,6 +94,8 @@
       if (isEvaluated) {
         exprStr = '';
         isEvaluated = false;
+        calcPrev = null;
+        calcOp = null;
       }
       if (calcInput.length > 1) {
         calcInput = calcInput.slice(0, -1);
