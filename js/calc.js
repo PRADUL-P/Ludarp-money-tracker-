@@ -6,6 +6,7 @@
   let calcPrev = null;
   let exprStr = '';
   let isEvaluated = false;
+  let calcError = false;
 
   function getOpSymbol(op) {
     if (op === '/') return '÷';
@@ -43,7 +44,10 @@
     if (calcOp === '+') res = calcPrev + cur;
     if (calcOp === '-') res = calcPrev - cur;
     if (calcOp === '*') res = calcPrev * cur;
-    if (calcOp === '/') res = calcPrev / (cur || 1);
+    if (calcOp === '/') {
+      if (cur === 0) return false;
+      res = calcPrev / cur;
+    }
 
     calcInput = parseFloat(res.toFixed(2)).toString();
     return true;
@@ -58,6 +62,7 @@
         calcOp = null;
         exprStr = '';
         isEvaluated = false;
+        calcError = false;
       }
       if (v === '00') {
         if (calcInput === '0') calcInput = '0';
@@ -77,11 +82,21 @@
       if (isEvaluated) {
         isEvaluated = false;
         exprStr = '';
+        calcError = false;
       }
-      if (calcOp && calcPrev !== null && calcInput !== '0') {
-        executeCalc();
-      }
-      if (calcPrev === null || (calcOp && calcInput !== '0')) {
+      if (calcOp && calcPrev !== null) {
+        if (!executeCalc()) {
+          exprStr = 'Cannot divide by zero';
+          calcPrev = null;
+          calcOp = null;
+          calcInput = '0';
+          isEvaluated = true;
+          calcError = true;
+          updateCalc();
+          return;
+        }
+        calcPrev = parseFloat(calcInput) || 0;
+      } else if (calcPrev === null) {
         calcPrev = parseFloat(calcInput) || 0;
       }
       calcOp = op;
@@ -94,6 +109,7 @@
       if (isEvaluated) {
         exprStr = '';
         isEvaluated = false;
+        calcError = false;
         calcPrev = null;
         calcOp = null;
       }
@@ -128,6 +144,7 @@
       calcPrev = null;
       exprStr = '';
       isEvaluated = false;
+      calcError = false;
       updateCalc();
     },
 
@@ -141,12 +158,25 @@
           calcPrev = null;
           calcOp = null;
           isEvaluated = true;
+          calcError = false;
+          updateCalc();
+        } else if (op === '/' && (parseFloat(cur) || 0) === 0) {
+          exprStr = 'Cannot divide by zero';
+          calcPrev = null;
+          calcOp = null;
+          calcInput = '0';
+          isEvaluated = true;
+          calcError = true;
           updateCalc();
         }
       }
     },
 
     apply: () => {
+      if (calcError) {
+        if (window.MT?.ui?.showToast) window.MT.ui.showToast('Cannot apply an invalid calculation', 'error');
+        return;
+      }
       if (calcOp && calcPrev !== null) {
         window.MT.calc.calculate();
       }

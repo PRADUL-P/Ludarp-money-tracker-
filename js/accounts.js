@@ -108,7 +108,7 @@
           if (e.transfer.from) bankSet.add(e.transfer.from);
           if (e.transfer.to) bankSet.add(e.transfer.to);
         } else {
-          const bank = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.paySubType) || (e.payMethod === 'Bank' ? 'SBI' : null);
+          const bank = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.payMethod === 'Bank' ? (e.paySubType || 'SBI') : null);
           if (bank) bankSet.add(bank);
         }
       });
@@ -130,7 +130,9 @@
             if (e.transfer.to === bank) bal += amt;
             return;
           }
-          const b = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.paySubType) || (e.payMethod === 'Bank' ? 'SBI' : null);
+          // UPI and card subtypes are payment providers/cards, not bank names.
+          // They affect a bank ledger only when explicitly mapped.
+          const b = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.payMethod === 'Bank' ? (e.paySubType || 'SBI') : null);
           if (b === bank) {
             if (e.type === 'Income') bal += amt;
             else if (e.type === 'Expense') bal -= amt;
@@ -175,7 +177,7 @@
           if (e.transfer.to === bank) balance += amt;
           return;
         }
-        const b = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.paySubType) || (e.payMethod === 'Bank' ? 'SBI' : null);
+        const b = e.mappedBank || (e.payMethod === 'Cash' ? 'Cash' : e.payMethod === 'Bank' ? (e.paySubType || 'SBI') : null);
         if (b === bank) {
           if (e.type === 'Income') balance += amt;
           else if (e.type === 'Expense') balance -= amt;
@@ -212,7 +214,7 @@
 
       row.innerHTML = `
         <div class="entry-main">
-          <div class="entry-title">${bank}</div>
+          <div class="entry-title">${db.escapeHtml(bank)}</div>
           <div class="entry-meta">
             Opening: ${db.currencyFmt(opening)}
           </div>
@@ -281,7 +283,7 @@
 
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <h3>${bank} — ${month}</h3>
+      <h3>${db.escapeHtml(bank)} — ${db.escapeHtml(month)}</h3>
         <button class="btn-secondary" id="closeLedger">Close</button>
       </div>
 
@@ -374,8 +376,8 @@
           ledgerList.innerHTML += `
             <div class="entry">
               <div class="entry-main">
-                <div class="entry-title">${db.formatDateLabel(d)} — ${e.description || ''}</div>
-                <div class="entry-meta">${e.type} • ${e.category || 'Uncategorized'}</div>
+                <div class="entry-title">${db.escapeHtml(db.formatDateLabel(d))} — ${db.escapeHtml(e.description || '')}</div>
+                <div class="entry-meta">${db.escapeHtml(e.type)} • ${db.escapeHtml(e.category || 'Uncategorized')}</div>
               </div>
               <div class="entry-right">
                 <div class="entry-amount">${db.currencyFmt(running)}</div>

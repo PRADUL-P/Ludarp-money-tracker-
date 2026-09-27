@@ -707,7 +707,14 @@
         main.appendChild(sdiv);
 
         const pList = document.createElement('div'); pList.className = 'entry-note';
-        pList.innerHTML = entry.split.participants.map(p => `<span style="${p.received ? 'color: var(--success);' : ''}">${p.name}${p.received ? ' ✓' : ''}</span> (${db.currencyFmt(p.amount)})`).join(' · ');
+        entry.split.participants.forEach((p, index) => {
+          if (index) pList.appendChild(document.createTextNode(' · '));
+          const participant = document.createElement('span');
+          if (p.received) participant.style.color = 'var(--success)';
+          participant.textContent = `${p.name || ''}${p.received ? ' ✓' : ''}`;
+          pList.appendChild(participant);
+          pList.appendChild(document.createTextNode(` (${db.currencyFmt(p.amount)})`));
+        });
         main.appendChild(pList);
       } else if (entry.isSettled || entry.isDueSettlement || entry.isSplitSettlement) {
         const sdiv = document.createElement('div'); sdiv.className = 'entry-note';

@@ -55,9 +55,21 @@
     const r = document.createElement('div');
     r.className = 'flex-row';
     r.style.gap = '8px';
-    r.innerHTML = `<div style="min-width:140px;">${label}</div>`;
+    const labelEl = document.createElement('div');
+    labelEl.style.minWidth = '140px';
+    labelEl.textContent = label;
+    r.appendChild(labelEl);
     const sel = document.createElement('select');
-    sel.innerHTML = '<option value="">None</option>' + s.settings.banks.map(b => `<option value="${b}">${b}</option>`).join('');
+    const none = document.createElement('option');
+    none.value = '';
+    none.textContent = 'None';
+    sel.appendChild(none);
+    s.settings.banks.forEach(bank => {
+      const option = document.createElement('option');
+      option.value = bank;
+      option.textContent = bank;
+      sel.appendChild(option);
+    });
     sel.value = s.paymentBankMap[mapKey] || '';
     sel.onchange = () => {
       s.paymentBankMap[mapKey] = sel.value || null;
