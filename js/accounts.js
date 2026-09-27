@@ -409,11 +409,16 @@
     renderBankBalances();
   });
 })();
-// 🔥 LIVE update Accounts page when settings change (banks added/removed)
+// 🔥 LIVE update Accounts page when settings change (banks added/removed) or entries change
 document.addEventListener('settingsUpdated', () => {
   if (window.MT?.accounts?.populateAccountsBanks) {
     window.MT.accounts.populateAccountsBanks();
   }
+  if (window.MT?.accounts?.renderBankBalances) {
+    window.MT.accounts.renderBankBalances();
+  }
+});
+window.addEventListener('mt:entries-changed', () => {
   if (window.MT?.accounts?.renderBankBalances) {
     window.MT.accounts.renderBankBalances();
   }

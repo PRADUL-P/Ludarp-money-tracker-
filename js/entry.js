@@ -383,6 +383,12 @@
           participantsSplit = participants.map((p, i) => ({ name: p, amount: +arr[i].toFixed(2), received: false }));
           myShare = parseFloat(myShareInput.value) || 0;
           if (myShare < 0) { alert('Custom amounts exceed total. Fix amounts.'); return; }
+          const sumOthers = participantsSplit.reduce((a, b) => a + b.amount, 0);
+          const splitTotal = sumOthers + myShare;
+          if (Math.abs(splitTotal - amountValue) > 0.05) {
+            alert(`Split total (₹${splitTotal.toFixed(2)}) must equal total bill amount (₹${amountValue.toFixed(2)}).`);
+            return;
+          }
         }
 
         entry.amount = amountValue;
