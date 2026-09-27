@@ -75,10 +75,12 @@ function formatDateLabel(dateStr){
 let custom = loadCustom();
 function currencyFmt(v){ custom = loadCustom(); return (custom.currency||'₹') + Number(v).toFixed(2); }
 
+const APP_VERSION = '6.2.1';
+
 // expose to global so other modules can use
 window.MT = window.MT || {};
 window.MT.db = {
-  STORAGE_KEY, USER_KEY, CUSTOM_KEY, DEFAULTS,
+  APP_VERSION, STORAGE_KEY, USER_KEY, CUSTOM_KEY, DEFAULTS,
   loadStore, saveStore, loadUser, saveUser, loadCustom, saveCustom,
   getTZOffsetMs, todayISO, formatDateLabel, currencyFmt
 };
